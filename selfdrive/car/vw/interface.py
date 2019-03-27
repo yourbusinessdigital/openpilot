@@ -61,12 +61,6 @@ class CarInterface(object):
     std_cargo = 136
 
     if candidate == CAR.GOLF or candidate == CAR.ATLAS:
-      # Gerby steering test values
-      ret.steerReactance = 0.7
-      ret.steerInductance = 1.0
-      ret.steerResistance = 1.0
-      ret.eonToFront = 0.5
-
       ret.mass = 1372 + std_cargo
       ret.wheelbase = 2.64
       ret.centerToFront = ret.wheelbase * 0.5
@@ -81,12 +75,6 @@ class CarInterface(object):
       ret.steerMaxV = [1.]
 
     if candidate == CAR.OCTAVIA:
-      # Gerby steering test values
-      ret.steerReactance = 0.7
-      ret.steerInductance = 1.0
-      ret.steerResistance = 1.0
-      ret.eonToFront = 0.5
-
       ret.mass = 1360 + std_cargo
       ret.wheelbase = 2.69
       ret.centerToFront = ret.wheelbase * 0.5
