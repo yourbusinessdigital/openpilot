@@ -1,0 +1,92 @@
+from common.numpy_fast import clip, interp
+from common.realtime import sec_since_boot
+from selfdrive.config import Conversions as CV
+from selfdrive.boardd.boardd import can_list_to_can_capnp
+from selfdrive.car.vw.carstate import CarState, get_gateway_can_parser, get_extended_can_parser
+from selfdrive.car.vw import vwcan
+from selfdrive.car.vw.values import CAR, DBC
+from selfdrive.can.packer import CANPacker
+
+
+class CarControllerParams():
+  def __init__(self, car_fingerprint):
+    self.STEER_STEP = 2                 # HCA_01 message frequency 50Hz (100 / 2)
+    self.HUD_STEP = 10                  # LDW_02 message frequency 10Hz (100 / 10)
+
+    self.STEER_MAX = 300                # Max heading control assist torque 3.00nm
+    self.STEER_DELTA_INC = 4            # Max HCA reached in 1.50s (STEER_MAX / (50Hz * 1.50))
+    self.STEER_DELTA_DEC = 8            # Min HCA reached in 0.75s (STEER_MAX / (50Hz * 0.75))
+
+
+class CarController(object):
+  def __init__(self, canbus, car_fingerprint):
+    self.start_time = sec_since_boot()
+    self.counter = 0
+    self.apply_steer_prev = 0
+    self.car_fingerprint = car_fingerprint
+
+    # Setup detection helper. Routes commands to
+    # an appropriate CAN bus number.
+    self.canbus = canbus
+    self.params = CarControllerParams(car_fingerprint)
+    print(DBC)
+    self.packer_gw = CANPacker(DBC[car_fingerprint]['pt'])
+
+  def update(self, sendcan, enabled, CS, frame, actuators, leftLaneVisible, rightLaneVisible):
+    """ Controls thread """
+
+    P = self.params
+
+    # Send CAN commands.
+    can_sends = []
+    canbus = self.canbus
+
+    #
+    # Prepare HCA_01 steering torque message
+    #
+    if (frame % P.STEER_STEP) == 0:
+
+      if enabled and not CS.standstill:
+        # TODO: Verify our lkas_enabled DBC bit is correct, VCDS thinks it may not be
+        lkas_enabled = 1
+        plan_requested_torque = int(round(actuators.steer * P.STEER_MAX))
+
+        # If the driver is actively providing steering input, prevent the planned torque request
+        # from exceeding one-third of maximum. We adjust the plan prior to smoothing so we get
+        # smooth ramp-down of HCA torque if we were above this before the driver intervened.
+        if(CS.steer_override):
+          plan_requested_torque = clip(plan_requested_torque, -P.STEER_MAX / 3, P.STEER_MAX / 3)
+
+        # Apply increase and decrease rate limits for HCA torque in accordance with safety model.
+        if self.apply_steer_prev >= 0:
+          # Previously steering LEFT or STRAIGHT, normal calculations
+          hca_steer_min = max(self.apply_steer_prev - P.STEER_DELTA_DEC, 0 - P.STEER_DELTA_INC)
+          hca_steer_max = min(self.apply_steer_prev + P.STEER_DELTA_INC, P.STEER_MAX)
+        else:
+          # Previously steering RIGHT, inverted calculations
+          hca_steer_min = max(self.apply_steer_prev - P.STEER_DELTA_INC, -P.STEER_MAX)
+          hca_steer_max = min(self.apply_steer_prev + P.STEER_DELTA_DEC, 0 + P.STEER_DELTA_INC)
+
+        apply_steer = clip(plan_requested_torque, hca_steer_min, hca_steer_max)
+        self.apply_steer_prev = apply_steer
+
+      else:
+        # Disable heading control assist
+        lkas_enabled = 0
+        apply_steer = 0
+        self.apply_steer_prev = 0
+
+      idx = (frame / P.STEER_STEP) % 16
+      can_sends.append(vwcan.create_steering_control(self.packer_gw, canbus.gateway, CS.CP.carFingerprint, apply_steer, idx, lkas_enabled))
+
+    #
+    # Prepare LDW_02 HUD message with lane lines and confidence levels
+    #
+    if (frame % P.HUD_STEP) == 0:
+      if enabled and not CS.standstill:
+        lkas_enabled = 1
+      else:
+        lkas_enabled = 0
+      can_sends.append(vwcan.create_hud_control(self.packer_gw, canbus.gateway, CS.CP.carFingerprint, lkas_enabled, leftLaneVisible, rightLaneVisible))
+
+    sendcan.send(can_list_to_can_capnp(can_sends, msgtype='sendcan').to_bytes())
