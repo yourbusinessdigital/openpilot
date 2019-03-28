@@ -14,7 +14,8 @@ class CarControllerParams():
     self.HUD_STEP = 10                  # LDW_02 message frequency 10Hz (100 / 10)
 
     self.STEER_MAX = 300                # Max heading control assist torque 3.00nm
-    self.STEER_DELTA_INC = 4            # Max HCA reached in 1.50s (STEER_MAX / (50Hz * 1.50))
+    #self.STEER_DELTA_INC = 4            # Max HCA reached in 1.50s (STEER_MAX / (50Hz * 1.50))
+    self.STEER_DELTA_INC = 8            # Max HCA reached in 0.75s (STEER_MAX / (50Hz * 0.75))
     self.STEER_DELTA_DEC = 8            # Min HCA reached in 0.75s (STEER_MAX / (50Hz * 0.75))
 
 
