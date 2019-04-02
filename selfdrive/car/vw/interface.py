@@ -39,6 +39,7 @@ class CarInterface(object):
       self.sendcan = sendcan
       self.CC = CarController(canbus, CP.carFingerprint)
 
+
   @staticmethod
   def compute_gb(accel, speed):
     return float(accel) / 4.0
@@ -60,6 +61,7 @@ class CarInterface(object):
     ret.enableCamera = True
     std_cargo = 136
 
+    # FIXME: Move Atlas into its own section
     if candidate == CAR.GOLF or candidate == CAR.ATLAS:
       ret.mass = 1372 + std_cargo
       ret.wheelbase = 2.64
@@ -70,7 +72,7 @@ class CarInterface(object):
       ret.steerRateCost = 0.5
       ret.steerKf = 0.00006
       ret.steerKiBP, ret.steerKpBP = [[0.], [0.]] # m/s
-      ret.steerKpV, ret.steerKiV = [[0.5], [0.15]]
+      ret.steerKpV, ret.steerKiV = [[0.5], [0.2]]
       ret.steerMaxBP = [0.] # m/s
       ret.steerMaxV = [1.]
 
@@ -95,6 +97,7 @@ class CarInterface(object):
     # testing tuning
 
     # FIXME: from gm
+    # Testing removal of unused longitudinal stuffs
     ret.gasMaxBP = [0.]
     ret.gasMaxV = [.5]
     ret.brakeMaxBP = [0.]
@@ -110,7 +113,6 @@ class CarInterface(object):
 
     ret.stoppingControl = True
     ret.startAccel = 0.8
-    # end from gm
 
     # hardcoding honda civic 2016 touring params so they can be used to
     # scale unknown params for other cars
@@ -196,6 +198,7 @@ class CarInterface(object):
     ret.gearShifter = self.CS.gear_shifter
 
     # Obey vehicle setting for metric, update configuration DB if there is a mismatch
+    # FIXME: we don't really need to be doing this at 100hz
     is_metric = params.get("IsMetric") == "1"
     if(is_metric != self.CS.is_metric):
       params.put("IsMetric", "1" if self.CS.is_metric == 1 else "0")
@@ -214,11 +217,6 @@ class CarInterface(object):
       be.type = 'rightBlinker'
       be.pressed = bool(self.CS.right_blinker_on)
       buttonEvents.append(be)
-
-    # XXX JY WTF for are we unconditionally sending this message
-    #be = car.CarState.ButtonEvent.new_message()
-    #be.type = 'accelCruise'
-    #buttonEvents.append(be)
 
     events = []
     if not self.CS.can_valid:
@@ -261,7 +259,7 @@ class CarInterface(object):
     if self.CS.steer_error:
       # Steering rack is not configured for Heading Control Assist, or there
       # has been a timeout or other error in its reception of HCA messages.
-      events.append(create_event('steerUnavailable', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE, ET.PERMANENT]))
+      events.append(create_event('steerUnavailable', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE]))
 
 
     # TODO: Enable these Comma strict safety inputs once we support ACC cancel

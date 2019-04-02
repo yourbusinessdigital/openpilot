@@ -10,11 +10,11 @@ from selfdrive.can.packer import CANPacker
 
 class CarControllerParams():
   def __init__(self, car_fingerprint):
-    self.STEER_STEP = 2                 # HCA_01 message frequency 50Hz (100 / 2)
-    self.HUD_STEP = 10                  # LDW_02 message frequency 10Hz (100 / 10)
+    self.HCA_STEP_ACTIVE = 2            # HCA_01 message frequency 50Hz when applying torque (100 / 2)
+    self.HCA_STEP_INACTIVE = 10         # HCA_01 message frequency 10Hz when not applying torque (100 / 10)
+    self.LDW_STEP = 10                  # LDW_02 message frequency 10Hz (100 / 10)
 
     self.STEER_MAX = 300                # Max heading control assist torque 3.00nm
-    #self.STEER_DELTA_INC = 4            # Max HCA reached in 1.50s (STEER_MAX / (50Hz * 1.50))
     self.STEER_DELTA_INC = 8            # Max HCA reached in 0.75s (STEER_MAX / (50Hz * 0.75))
     self.STEER_DELTA_DEC = 8            # Min HCA reached in 0.75s (STEER_MAX / (50Hz * 0.75))
 
@@ -45,7 +45,7 @@ class CarController(object):
     #
     # Prepare HCA_01 steering torque message
     #
-    if (frame % P.STEER_STEP) == 0:
+    if (frame % P.HCA_STEP_ACTIVE) == 0:
 
       if enabled and not CS.standstill:
         # TODO: Verify our lkas_enabled DBC bit is correct, VCDS thinks it may not be
@@ -77,13 +77,13 @@ class CarController(object):
         apply_steer = 0
         self.apply_steer_prev = 0
 
-      idx = (frame / P.STEER_STEP) % 16
+      idx = (frame / P.HCA_STEP_ACTIVE) % 16
       can_sends.append(vwcan.create_steering_control(self.packer_gw, canbus.gateway, CS.CP.carFingerprint, apply_steer, idx, lkas_enabled))
 
     #
     # Prepare LDW_02 HUD message with lane lines and confidence levels
     #
-    if (frame % P.HUD_STEP) == 0:
+    if (frame % P.LDW_STEP) == 0:
       if enabled and not CS.standstill:
         lkas_enabled = 1
       else:
