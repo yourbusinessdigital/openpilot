@@ -71,6 +71,13 @@ class CarController(object):
         apply_steer = clip(plan_requested_torque, hca_steer_min, hca_steer_max)
         self.apply_steer_prev = apply_steer
 
+        # FIXME: Ugly hack to reset EPS hardcoded 180 second limit for HCA intervention.
+        # Deal with this by disengaging HCA anytime we have a zero-crossing. Need to refactor
+        # the up/down rate code above to enforce a zero-crossing on all changes of direction
+        # just for additional safety margin.
+        if apply_steer == 0:
+          lkas_enabled = 0
+
       else:
         # Disable heading control assist
         lkas_enabled = 0
