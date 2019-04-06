@@ -1,3 +1,4 @@
+from cereal import car
 from common.numpy_fast import clip, interp
 from common.realtime import sec_since_boot
 from selfdrive.config import Conversions as CV
@@ -7,6 +8,9 @@ from selfdrive.car.vw import vwcan
 from selfdrive.car.vw.values import CAR, DBC
 from selfdrive.can.packer import CANPacker
 
+VisualAlert = car.CarControl.HUDControl.VisualAlert
+AudibleAlert = car.CarControl.HUDControl.AudibleAlert
+AUDIBLE_WARNINGS = [AudibleAlert.chimeWarning1, AudibleAlert.chimeWarning2, AudibleAlert.chimeWarningRepeat]
 
 class CarControllerParams():
   def __init__(self, car_fingerprint):
@@ -15,8 +19,8 @@ class CarControllerParams():
     self.LDW_STEP = 10                  # LDW_02 message frequency 10Hz (100 / 10)
 
     self.STEER_MAX = 300                # Max heading control assist torque 3.00nm
-    self.STEER_DELTA_INC = 8            # Max HCA reached in 0.75s (STEER_MAX / (50Hz * 0.75))
-    self.STEER_DELTA_DEC = 8            # Min HCA reached in 0.75s (STEER_MAX / (50Hz * 0.75))
+    self.STEER_DELTA_INC = 16           # Max HCA reached in 0.375s (STEER_MAX / (50Hz * 0.375))
+    self.STEER_DELTA_DEC = 16           # Min HCA reached in 0.375s (STEER_MAX / (50Hz * 0.375))
 
 
 class CarController(object):
@@ -33,7 +37,7 @@ class CarController(object):
     print(DBC)
     self.packer_gw = CANPacker(DBC[car_fingerprint]['pt'])
 
-  def update(self, sendcan, enabled, CS, frame, actuators, leftLaneVisible, rightLaneVisible):
+  def update(self, sendcan, enabled, CS, frame, actuators, visual_alert, audible_alert, leftLaneVisible, rightLaneVisible):
     """ Controls thread """
 
     P = self.params
@@ -95,6 +99,15 @@ class CarController(object):
         lkas_enabled = 1
       else:
         lkas_enabled = 0
-      can_sends.append(vwcan.create_hud_control(self.packer_gw, canbus.gateway, CS.CP.carFingerprint, lkas_enabled, leftLaneVisible, rightLaneVisible))
+
+      if visual_alert == VisualAlert.steerRequired:
+        if audible_alert in AUDIBLE_WARNINGS:
+          hud_alert = 7
+        else:
+          hud_alert = 8
+      else:
+        hud_alert = 0
+
+      can_sends.append(vwcan.create_hud_control(self.packer_gw, canbus.gateway, CS.CP.carFingerprint, lkas_enabled, hud_alert, leftLaneVisible, rightLaneVisible))
 
     sendcan.send(can_list_to_can_capnp(can_sends, msgtype='sendcan').to_bytes())

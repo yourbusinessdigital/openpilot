@@ -72,7 +72,7 @@ class CarInterface(object):
       ret.steerRateCost = 0.5
       ret.steerKf = 0.00006
       ret.steerKiBP, ret.steerKpBP = [[0.], [0.]] # m/s
-      ret.steerKpV, ret.steerKiV = [[0.5], [0.2]]
+      ret.steerKpV, ret.steerKiV = [[0.5], [0.25]]
       ret.steerMaxBP = [0.] # m/s
       ret.steerMaxV = [1.]
 
@@ -280,5 +280,8 @@ class CarInterface(object):
 
   def apply(self, c, perception_state=log.Live20Data.new_message()):
     self.CC.update(self.sendcan, c.enabled, self.CS, self.frame, c.actuators,
-                   c.hudControl.leftLaneVisible, c.hudControl.rightLaneVisible)
+                   c.hudControl.visualAlert,
+                   c.hudControl.audibleAlert,
+                   c.hudControl.leftLaneVisible,
+                   c.hudControl.rightLaneVisible)
     self.frame += 1

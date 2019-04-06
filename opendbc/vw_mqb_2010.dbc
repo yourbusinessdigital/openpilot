@@ -1196,6 +1196,7 @@ BO_ 919 LDW_02: 8 XXX
  SG_ Left_Lane_Status : 38|2@1+ (1,0) [0|1] "" XXX
  SG_ LDW_TLC : 48|5@1+ (0.05,0) [0|255] "Seconds" XXX
  SG_ LDW_Unknown : 15|2@0+ (1,0) [0|3] "" XXX
+ SG_ Test_Signal : 16|4@1+ (1,0) [0|15] "" XXX
 
 BO_ 780 ACC_02: 8 XXX
  SG_ Kollision1 : 23|1@1+ (1,0) [0|1] "" XXX
@@ -1215,6 +1216,26 @@ BO_ 780 ACC_02: 8 XXX
  SG_ Abstand : 24|10@1+ (0.1,0) [0|102.3] "m" XXX
  SG_ ACC_02_CRC : 0|8@1+ (1,0) [0|255] "" XXX
  SG_ ACC_02_BZ : 8|4@1+ (1,0) [0|15] "" XXX
+
+BO_ 302 ACC_07: 8 XXX
+
+BO_ 264 Fahrwerk_01: 8 XXX
+
+BO_ 695 RCTA_01: 8 XXX
+
+BO_ 783 SWA_01: 8 XXX
+
+BO_ 804 ACC_04: 8 XXX
+
+BO_ 917 LWR_AFS_01: 8 XXX
+
+BO_ 991 Gateway_76: 8 XXX
+
+BO_ 997 TSG_FT_02: 8 XXX
+
+BO_ 1175 Parkhilfe_01: 8 XXX
+
+BO_ 427 ESP_33: 8 XXX
 
 CM_ SG_ 294 Steer_Torque "Stock limit 300.00";
 CM_ SG_ 294 Torque_Not_0 "2 when torque is greater than 0";

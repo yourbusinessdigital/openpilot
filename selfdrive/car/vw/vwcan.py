@@ -26,7 +26,7 @@ def create_steering_control(packer, bus, car_fingerprint, apply_steer, idx, lkas
   values["HCA_01_CRC"] = checksum
   return packer.make_can_msg("HCA_01", 0, values)
 
-def create_hud_control(packer, bus, car_fingerprint, lkas_enabled, leftLaneVisible, rightLaneVisible):
+def create_hud_control(packer, bus, car_fingerprint, lkas_enabled, hud_alert, leftLaneVisible, rightLaneVisible):
 
   if lkas_enabled:
     leftlanehud = 3 if leftLaneVisible else 1
@@ -41,5 +41,6 @@ def create_hud_control(packer, bus, car_fingerprint, lkas_enabled, leftLaneVisib
     "Kombi_Lamp_Green": 1 if lkas_enabled == 1 else 0,
     "Left_Lane_Status": leftlanehud,
     "Right_Lane_Status": rightlanehud,
+    "Test_Signal": hud_alert,
   }
   return packer.make_can_msg("LDW_02", 0, values)
