@@ -208,7 +208,7 @@ class CarState(object):
     v_ego_x = self.v_ego_kf.update(speed_estimate)
     self.v_ego = float(v_ego_x[0])
     self.a_ego = float(v_ego_x[1])
-    self.standstill = self.v_ego_raw < 0.1 # TODO: Make sure this is good enough to knock out standstill HCA
+    self.standstill = self.v_ego_raw < 0.1
 
     # Update steering angle
     if gw_cp.vl["LWI_01"]['LWI_VZ_Lenkradwinkel'] == 1:
