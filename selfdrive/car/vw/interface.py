@@ -259,7 +259,7 @@ class CarInterface(object):
     if self.CS.steer_error:
       # Steering rack is not configured for Heading Control Assist, or there
       # has been a timeout or other error in its reception of HCA messages.
-      events.append(create_event('steerUnavailable', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE]))
+      events.append(create_event('steerUnavailable', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE, ET.PERMANENT]))
 
 
     # TODO: Enable these Comma strict safety inputs once we support ACC cancel

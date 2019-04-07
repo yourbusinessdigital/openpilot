@@ -10,7 +10,8 @@ from selfdrive.can.packer import CANPacker
 
 VisualAlert = car.CarControl.HUDControl.VisualAlert
 AudibleAlert = car.CarControl.HUDControl.AudibleAlert
-AUDIBLE_WARNINGS = [AudibleAlert.chimeWarning1, AudibleAlert.chimeWarning2, AudibleAlert.chimeWarningRepeat]
+AUDIBLE_WARNINGS = [AudibleAlert.chimeWarning1, AudibleAlert.chimeWarning2]
+EMERGENCY_WARNINGS = [AudibleAlert.chimeWarningRepeat]
 
 class CarControllerParams():
   def __init__(self, car_fingerprint):
@@ -101,10 +102,12 @@ class CarController(object):
         lkas_enabled = 0
 
       if visual_alert == VisualAlert.steerRequired:
-        if audible_alert in AUDIBLE_WARNINGS:
-          hud_alert = 7
+        if audible_alert in EMERGENCY_WARNINGS:
+          hud_alert = 6 # "Emergency Assist: Please Take Over Steering", with beep
+        elif audible_alert in AUDIBLE_WARNINGS:
+          hud_alert = 7 # "Lane Assist: Please Take Over Steering", with beep
         else:
-          hud_alert = 8
+          hud_alert = 8 # "Lane Assist: Please Take Over Steering", silent
       else:
         hud_alert = 0
 
