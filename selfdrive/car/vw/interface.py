@@ -57,11 +57,14 @@ class CarInterface(object):
 
     ret.enableCruise = True
 
+    # Disable this alert on dev branch where it duplicates and obscures the engineering UI
+    ret.steerLimitAlert = False
+
     # TODO: gate this on detection
     ret.enableCamera = True
     std_cargo = 136
 
-    # FIXME: Move Atlas into its own section
+    # TODO: Remove these when converting to chassisdata.py VIN detection
     if candidate == CAR.GOLF or candidate == CAR.ATLAS:
       ret.mass = 1372 + std_cargo
       ret.wheelbase = 2.64
@@ -92,9 +95,7 @@ class CarInterface(object):
 
     ret.safetyModel = car.CarParams.SafetyModels.vw
     ret.steerControlType = car.CarParams.SteerControlType.torque
-    ret.steerLimitAlert = True
     ret.steerRatioRear = 0.
-    # testing tuning
 
     # FIXME: from gm
     # Testing removal of unused longitudinal stuffs
