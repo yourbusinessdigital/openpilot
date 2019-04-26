@@ -9,6 +9,9 @@ int vw_ign_hook() {
 
 static void vw_init(int16_t param) {
   controls_allowed = 1;
+  #ifdef PANDA
+    lline_relay_release();
+  #endif
 }
 
 static int vw_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
@@ -57,4 +60,5 @@ const safety_hooks vw_hooks = {
   .tx_lin = vw_tx_lin_hook,
   .ignition = vw_ign_hook,
   .fwd = vw_fwd_hook,
+  .relay = nooutput_relay_hook,
 };
