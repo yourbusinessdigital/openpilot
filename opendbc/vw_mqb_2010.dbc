@@ -1162,25 +1162,25 @@ BO_ 294 HCA_01: 8 XXX
  SG_ 254 : 47|8@0+ (1,0) [0|255] "" XXX
  SG_ HCA_01_CRC : 7|8@0+ (1,0) [0|255] "" XXX
  SG_ HCA_01_BZ : 11|4@0+ (1,0) [0|255] "" XXX
- SG_ Assist_Torque : 16|14@1+ (1,0) [0|255] "" XXX
  SG_ Assist_Requested : 30|1@0+ (1,0) [0|1] "" XXX
- SG_ Assist_Direction : 31|1@0+ (1,0) [0|255] "" XXX
- SG_ HCA_Active : 34|1@0+ (1,0) [0|1] "" XXX
+ SG_ Assist_Torque : 16|14@1+ (1,0) [0|300] "Nm" XXX
+ SG_ Assist_VZ : 31|1@0+ (1,0) [0|1] "" XXX
+ SG_ HCA_Available : 32|1@1+ (1,0) [0|1] "" XXX
  SG_ HCA_Standby : 33|1@0+ (1,0) [0|1] "" XXX
- SG_ HCA_Coded : 32|1@1+ (1,0) [0|3] "" XXX
+ SG_ HCA_Active : 34|1@0+ (1,0) [0|1] "" XXX
 
 BO_ 159 EPS_01: 8 XXX
  SG_ EPS_01_CRC : 0|8@1+ (1,0) [0|255] "" XXX
  SG_ EPS_01_BZ : 8|4@1+ (1,0) [0|15] "" XXX
- SG_ Driver_Strain : 40|13@1+ (1,0) [0|255] "" XXX
  SG_ Steering_Wheel_Angle : 16|13@1+ (0.075,0) [0|16383] "Unit_DegreOfArc" XXX
  SG_ Steering_Wheel_Angle_VZ : 31|1@0+ (1,0) [0|1] "" XXX
- SG_ Driver_Strain_VZ : 55|1@1+ (1,0) [0|1] "" XXX
- SG_ XXX_Status1 : 62|1@0+ (1,0) [0|1] "" XXX
- SG_ XXX_Status2 : 63|1@0+ (1,0) [0|1] "" XXX
  SG_ HCA_Active : 34|1@0+ (1,0) [0|1] "" XXX
  SG_ HCA_Standby : 33|1@0+ (1,0) [0|1] "" XXX
- SG_ HCA_Coded : 32|1@1+ (1,0) [0|3] "" XXX
+ SG_ Unknown_Status2 : 63|1@0+ (1,0) [0|1] "" XXX
+ SG_ HCA_Available : 32|1@1+ (1,0) [0|3] "" XXX
+ SG_ Driver_Strain : 40|13@1+ (1,0) [0|255] "Nm" XXX
+ SG_ Driver_Strain_VZ : 55|1@1+ (1,0) [0|1] "" XXX
+ SG_ Unknown_Status1 : 62|1@0+ (1,0) [0|1] "" XXX
 
 BO_ 286 VehicleSpeed: 8 XXX
  SG_ VehicleSpeed_CRC : 0|8@1+ (1,0) [0|255] "" XXX
@@ -1188,15 +1188,15 @@ BO_ 286 VehicleSpeed: 8 XXX
  SG_ Speed : 52|12@1+ (0.125,0) [0|1] "" XXX
 
 BO_ 919 LDW_02: 8 XXX
- SG_ Kombi_Lamp_Orange : 61|1@0+ (1,0) [0|1] "" XXX
- SG_ Kombi_Lamp_Green : 62|1@0+ (1,0) [0|1] "" XXX
  SG_ LDW_DLC : 40|8@1+ (0.01,0) [0|255] "m" XXX
- SG_ Right_Lane_Status : 36|2@1+ (1,0) [0|1] "" XXX
- SG_ LDW_Direction : 20|1@0+ (1,0) [0|1] "" XXX
- SG_ Left_Lane_Status : 38|2@1+ (1,0) [0|1] "" XXX
  SG_ LDW_TLC : 48|5@1+ (0.05,0) [0|255] "Seconds" XXX
  SG_ LDW_Unknown : 15|2@0+ (1,0) [0|3] "" XXX
- SG_ Test_Signal : 16|4@1+ (1,0) [0|15] "" XXX
+ SG_ Alert_Message : 16|4@1+ (1,0) [0|15] "" XXX
+ SG_ LDW_Direction : 20|1@0+ (1,0) [0|1] "" XXX
+ SG_ Right_Lane_Status : 36|2@1+ (1,0) [0|3] "" XXX
+ SG_ Left_Lane_Status : 38|2@1+ (1,0) [0|3] "" XXX
+ SG_ Kombi_Lamp_Orange : 61|1@0+ (1,0) [0|1] "" XXX
+ SG_ Kombi_Lamp_Green : 62|1@0+ (1,0) [0|1] "" XXX
 
 BO_ 780 ACC_02: 8 XXX
  SG_ Kollision1 : 23|1@1+ (1,0) [0|1] "" XXX
@@ -1218,37 +1218,62 @@ BO_ 780 ACC_02: 8 XXX
  SG_ ACC_02_BZ : 8|4@1+ (1,0) [0|15] "" XXX
 
 BO_ 302 ACC_07: 8 XXX
+ SG_ ACC_07_BZ : 8|4@1+ (1,0) [0|15] "" XXX
+ SG_ ACC_07_CRC : 0|8@1+ (1,0) [0|255] "" XXX
 
 BO_ 264 Fahrwerk_01: 8 XXX
+ SG_ Fahrwerk_01_BZ : 8|4@1+ (1,0) [0|15] "" XXX
+ SG_ Fahrwerk_01_CRC : 0|8@1+ (1,0) [0|255] "" XXX
 
 BO_ 695 RCTA_01: 8 XXX
+ SG_ RCTA_01_BZ : 8|4@1+ (1,0) [0|15] "" XXX
+ SG_ RCTA_01_CRC : 0|8@1+ (1,0) [0|255] "" XXX
 
 BO_ 783 SWA_01: 8 XXX
+ SG_ SWA_01_BZ : 8|4@1+ (1,0) [0|15] "" XXX
+ SG_ SWA_01_CRC : 0|8@1+ (1,0) [0|255] "" XXX
 
 BO_ 804 ACC_04: 8 XXX
+ SG_ ACC_04_CRC : 0|8@1+ (1,0) [0|255] "" XXX
+ SG_ ACC_04_BZ : 8|4@1+ (1,0) [0|15] "" XXX
 
 BO_ 917 LWR_AFS_01: 8 XXX
 
 BO_ 991 Gateway_76: 8 XXX
 
 BO_ 997 TSG_FT_02: 8 XXX
+ SG_ TSG_FT_02_BZ : 8|4@1+ (1,0) [0|15] "" XXX
+ SG_ TSG_FT_02_CRC : 0|8@1+ (1,0) [0|255] "" XXX
 
 BO_ 1175 Parkhilfe_01: 8 XXX
 
 BO_ 427 ESP_33: 8 XXX
+ SG_ ESP_33_BZ : 8|4@1+ (1,0) [0|15] "" XXX
+ SG_ ESP_33_CRC : 0|8@1+ (1,0) [0|255] "" XXX
 
-CM_ SG_ 294 Steer_Torque "Stock limit 300.00";
-CM_ SG_ 294 Torque_Not_0 "2 when torque is greater than 0";
-CM_ SG_ 159 XXX_Ready "Possibly a ready/ok or engine running bit, assist available, need to check";
-CM_ SG_ 919 Kombi_Lamp_Orange "Enables orange LDW light in instrument cluster";
+
+
+
+CM_ SG_ 294 3 "May be zero when sent by older cameras";
+CM_ SG_ 294 7 "May be zero when sent by older cameras";
+CM_ SG_ 294 254 "May be zero when sent by older cameras";
+CM_ SG_ 294 Assist_Torque "Heading control input, torque";
+CM_ SG_ 294 Assist_VZ "Heading control input, direction (sign)";
+CM_ SG_ 294 HCA_Available "Must be 1 for steering rack to accept HCA commands";
+CM_ SG_ 159 HCA_Ready "1 if HCA is okay, 0 if the rack doesn't have HCA configured or a timer/constraint has been violated, rack will not respond to HCA commands";
+CM_ SG_ 159 Driver_Strain "Steering input by driver, torque";
+CM_ SG_ 159 Driver_Strain_VZ "Steering input by driver, sign (direction)";
 CM_ SG_ 919 LDW_DLC "Probable DLC (distance to line crossing)";
-CM_ SG_ 919 RightLaneStatus "0 when LKAS disabled, 1 when enabled";
-CM_ SG_ 919 LDW_Direction "Possible left/right";
-CM_ SG_ 919 LeftLaneStatus "0 when LKAS disabled, 1 when enabled";
 CM_ SG_ 919 LDW_TLC "Probable TLC (time to line crossing)";
+CM_ SG_ 919 LDW_Unknown "Might be a steering pressed / driver active flag";
+CM_ SG_ 919 Alert_Message "Static table of alert messages to be invoked in the instrument cluster, some with or without beeps, 0 = no current message";
+CM_ SG_ 919 LDW_Direction "Left/right indicator for DLC and TLC";
+CM_ SG_ 919 Right_Lane_Status "Display brightness range, 0 = no lane, 3 = full brightness";
+CM_ SG_ 919 Left_Lane_Status "Display brightness range, 0 = no lane, 3 = full brightness";
+CM_ SG_ 919 Kombi_Lamp_Orange "Enables orange LDW light in instrument cluster";
+CM_ SG_ 919 Kombi_Lamp_Green "Enables green LDW light in instrument cluster";
 CM_ SG_ 780 Folgefahrt "Following another vehicle";
 CM_ SG_ 780 SetAbstand "Set following distance";
 CM_ SG_ 780 SetSpeed "ACC set speed";
 CM_ SG_ 780 Abstand "Following distance";
-
-VAL_ 173 GE_Fahrstufe 5 "P" 6 "R" 7 "N" 8 "D" 9 "S" 10 "E" 14 "T";
+VAL_ 173 GE_Fahrstufe 5 "P" 6 "R" 7 "N" 8 "D" 9 "S" 10 "E" 14 "T" ;

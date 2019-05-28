@@ -66,7 +66,7 @@ def get_gateway_can_parser(CP, canbus):
     ("MO_Fahrpedalrohwert_01", "Motor_20", 0),    # Accelerator pedal value
     ("Driver_Strain", "EPS_01", 0),               # Absolute driver torque input
     ("Driver_Strain_VZ", "EPS_01", 0),            # Driver torque input sign
-    ("HCA_Coded", "EPS_01", 0),                   # Steering rack HCA support configured
+    ("HCA_Available", "EPS_01", 0),               # Steering rack HCA support configured
     ("ESP_Tastung_passiv", "ESP_21", 0),          # Stability control disabled
     ("KBI_MFA_v_Einheit_02", "Einheiten_01", 0),  # MPH vs KMH speed display
     ("KBI_Handbremse", "Kombi_01", 0),            # Manual handbrake applied
@@ -171,8 +171,8 @@ class CarState(object):
     self.can_valid = True
 
     # Check to make sure the electric power steering rack is configured
-    # to accept and respond to HCA_01 messages.
-    self.steer_error = not gw_cp.vl["EPS_01"]["HCA_Coded"]
+    # and ready to respond to HCA_01 messages.
+    self.steer_error = not gw_cp.vl["EPS_01"]["HCA_Available"]
 
     # Update driver preference for metric. VW stores many different unit
     # preferences, including separate units for for distance vs. speed.
@@ -198,7 +198,6 @@ class CarState(object):
     self.seatbelt = 1 if gw_cp.vl["Airbag_02"]["AB_Gurtschloss_FA"] == 3 else 0
 
     # Update speed from ABS wheel speeds
-    # TODO: Why aren't we using one of the perfectly good calculated speeds from the car?
     self.v_wheel_fl = gw_cp.vl["ESP_19"]['ESP_HL_Radgeschw_02'] * CV.KPH_TO_MS
     self.v_wheel_fr = gw_cp.vl["ESP_19"]['ESP_HR_Radgeschw_02'] * CV.KPH_TO_MS
     self.v_wheel_rl = gw_cp.vl["ESP_19"]['ESP_VL_Radgeschw_02'] * CV.KPH_TO_MS

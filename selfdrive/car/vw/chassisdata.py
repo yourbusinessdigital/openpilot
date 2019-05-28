@@ -38,13 +38,19 @@ class RADAR_BOSCH_LRR:
   # Various Audi, older Touareg and Phaeton, to be developed further later if needed
   pass
 
+class RADAR_BOSCH_LRR1(RADAR_BOSCH_LRR):
+  MaxDetectionRange = 150 # Meters
+
 class RADAR_BOSCH_LRR2(RADAR_BOSCH_LRR):
-  pass
+  MaxDetectionRange = 200 # Meters
 
 class RADAR_BOSCH_LRR3(RADAR_BOSCH_LRR):
-  pass
+  MaxDetectionRange = 250 # Meters
 
 class RADAR_BOSCH_LRR4(RADAR_BOSCH_LRR):
+  MaxDetectionRange = 250 # Meters
+  MaxObjectsDetected = 24
+  HorizontalFoV =
   pass
 
 class CAMERA_BOSCH:
