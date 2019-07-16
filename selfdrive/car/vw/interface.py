@@ -62,7 +62,7 @@ class CarInterface(object):
     std_cargo = 136
 
     # FIXME: Move Atlas into its own section
-    if candidate == CAR.GOLF or candidate == CAR.ATLAS:
+    if candidate == CAR.GOLF or candidate == CAR.ATLAS-SEL or candidate == CAR.ATLAS-SETECH:
       ret.mass = 1372 + std_cargo
       ret.wheelbase = 2.64
       ret.centerToFront = ret.wheelbase * 0.5
