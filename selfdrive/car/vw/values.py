@@ -47,6 +47,7 @@ FINGERPRINTS = {
 
 DBC = {
   CAR.GOLF: dbc_dict('vw_mqb_2010', None),
-  CAR.ATLAS: dbc_dict('vw_mqb_2010', None),
+  CAR.ATLAS-SELP: dbc_dict('vw_mqb_2010', None),
+  CAR.ATLAS-SETECH: dbc_dict('vw_mqb_2010', None),
   CAR.OCTAVIA: dbc_dict('vw_mqb_2010', None),
 }
