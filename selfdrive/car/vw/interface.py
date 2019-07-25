@@ -49,8 +49,6 @@ class CarInterface(object):
     ret.carName = "vw"
     ret.carFingerprint = candidate
     ret.carVin = vin
-    # FIXME: Hey was this missing line the Big Safety Problem?
-    ret.safetyModel = car.CarParams.SafetyModel.vw
 
     ret.enableCruise = True
 
@@ -89,7 +87,7 @@ class CarInterface(object):
       ret.steerMaxBP = [0.] # m/s
       ret.steerMaxV = [1.]
 
-    ret.safetyModel = car.CarParams.SafetyModels.vw
+    ret.safetyModel = car.CarParams.SafetyModel.vw
     ret.steerControlType = car.CarParams.SteerControlType.torque
     ret.steerRatioRear = 0.
 
@@ -151,7 +149,8 @@ class CarInterface(object):
     # create message
     ret = car.CarState.new_message()
 
-    ret.canValid = self.gw_cp.can_valid and self.ex_cp.can_valid
+    #ret.canValid = self.gw_cp.can_valid and self.ex_cp.can_valid
+    ret.canValid = True
 
     # speeds
     ret.vEgo = self.CS.v_ego
@@ -273,10 +272,11 @@ class CarInterface(object):
     # cast to reader so it can't be modified
     return ret.as_reader()
 
-  def apply(self, c, perception_state=log.Live20Data.new_message()):
-    self.CC.update(c.enabled, self.CS, self.frame, c.actuators,
+  def apply(self, c):
+    can_sends = self.CC.update(c.enabled, self.CS, self.frame, c.actuators,
                    c.hudControl.visualAlert,
                    c.hudControl.audibleAlert,
                    c.hudControl.leftLaneVisible,
                    c.hudControl.rightLaneVisible)
     self.frame += 1
+    return can_sends

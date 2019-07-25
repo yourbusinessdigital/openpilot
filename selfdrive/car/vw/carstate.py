@@ -2,7 +2,8 @@ import numpy as np
 from cereal import car
 from common.kalman.simple_kalman import KF1D
 from selfdrive.config import Conversions as CV
-from selfdrive.can.parser import CANParser, CANDefine
+from selfdrive.can.parser import CANParser
+from selfdrive.can.can_define import CANDefine
 from selfdrive.car.vw.values import DBC, CAR
 
 # TODO: additional signals
@@ -66,7 +67,7 @@ def get_gateway_can_parser(CP, canbus):
     ("MO_Fahrpedalrohwert_01", "Motor_20", 0),    # Accelerator pedal value
     ("Driver_Strain", "EPS_01", 0),               # Absolute driver torque input
     ("Driver_Strain_VZ", "EPS_01", 0),            # Driver torque input sign
-    ("HCA_Coded", "EPS_01", 0),                   # Steering rack HCA support configured
+    ("HCA_Ready", "EPS_01", 0),                   # Steering rack HCA support configured
     ("ESP_Tastung_passiv", "ESP_21", 0),          # Stability control disabled
     ("KBI_MFA_v_Einheit_02", "Einheiten_01", 0),  # MPH vs KMH speed display
     ("KBI_Handbremse", "Kombi_01", 0),            # Manual handbrake applied
@@ -159,16 +160,16 @@ class CarState(object):
 
     # vEgo kalman filter
     dt = 0.01
-    self.v_ego_kf = KF1D(x0=np.matrix([[0.], [0.]]),
-                         A=np.matrix([[1., dt], [0., 1.]]),
-                         C=np.matrix([1., 0.]),
-                         K=np.matrix([[0.12287673], [0.29666309]]))
+    self.v_ego_kf = KF1D(x0=[[0.], [0.]],
+                         A=[[1., dt], [0., 1.]],
+                         C=[1., 0.],
+                         K=[[0.12287673], [0.29666309]])
     self.v_ego = 0.
 
   def update(self, gw_cp, ex_cp):
     # Check to make sure the electric power steering rack is configured
     # to accept and respond to HCA_01 messages.
-    self.steer_error = not gw_cp.vl["EPS_01"]["HCA_Coded"]
+    self.steer_error = not gw_cp.vl["EPS_01"]["HCA_Ready"]
 
     # Update driver preference for metric. VW stores many different unit
     # preferences, including separate units for for distance vs. speed.

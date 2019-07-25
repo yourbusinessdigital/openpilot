@@ -15,8 +15,8 @@ def create_steering_control(packer, bus, car_fingerprint, apply_steer, idx, lkas
     "7": 7,
     "Assist_Torque": abs(apply_steer),
     "Assist_Requested": lkas_enabled,
-    "Assist_Direction": 1 if apply_steer < 0 else 0,
-    "HCA_Coded": 1,
+    "Assist_VZ": 1 if apply_steer < 0 else 0,
+    "HCA_Available": 1,
     "HCA_Standby": not lkas_enabled,
     "HCA_Active": lkas_enabled,
   }
@@ -41,6 +41,6 @@ def create_hud_control(packer, bus, car_fingerprint, lkas_enabled, hud_alert, le
     "Kombi_Lamp_Green": 1 if lkas_enabled == 1 else 0,
     "Left_Lane_Status": leftlanehud,
     "Right_Lane_Status": rightlanehud,
-    "Test_Signal": hud_alert,
+    "Alert_Message": hud_alert,
   }
   return packer.make_can_msg("LDW_02", 0, values)

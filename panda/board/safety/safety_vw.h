@@ -1,21 +1,22 @@
-void vw_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {}
-
-int vw_ign_hook() {
-  return -1; // use GPIO to determine ignition
+static void vw_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
+  if(to_push) return;
 }
 
 // FIXME
 // *** all output safety mode ***
 
 static void vw_init(int16_t param) {
+  if(param) controls_allowed = 1;
   controls_allowed = 1;
 }
 
 static int vw_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
+  if(to_send) return true;
   return true;
 }
 
 static int vw_tx_lin_hook(int lin_num, uint8_t *data, int len) {
+  if(lin_num > 0 && data && len > 0) return true;
   return true;
 }
 
@@ -55,6 +56,6 @@ const safety_hooks vw_hooks = {
   .rx = vw_rx_hook,
   .tx = vw_tx_hook,
   .tx_lin = vw_tx_lin_hook,
-  .ignition = vw_ign_hook,
+  .ignition = default_ign_hook,
   .fwd = vw_fwd_hook,
 };
