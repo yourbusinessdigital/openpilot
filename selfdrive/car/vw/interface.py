@@ -220,12 +220,15 @@ class CarInterface(object):
 
     events = []
 
+    # Observe the car's ACC engage and disengage behavior and set OP engagement
+    # to match.
+    # FIXME: Eventually move to intercepting GRA_ACC_01 instead
     if self.CS.acc_active and not self.acc_active_prev:
       events.append(create_event('pcmEnable', [ET.ENABLE]))
     if not self.CS.acc_active:
       events.append(create_event('pcmDisable', [ET.USER_DISABLE]))
 
-    # handle button presses
+    # Handle button presses
     for b in ret.buttonEvents:
       # do enable on both accel and decel buttons
       if b.type in ["accelCruise", "decelCruise"] and not b.pressed:

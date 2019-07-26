@@ -71,6 +71,13 @@ def get_gateway_can_parser(CP, canbus):
     ("ESP_Tastung_passiv", "ESP_21", 0),          # Stability control disabled
     ("KBI_MFA_v_Einheit_02", "Einheiten_01", 0),  # MPH vs KMH speed display
     ("KBI_Handbremse", "Kombi_01", 0),            # Manual handbrake applied
+    ("GRA_ACC_01", "GRA_Hauptschalter", 0),       # ACC button, on/off
+    ("GRA_ACC_01", "GRA_Abbrechen", 0),           # ACC button, cancel
+    ("GRA_ACC_01", "GRA_Tip_Setzen", 0),          # ACC button, set
+    ("GRA_ACC_01", "GRA_Tip_Hoch", 0),            # ACC button, increase or accel
+    ("GRA_ACC_01", "GRA_Tip_Runter", 0),          # ACC button, decrease or decel
+    ("GRA_ACC_01", "GRA_Tip_Wiederaufnahme", 0),  # ACC button, resume
+    ("GRA_ACC_01", "GRA_Verstellung_Zeitluecke", 0), # ACC button, time gap adj
   ]
 
   checks = [
@@ -81,8 +88,9 @@ def get_gateway_can_parser(CP, canbus):
     ("ESP_05", 50),       # From J104 ABS/ESP controller
     ("ESP_21", 50),       # From J104 ABS/ESP controller
     ("Motor_20", 50),     # From J623 Engine control module
-    ("Gateway_72", 10),   # From J533 CAN gateway (aggregated data)
+    ("GRA_ACC_01", 33),   # From J??? steering wheel control buttons
     ("Getriebe_11", 20),  # From J743 Auto transmission control module
+    ("Gateway_72", 10),   # From J533 CAN gateway (aggregated data)
     ("Airbag_02", 5),     # From J234 Airbag control module
     ("Kombi_01", 2),      # From J285 Instrument cluster
     ("Einheiten_01", 1),  # From J??? not known if gateway, cluster, or BCM
@@ -167,8 +175,8 @@ class CarState(object):
     self.v_ego = 0.
 
   def update(self, gw_cp, ex_cp):
-    # Check to make sure the electric power steering rack is configured
-    # to accept and respond to HCA_01 messages.
+    # Check to make sure the electric power steering rack is configured to
+    # accept and respond to HCA_01 messages and has not encountered a fault.
     self.steer_error = not gw_cp.vl["EPS_01"]["HCA_Ready"]
 
     # Update driver preference for metric. VW stores many different unit
@@ -176,6 +184,8 @@ class CarState(object):
     # We use the speed preference for OP.
     self.is_metric = not gw_cp.vl["Einheiten_01"]["KBI_MFA_v_Einheit_02"]
 
+    # Update seatbelt fastened status
+    self.seatbelt = 1 if gw_cp.vl["Airbag_02"]["AB_Gurtschloss_FA"] == 3 else 0
     # Update door and trunk/hatch lid open status
     self.door_all_closed = not any([gw_cp.vl["Gateway_72"]['ZV_FT_offen'],
                                     gw_cp.vl["Gateway_72"]['ZV_BT_offen'],
@@ -184,15 +194,10 @@ class CarState(object):
                                     gw_cp.vl["Gateway_72"]['ZV_HD_offen']])
 
     # Update turn signal status
-    # TODO: Use a leading edge transition and timer to simulate real blinker state instead of momentary turnstalk
-    #  * Right place for that might be in interface rather than carstate
     self.prev_left_blinker_on = self.left_blinker_on
     self.prev_right_blinker_on = self.right_blinker_on
     self.left_blinker_on = gw_cp.vl["Gateway_72"]['BH_Blinker_li']
     self.right_blinker_on = gw_cp.vl["Gateway_72"]['BH_Blinker_re']
-
-    # Update seatbelt fastened status
-    self.seatbelt = 1 if gw_cp.vl["Airbag_02"]["AB_Gurtschloss_FA"] == 3 else 0
 
     # Update speed from ABS wheel speeds
     # TODO: Why aren't we using one of the perfectly good calculated speeds from the car?
@@ -227,7 +232,7 @@ class CarState(object):
     self.steer_override = abs(self.steer_torque_driver) > 100
 
     # Update gas, brakes, and gearshift
-    self.pedal_gas = gw_cp.vl["Motor_20"]['MO_Fahrpedalrohwert_01']
+    self.pedal_gas = gw_cp.vl["Motor_20"]['MO_Fahrpedalrohwert_01'] / 100.0
     self.brake_pressed = gw_cp.vl["ESP_05"]['ESP_Fahrer_bremst']
     self.brake_lights = gw_cp.vl["ESP_05"]['ESP_Status_Bremsdruck']
     self.user_brake = gw_cp.vl["ESP_05"]['ESP_Bremsdruck'] # TODO: this is pressure in Bar, not sure what OP expects

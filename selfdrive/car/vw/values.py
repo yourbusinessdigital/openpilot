@@ -1,5 +1,9 @@
 from selfdrive.car import dbc_dict
 
+class SafetyStyle:
+  OEM = 0
+  CommaStrict = 1
+
 class CAR:
   GOLF = "2018 VW Golf R"
   ATLAS = "2018 VW Atlas SEL Premium"
