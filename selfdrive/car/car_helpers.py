@@ -53,6 +53,9 @@ interfaces = load_interfaces(_get_interface_names())
 def only_toyota_left(candidate_cars):
   return all(("TOYOTA" in c or "LEXUS" in c) for c in candidate_cars)
 
+def only_volkswagen_left(candidate_cars):
+  return all(("VW" in c or "AUDI" in c) for c in candidate_cars)
+
 # BOUNTY: every added fingerprint in selfdrive/car/*/values.py is a $100 coupon code on shop.comma.ai
 # **** for use live only ****
 def fingerprint(logcan, sendcan):
@@ -79,6 +82,7 @@ def fingerprint(logcan, sendcan):
   vin_never_responded = True
   vin_dat = []
   vin = ""
+  vin_frag1, vin_frag2, vin_frag3 = "", "", ""
 
   frame = 0
 
@@ -99,6 +103,23 @@ def fingerprint(logcan, sendcan):
             vin_responded = True
             vin_step += 1
 
+      # As an alternative, try to read VIN from Volkswagen "Component
+      # Protection" messages, received without any active query. Messages
+      # may be received out-of-order. The pattern is somewhat unusual:
+      #
+      # @ 0.2hz, message 00, 01, 00, 02, 00, 01, 00, 02, ...
+      #
+      # therefore it may take just under 800ms to collect all three.
+      if can.src == 0 and can.address == 0x6b4:
+        if can.dat[0] == 0:
+          vin_frag1 = can.dat[5:]
+        if can.dat[0] == 1:
+          vin_frag2 = can.dat[1:]
+        if can.dat[0] == 2:
+          vin_frag3 = can.dat[1:]
+        if vin_frag1 and vin_frag2 and vin_frag3:
+          vin = vin_frag1 + vin_frag2 + vin_frag3
+
       # ignore everything not on bus 0 and with more than 11 bits,
       # which are ussually sporadic and hard to include in fingerprints.
       # also exclude VIN query response on 0x7e8.
@@ -114,11 +135,14 @@ def fingerprint(logcan, sendcan):
 
     # if we only have one car choice and the time_fingerprint since we got our first
     # message has elapsed, exit. Toyota needs higher time_fingerprint, since DSU does not
-    # broadcast immediately
+    # broadcast immediately. If VW MQB is in play, we need the VIN to finish.
     if len(candidate_cars) == 1 and can_seen_frame is not None:
-      time_fingerprint = 1.0 if only_toyota_left(candidate_cars) else 0.1
-      if (frame - can_seen_frame) > (time_fingerprint * 100):
-        break
+      if only_volkswagen_left(candidate_cars):
+        if vin break
+      else:
+        time_fingerprint = 1.0 if only_toyota_left(candidate_cars) else 0.1
+        if (frame - can_seen_frame) > (time_fingerprint * 100):
+          break
 
     # bail if no cars left or we've been waiting for more than 2s since can_seen
     elif len(candidate_cars) == 0 or (can_seen_frame is not None and (frame - can_seen_frame) > 200):

@@ -46,14 +46,14 @@ class CarInterface(object):
   def get_params(candidate, fingerprint, vin=""):
     ret = car.CarParams.new_message()
 
-    ret.carName = "vw"
     ret.carFingerprint = candidate
     ret.carVin = vin
 
-    ret.enableCruise = True
-
-    # Disable this alert on dev branch where it duplicates and obscures the engineering UI
-    ret.steerLimitAlert = False
+    ret.carName = "vw"
+    ret.safetyModel = car.CarParams.SafetyModel.vw
+    ret.enableCruise = True # Stock ACC still controls acceleration and braking
+    ret.steerControlType = car.CarParams.SteerControlType.torque
+    ret.steerLimitAlert = True # Enable UI alert when steering torque is maxed out
 
     # TODO: gate this on detection
     ret.enableCamera = True
@@ -87,8 +87,6 @@ class CarInterface(object):
       ret.steerMaxBP = [0.] # m/s
       ret.steerMaxV = [1.]
 
-    ret.safetyModel = car.CarParams.SafetyModel.vw
-    ret.steerControlType = car.CarParams.SteerControlType.torque
     ret.steerRatioRear = 0.
 
     # FIXME: from gm

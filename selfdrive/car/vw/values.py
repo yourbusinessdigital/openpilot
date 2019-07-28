@@ -1,6 +1,7 @@
+from cereal import car
 from selfdrive.car import dbc_dict
 
-class SafetyStyle:
+class SafetyRuleset:
   OEM = 0
   CommaStrict = 1
 

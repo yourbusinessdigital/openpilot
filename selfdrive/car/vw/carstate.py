@@ -193,10 +193,11 @@ class CarState(object):
                                     gw_cp.vl["Gateway_72"]['ZV_HBFS_offen'],
                                     gw_cp.vl["Gateway_72"]['ZV_HD_offen']])
 
-    # Update turn signal status
+    # Update turn signal stalk status. This is the user control, not the
+    # external lamps.
     self.prev_left_blinker_on = self.left_blinker_on
-    self.prev_right_blinker_on = self.right_blinker_on
     self.left_blinker_on = gw_cp.vl["Gateway_72"]['BH_Blinker_li']
+    self.prev_right_blinker_on = self.right_blinker_on
     self.right_blinker_on = gw_cp.vl["Gateway_72"]['BH_Blinker_re']
 
     # Update speed from ABS wheel speeds
