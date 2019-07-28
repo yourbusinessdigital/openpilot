@@ -71,13 +71,13 @@ def get_gateway_can_parser(CP, canbus):
     ("ESP_Tastung_passiv", "ESP_21", 0),          # Stability control disabled
     ("KBI_MFA_v_Einheit_02", "Einheiten_01", 0),  # MPH vs KMH speed display
     ("KBI_Handbremse", "Kombi_01", 0),            # Manual handbrake applied
-    ("GRA_ACC_01", "GRA_Hauptschalter", 0),       # ACC button, on/off
-    ("GRA_ACC_01", "GRA_Abbrechen", 0),           # ACC button, cancel
-    ("GRA_ACC_01", "GRA_Tip_Setzen", 0),          # ACC button, set
-    ("GRA_ACC_01", "GRA_Tip_Hoch", 0),            # ACC button, increase or accel
-    ("GRA_ACC_01", "GRA_Tip_Runter", 0),          # ACC button, decrease or decel
-    ("GRA_ACC_01", "GRA_Tip_Wiederaufnahme", 0),  # ACC button, resume
-    ("GRA_ACC_01", "GRA_Verstellung_Zeitluecke", 0), # ACC button, time gap adj
+#    ("GRA_ACC_01", "GRA_Hauptschalter", 0),       # ACC button, on/off
+#    ("GRA_ACC_01", "GRA_Abbrechen", 0),           # ACC button, cancel
+#    ("GRA_ACC_01", "GRA_Tip_Setzen", 0),          # ACC button, set
+#    ("GRA_ACC_01", "GRA_Tip_Hoch", 0),            # ACC button, increase or accel
+#    ("GRA_ACC_01", "GRA_Tip_Runter", 0),          # ACC button, decrease or decel
+#    ("GRA_ACC_01", "GRA_Tip_Wiederaufnahme", 0),  # ACC button, resume
+#    ("GRA_ACC_01", "GRA_Verstellung_Zeitluecke", 0), # ACC button, time gap adj
   ]
 
   checks = [
@@ -88,7 +88,7 @@ def get_gateway_can_parser(CP, canbus):
     ("ESP_05", 50),       # From J104 ABS/ESP controller
     ("ESP_21", 50),       # From J104 ABS/ESP controller
     ("Motor_20", 50),     # From J623 Engine control module
-    ("GRA_ACC_01", 33),   # From J??? steering wheel control buttons
+#    ("GRA_ACC_01", 33),   # From J??? steering wheel control buttons
     ("Getriebe_11", 20),  # From J743 Auto transmission control module
     ("Gateway_72", 10),   # From J533 CAN gateway (aggregated data)
     ("Airbag_02", 5),     # From J234 Airbag control module

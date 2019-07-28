@@ -103,21 +103,27 @@ def fingerprint(logcan, sendcan):
             vin_responded = True
             vin_step += 1
 
-      # As an alternative, try to read VIN from Volkswagen "Component
+      # As an alternative, try to read the VIN from Volkswagen "Component
       # Protection" messages, received without any active query. Messages
       # may be received out-of-order. The pattern is somewhat unusual:
       #
       # @ 0.2hz, message 00, 01, 00, 02, 00, 01, 00, 02, ...
       #
-      # therefore it may take just under 800ms to collect all three.
+      # making the worst-case time just under 800ms to collect all three
+      # messages required to reassemble the VIN.
       if can.src == 0 and can.address == 0x6b4:
-        if can.dat[0] == 0:
+        cloudlog.warning("VIN: entered VW VIN detection")
+        if can.dat[0] == '\x00':
+          cloudlog.warning("VIN: frag 1")
           vin_frag1 = can.dat[5:]
-        if can.dat[0] == 1:
+        if can.dat[0] == '\x01':
+          cloudlog.warning("VIN: frag 2")
           vin_frag2 = can.dat[1:]
-        if can.dat[0] == 2:
+        if can.dat[0] == '\x02':
+          cloudlog.warning("VIN: frag 3")
           vin_frag3 = can.dat[1:]
         if vin_frag1 and vin_frag2 and vin_frag3:
+          cloudlog.warning("VIN: VIN collection complete")
           vin = vin_frag1 + vin_frag2 + vin_frag3
 
       # ignore everything not on bus 0 and with more than 11 bits,
@@ -135,10 +141,11 @@ def fingerprint(logcan, sendcan):
 
     # if we only have one car choice and the time_fingerprint since we got our first
     # message has elapsed, exit. Toyota needs higher time_fingerprint, since DSU does not
-    # broadcast immediately. If VW MQB is in play, we need the VIN to finish.
+    # broadcast immediately. If VW MQB is the last in play, we need the VIN to finish.
     if len(candidate_cars) == 1 and can_seen_frame is not None:
       if only_volkswagen_left(candidate_cars):
-        if vin break
+        if vin:
+          break
       else:
         time_fingerprint = 1.0 if only_toyota_left(candidate_cars) else 0.1
         if (frame - can_seen_frame) > (time_fingerprint * 100):
