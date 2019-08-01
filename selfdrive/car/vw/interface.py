@@ -220,22 +220,14 @@ class CarInterface(object):
 
     # Observe the car's ACC engage and disengage behavior and set OP engagement
     # to match.
-    # FIXME: Eventually move to intercepting GRA_ACC_01 instead
+    # FIXME: Eventually move to intercepting GRA_ACC_01 and generating button events instead
     if self.CS.acc_active and not self.acc_active_prev:
       events.append(create_event('pcmEnable', [ET.ENABLE]))
     if not self.CS.acc_active:
       events.append(create_event('pcmDisable', [ET.USER_DISABLE]))
+    self.acc_active_prev = self.CS.acc_active
 
-    # Handle button presses
-    for b in ret.buttonEvents:
-      # do enable on both accel and decel buttons
-      if b.type in ["accelCruise", "decelCruise"] and not b.pressed:
-        events.append(create_event('buttonEnable', [ET.ENABLE]))
-      # do disable on button down
-      if b.type == "cancel" and b.pressed:
-        events.append(create_event('buttonCancel', [ET.USER_DISABLE]))
-
-    # TODO: JY events in progress
+    # Vehicle operation safety checks and events
     if not ret.gearShifter == 'drive':
       events.append(create_event('wrongGear', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
     if ret.doorOpen:
@@ -251,6 +243,10 @@ class CarInterface(object):
     if self.CS.park_brake:
       events.append(create_event('parkBrake', [ET.NO_ENTRY, ET.USER_DISABLE]))
 
+    # Vehicle health safety checks and events
+    if self.CS.acc_error:
+      # ACC radar is alive but reporting a health or visibility problem.
+      events.append(create_event('radarFault', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE, ET.PERMANENT]))
     if self.CS.steer_error:
       # Steering rack is not configured for Heading Control Assist, or there
       # has been a timeout or other error in its reception of HCA messages.
@@ -267,8 +263,7 @@ class CarInterface(object):
     ret.events = events
     ret.canMonoTimes = canMonoTimes
 
-    # update previous brake/gas pressed
-    self.acc_active_prev = self.CS.acc_active
+
 
     # cast to reader so it can't be modified
     return ret.as_reader()

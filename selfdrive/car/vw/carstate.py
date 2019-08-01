@@ -6,36 +6,6 @@ from selfdrive.can.parser import CANParser
 from selfdrive.can.can_define import CANDefine
 from selfdrive.car.vw.values import DBC, CAR
 
-# TODO: additional signals
-#  * ACC following distance setpoint
-#  * ACC distance to car in front
-#  * Test ACC sensor blind/other error to make sure OP can react clearly and promptly
-#  * GRA_ACC_01 steering wheel buttons for events, and to send cancels and speed changes
-#  * Dimmung messages for EON screen brightness
-#  * (( Klemmen_Status_01 for virtual terminal 15, but goes in Panda safety ))
-#  * (( VIN_01 for auto platform ID, but probably goes in fingerprint or init ))
-#  * ESP_05 ESP_Autohold_aktiv provides DSG and maybe even manual auto-hold state, may be important for auto-resume
-#  * ESP_05 ESP_Verzoeg_EPB_verf may signify presence of an EPB, implying ACC stop-and-go support
-#  * EPB_01 EPB_Status and friends tell us lots about the EPB, if present, still need to track down handbrake
-#  * ACC_06 ACC_Typ may indicate stop-and-go support, @cben = 1, @jyoung8607 = 2
-
-# TODO: Safety
-#  * Seatbelt works to disable. Turns out stock ACC doesn't care, so OP gets to handle. Need to spam ACC cancel.
-#  * Door open detection works to disable. ACC dies immediately anyway, but tested manually.
-#  * Brake pressed. Obviously knocks out stock ACC. Have not made this explicit/redundant in OP yet.
-#  * ESP disabled detection works, but stock ACC re-enables and creates a timing/conflict with OP, need to spam cancel.
-#  * Gas pressed. Trivial but haven't done yet. Will need to spam ACC cancel.
-#  * Control steering torque and ramp rate once we have a reasonable tune model.
-#  * Look at Honda interface "last event" for possible example of showing Events even if stock cruise is off
-
-# TODO: generic platform detection
-#  * Collect 3x VIN_01 messages and detect chassis (e.g., AU=Golf Mk7) with inherent networking model
-#  * Optionally, collect Motor_Code_01 for transmission type
-
-# TODO: bus layout detection
-#  * At J533 gateway/extended? Required to have any control over ACC long term, even a "lite" model
-#  * At R242 camera? More traditional, but no possibility of controlling ACC
-#  * At J533 gateway/running gear? Needed for lowline J533 in cars without ACC. Will fingerprint differently.
 # FIXME: Temporarily use a hardcoded J533 vs R242 location during development.
 CONNECTED_TO_GATEWAY = True
 
@@ -159,12 +129,12 @@ class CarState(object):
     self.prev_right_blinker_on = False
     self.steer_torque_driver = 0
     self.steer_not_allowed = False
-    self.main_on = False
     self.angle_steers_rate = 0
     self.steer_error = 0
     self.park_brake = 0
     self.esp_disabled = 0
-    self.is_metric = 0
+    self.is_metric, is_metric_prev = False, False
+    self.acc_enabled, self.acc_active, self.acc_error = False, False, False
 
     # vEgo kalman filter
     dt = 0.01
@@ -182,6 +152,7 @@ class CarState(object):
     # Update driver preference for metric. VW stores many different unit
     # preferences, including separate units for for distance vs. speed.
     # We use the speed preference for OP.
+    self.is_metric_prev = self.is_metric
     self.is_metric = not gw_cp.vl["Einheiten_01"]["KBI_MFA_v_Einheit_02"]
 
     # Update seatbelt fastened status
@@ -230,6 +201,8 @@ class CarState(object):
         self.steer_torque_driver = gw_cp.vl["EPS_01"]['Driver_Strain'] * -1
     else:
         self.steer_torque_driver = gw_cp.vl["EPS_01"]['Driver_Strain']
+
+    # FIXME: make this into a tunable constant, preferably per-vehicle-type
     self.steer_override = abs(self.steer_torque_driver) > 100
 
     # Update gas, brakes, and gearshift
@@ -243,15 +216,35 @@ class CarState(object):
     self.gear_shifter = parse_gear_shifter(can_gear_shifter, self.shifter_values)
 
     #
-    # Update ACC engagement
+    # Update ACC engagement details
     #
+    # FIXME: Temporarily use a hardcoded J533 vs R242 location during development.
     if CONNECTED_TO_GATEWAY:
-      self.acc_enabled = 1 if ex_cp.vl["ACC_06"]['ACC_Status_ACC'] > 1 else 0
-      self.acc_active = 1 if ex_cp.vl["ACC_06"]['ACC_Status_ACC'] > 2 else 0
-      self.cruise_set_speed = ex_cp.vl["ACC_02"]['SetSpeed'] * CV.KPH_TO_MS
-    else:
-      self.acc_enabled = 1 if gw_cp.vl["ACC_06"]['ACC_Status_ACC'] > 1 else 0
-      self.acc_active = 1 if gw_cp.vl["ACC_06"]['ACC_Status_ACC'] > 2 else 0
-      self.cruise_set_speed = gw_cp.vl["ACC_02"]['SetSpeed'] * CV.KPH_TO_MS
-    self.main_on = self.acc_active
+      acc_cp = ex_cp
+    else
+      acc_cp = gw_cp
+
+    acc_control_status = acc_cp.vl["ACC_06"]['ACC_Status_ACC']
+    if acc_control_status == 1:
+      # ACC okay but disabled
+      self.acc_enabled = False
+      self.acc_active = False
+      self.acc_error = False
+    else if acc_control_status == 2:
+      # ACC okay and enabled, but not currently engaged
+      self.acc_enabled = True
+      self.acc_active = False
+      self.acc_error = False
+    else if acc_control_status == 3:
+      # ACC okay and enabled, currently engaged and regulating speed
+      self.acc_enabled = True
+      self.acc_active = True
+      self.acc_error = False
+    else
+      # ACC fault of some sort. Seen statuses 6 or 7 for CAN comms disruptions, visibility issues, etc.
+      self.acc_enabled = False
+      self.acc_active = False
+      self.acc_error = True
+
+    self.cruise_set_speed = acc_cp.vl["ACC_02"]['SetSpeed']
 
