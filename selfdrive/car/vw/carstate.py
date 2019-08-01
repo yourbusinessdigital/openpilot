@@ -221,7 +221,7 @@ class CarState(object):
     # FIXME: Temporarily use a hardcoded J533 vs R242 location during development.
     if CONNECTED_TO_GATEWAY:
       acc_cp = ex_cp
-    else
+    else:
       acc_cp = gw_cp
 
     acc_control_status = acc_cp.vl["ACC_06"]['ACC_Status_ACC']
