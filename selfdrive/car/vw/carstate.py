@@ -133,7 +133,7 @@ class CarState(object):
     self.steer_error = 0
     self.park_brake = 0
     self.esp_disabled = 0
-    self.is_metric, is_metric_prev = False, False
+    self.is_metric, is_metric_prev = False, None
     self.acc_enabled, self.acc_active, self.acc_error = False, False, False
 
     # vEgo kalman filter
@@ -230,21 +230,22 @@ class CarState(object):
       self.acc_enabled = False
       self.acc_active = False
       self.acc_error = False
-    else if acc_control_status == 2:
+    elif acc_control_status == 2:
       # ACC okay and enabled, but not currently engaged
       self.acc_enabled = True
       self.acc_active = False
       self.acc_error = False
-    else if acc_control_status == 3:
+    elif acc_control_status == 3:
       # ACC okay and enabled, currently engaged and regulating speed
       self.acc_enabled = True
       self.acc_active = True
       self.acc_error = False
-    else
+    else:
       # ACC fault of some sort. Seen statuses 6 or 7 for CAN comms disruptions, visibility issues, etc.
       self.acc_enabled = False
       self.acc_active = False
       self.acc_error = True
 
     self.cruise_set_speed = acc_cp.vl["ACC_02"]['SetSpeed']
-
+    # When the setpoint is zero or there's an error, the radar sends a set-speed of ~90.69 m/s / 203mph
+    if self.cruise_set_speed > 90: self.cruise_set_speed = 0

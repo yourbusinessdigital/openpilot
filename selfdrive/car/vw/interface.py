@@ -171,12 +171,9 @@ class CarInterface(object):
     ret.steeringTorque = self.CS.steer_torque_driver
 
     # ACC cruise state
-    ret.cruiseState.available = bool(self.CS.acc_enabled)
-    ret.cruiseState.enabled = bool(self.CS.acc_active)
-    if ret.cruiseState.enabled:
-      ret.cruiseState.speed = self.CS.cruise_set_speed
-    else:
-      ret.cruiseState.speed = 0
+    ret.cruiseState.available = self.CS.acc_enabled
+    ret.cruiseState.enabled = self.CS.acc_active
+    ret.cruiseState.speed = self.CS.cruise_set_speed
 
     # Blinker updates
     ret.leftBlinker = bool(self.CS.left_blinker_on)
@@ -194,12 +191,9 @@ class CarInterface(object):
     ret.brakeLights = bool(self.CS.brake_lights)
     ret.gearShifter = self.CS.gear_shifter
 
-    # Obey vehicle setting for metric, update configuration DB if there is a mismatch
-    # FIXME: we don't really need to be doing this at 100hz
-    # FIXME: temporarily deactivated until we're doing it correctly
-    #is_metric = params.get("IsMetric") == "1"
-    #if(is_metric != self.CS.is_metric):
-    #  params.put("IsMetric", "1" if self.CS.is_metric == 1 else "0")
+    # Update the EON metric configuration to match the car at first startup, or if there's been a change.
+    if self.CS.is_metric != self.CS.is_metric_prev:
+      params.put("IsMetric", "1" if self.CS.is_metric == 1 else "0")
 
     buttonEvents = []
 
@@ -252,18 +246,8 @@ class CarInterface(object):
       # has been a timeout or other error in its reception of HCA messages.
       events.append(create_event('steerUnavailable', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE]))
 
-
-    # TODO: Enable these Comma strict safety inputs once we support ACC cancel
-    #if (ret.gasPressed and not self.gas_pressed_prev) or \
-    #   (ret.brakePressed and (not self.brake_pressed_prev or ret.vEgo > 0.001)):
-    #  events.append(create_event('pedalPressed', [ET.NO_ENTRY, ET.USER_DISABLE]))
-    #if ret.gasPressed:
-    #  events.append(create_event('pedalPressed', [ET.PRE_ENABLE]))
-
     ret.events = events
     ret.canMonoTimes = canMonoTimes
-
-
 
     # cast to reader so it can't be modified
     return ret.as_reader()
