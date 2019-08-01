@@ -105,7 +105,7 @@ def fingerprint(logcan, sendcan):
 
       # As an alternative, try to read the VIN from Volkswagen MQB "Component
       # Protection" messages, received without any active query. Messages
-      # may be received out-of-order. They are sent in this pattern:
+      # WILL be received out-of-order. They are sent in this pattern:
       #
       # @ 0.2hz, message 00, 01, 00, 02, 00, 01, 00, 02, ...
       #
@@ -120,11 +120,11 @@ def fingerprint(logcan, sendcan):
           vw_vin_frag2 = can.dat[1:]
         if can.dat[0] == '\x02':
           vw_vin_frag3 = can.dat[1:]
-        if vin_frag1 and vin_frag2 and vin_frag3:
+        if vw_vin_frag1 and vw_vin_frag2 and vw_vin_frag3:
           vw_mqb_vin = vw_vin_frag1 + vw_vin_frag2 + vw_vin_frag3
 
       # ignore everything not on bus 0 and with more than 11 bits,
-      # which are ussually sporadic and hard to include in fingerprints.
+      # which are usually sporadic and hard to include in fingerprints.
       # also exclude VIN query response on 0x7e8.
       # Include bus 2 for toyotas to disambiguate cars using camera messages
       # (ideally should be done for all cars but we can't for Honda Bosch)
@@ -153,7 +153,7 @@ def fingerprint(logcan, sendcan):
     elif len(candidate_cars) == 0 or (can_seen_frame is not None and (frame - can_seen_frame) > 200):
       return None, finger, ""
 
-    # keep sending VIN qury if ECU isn't responsing.
+    # keep sending VIN query if ECU isn't responding.
     # sendcan is probably not ready due to the zmq slow joiner syndrome
     # TODO: VIN query temporarily disabled until we have the harness
     if False and can_seen and (vin_never_responded or (vin_responded and vin_step < len(vin_cnts))):
@@ -182,5 +182,6 @@ def get_car(logcan, sendcan):
 
   CarInterface, CarController = interfaces[candidate]
   params = CarInterface.get_params(candidate, fingerprints[0], vin)
+  cloudlog.warning("Got vehicle params for: %s", params.carName)
 
   return CarInterface(params, CarController), params
