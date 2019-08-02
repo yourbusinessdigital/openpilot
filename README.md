@@ -124,28 +124,30 @@ Supported Cars
 Community Maintained Cars
 ------
 
-| Make                 | Model                                        | Supported Package     | Lateral | Longitudinal   | No Accel Below   | No Steer Below | Giraffe           |
-| ---------------------| ---------------------------------------------| ----------------------| --------| ---------------| -----------------| ---------------|-------------------|
-| Honda                | Fit 2018                                     | Honda Sensing         | Yes     | Yes            | 25mph<sup>1</sup>| 12mph          | Inverted Nidec    |
-| Tesla                | Model S 2012-13                              | All                   | Yes     | Not yet        | Not applicable   | 0mph           | Custom<sup>8</sup>|
-| Škoda                | Octavia 2013-- <sup>9</sup>                  |                       | Yes     | Stock          | Not applicable   | 0mph           | Community         |
-| Volkswagen           | Atlas 2018-- <sup>9</sup>                    | SEL and above         | Yes     | Stock          | Not applicable   | 0mph           | Community         |
-| Volkswagen           | Golf 2013-19 <sup>9</sup>                    | Driver Assist Package | Yes     | Stock          | Not applicable   | 0mph           | Community         |
-| Volkswagen           | Golf GTI 2013-19 <sup>9</sup>                | Autobahn              | Yes     | Stock          | Not applicable   | 0mph           | Community         |
-| Volkswagen           | Golf R 2013-17 <sup>9</sup>                  | Driver Assist Package | Yes     | Stock          | Not applicable   | 0mph           | Community         |
-| Volkswagen           | Golf R 2018-19 <sup>9</sup>                  | All                   | Yes     | Stock          | Not applicable   | 0mph           | Community         |
+| Make                 | Model                  | Supported Package     | Lateral | Longitudinal   | No Accel Below   | No Steer Below | Giraffe            |
+| ---------------------| -----------------------| ----------------------| --------| ---------------| -----------------| ---------------|--------------------|
+| Honda                | Fit 2018               | Honda Sensing         | Yes     | Yes            | 25mph<sup>1</sup>| 12mph          | Inverted Nidec     |
+| Tesla                | Model S 2012-13        | All                   | Yes     | Not yet        | Not applicable   | 0mph           | Custom<sup>8</sup> |
+| Škoda                | Octavia 2013--         |                       | Yes     | Stock          | Not applicable   | 0mph           | Custom<sup>9</sup> |
+| Volkswagen           | Atlas 2018--           | SE w/Tech and above   | Yes     | Stock          | Not applicable   | 0mph           | Custom<sup>9</sup> |
+| Volkswagen           | Golf 2013-19           | Driver Assist Package | Yes     | Stock          | Not applicable   | 0mph           | Custom<sup>9</sup> |
+| Volkswagen           | Golf GTI 2013-19       | Autobahn              | Yes     | Stock          | Not applicable   | 0mph           | Custom<sup>9</sup> |
+| Volkswagen           | Golf R 2013-17 (Mk7)   | Driver Assist Package | Yes     | Stock          | Not applicable   | 0mph           | Custom<sup>9</sup> |
+| Volkswagen           | Golf R 2018-19 (Mk7.5) | All                   | Yes     | Stock          | Not applicable   | 0mph           | Custom<sup>9</sup> |
 
 [[Honda Fit Pull Request]](https://github.com/commaai/openpilot/pull/266). <br />
 [[Tesla Model S Pull Request]](https://github.com/commaai/openpilot/pull/246) <br />
 <sup>8</sup>Community built Giraffe, find more information here [Community Tesla Giraffe](https://github.com/jeankalud/neo/tree/tesla_giraffe/giraffe/tesla) <br />
-<sup>9</sup>All Volkswagen, Audi, SEAT, and Škoda [MQB platform](https://en.wikipedia.org/wiki/Volkswagen_Group_MQB_platform) vehicles are supported by the same vehicle port. Factory ACC and Lane Assist are required at this time. Future versions will make factory Lane Assist optional. Certain older ACC and ABS/ESP hardware may not support resuming from a stop without driver intervention.
+<sup>9</sup>Community built J533 gateway harness, find more information at the [Volkswagen page](https://community.comma.ai/wiki/index.php/Volkswagen) of the Comma AI Wiki.<br />
+
+All Volkswagen, Audi, SEAT, and Škoda [MQB platform](https://en.wikipedia.org/wiki/Volkswagen_Group_MQB_platform) vehicles are supported by the same vehicle port. Factory ACC and Lane Assist are required at this time. Future versions will make factory Lane Assist optional. Certain older ACC and ABS/ESP hardware may not support resuming from a stop without driver intervention.
 
 Community Maintained Cars are not confirmed by comma.ai to meet our [safety model](https://github.com/commaai/openpilot/blob/devel/SAFETY.md). Be extra cautious using them.
 
 In Progress Cars
 ------
 
-- All Volkswagen, Audi, SEAT, and Škoda [MQB platform](https://en.wikipedia.org/wiki/Volkswagen_Group_MQB_platform) vehicles, except for MQB-A0 micro/city cars, not yet listed as Community Supported. Adding support should be trivial, and might actually need no work at all, but each one still needs to be tested before it can be marked Supported. If you have one of these vehicles, contact the #volkswagen Discord community for help.
+- All Volkswagen, Audi, SEAT, and Škoda [MQB platform](https://en.wikipedia.org/wiki/Volkswagen_Group_MQB_platform) vehicles, except for MQB-A0 micro/city cars, which are not yet listed as Community Supported. Adding support should be trivial, and may actually need no work at all, but each one still needs to be tested and confirmed before it can be marked Supported. Make sure the vehicle has ACC cruise control and Lane Assist. If you have one of these vehicles, contact the #volkswagen Discord community for help.
   - Audi A3/S3 2013--
   - Audi RS3 2015--
   - Audi Q2 2017--
@@ -159,10 +161,16 @@ In Progress Cars
   - Volkswagen Arteon 2018--
   - Volkswagen Bora 2018--
   - Volkswagen Jetta Mk7 2019--
-  - Volkswagen Passat B8 2015-- (RoW only, North America has the NMS platform Passat instead of MQB)
-  - Volkswagen Tiguan Mk2 2018-- (not including the 2018 Tiguan Limited, which is based on the previous generation)
-  - Volkswagen Teramont 2018-- (RoW branding for Atlas, with a special variant in the Chinese market)
+  - Volkswagen Passat B8 2015--
+    - Outside of North America only. The current Passat in North America is based on the NMS platform instead of MQB.
+    - The upcoming MY 2020 Passat appears to be a real MQB.
+  - Volkswagen Tiguan Mk2 2018--
+    - This does not including the 2018 Tiguan Limited, which is based on the previous generation Tiguan
+  - Volkswagen Teramont 2018--
+    - Teramont is the branding used for the Atlas outside of North America.
+    - A slightly different version is sold under the Teramont name in the Chinese market, which will probably work as well.
   - Volkswagen Touaran 2015--
+- All Volkswagen, Audi, SEAT, and Škoda [PQ35](https://en.wikipedia.org/wiki/Volkswagen_Group_A_platform#PQ35_(A5) and [PQ46/NMS](https://en.wikipedia.org/wiki/Volkswagen_Group_B_platform#PQ46) with factory ACC and Lane Assist.
 - All TSS-P Toyota with Steering Assist and LSS-P Lexus with Steering Assist or Lane Keep Assist.
   - Only remaining Toyota cars with no port yet are the Avalon and the Sienna.
 - All Hyundai with SmartSense.
@@ -176,7 +184,7 @@ If your car has adaptive cruise control and lane keep assist, you are in luck. U
 
 We've written guides for [Brand](https://medium.com/@comma_ai/how-to-write-a-car-port-for-openpilot-7ce0785eda84) and [Model](https://medium.com/@comma_ai/openpilot-port-guide-for-toyota-models-e5467f4b5fe6) ports. These guides might help you after you have the basics figured out.
 
-- BMW, [MLB platform](https://en.wikipedia.org/wiki/Volkswagen_Group_MLB_platform) Audi, Volvo, and Mercedes all use [FlexRay](https://en.wikipedia.org/wiki/FlexRay) and can be supported after [FlexRay support](https://github.com/commaai/openpilot/pull/463) is merged. [MQB platform](https://en.wikipedia.org/wiki/Volkswagen_Group_MQB_platform) Audi are supported by the Volkswagen port.
+- BMW, [MLB and MLBevo platform](https://en.wikipedia.org/wiki/Volkswagen_Group_MLB_platform) Audi and Volkswagen, Volvo, and Mercedes all use [FlexRay](https://en.wikipedia.org/wiki/FlexRay) and can be supported after [FlexRay support](https://github.com/commaai/openpilot/pull/463) is merged. [MQB platform](https://en.wikipedia.org/wiki/Volkswagen_Group_MQB_platform) Audi vehicles are supported by the Volkswagen port.
 - We put time into a Ford port, but the steering has a 10 second cutout limitation that makes it unusable.
 - The 2016-2017 Honda Accord uses a custom signaling protocol for steering that's unlikely to ever be upstreamed.
 
