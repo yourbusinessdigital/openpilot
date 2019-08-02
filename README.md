@@ -138,14 +138,14 @@ Community Maintained Cars
 [[Honda Fit Pull Request]](https://github.com/commaai/openpilot/pull/266). <br />
 [[Tesla Model S Pull Request]](https://github.com/commaai/openpilot/pull/246) <br />
 <sup>8</sup>Community built Giraffe, find more information here [Community Tesla Giraffe](https://github.com/jeankalud/neo/tree/tesla_giraffe/giraffe/tesla) <br />
-<sup>9</sup>All Volkswagen, Audi, Seat, and Skoda [MQB platform](https://en.wikipedia.org/wiki/Volkswagen_Group_MQB_platform) vehicles are supported by the same vehicle port. Factory ACC and Lane Assist are required at this time. Future versions will make factory Lane Assist optional. Certain older ACC implementations may not support resuming from a stop without driver intervention.
+<sup>9</sup>All Volkswagen, Audi, SEAT, and Škoda [MQB platform](https://en.wikipedia.org/wiki/Volkswagen_Group_MQB_platform) vehicles are supported by the same vehicle port. Factory ACC and Lane Assist are required at this time. Future versions will make factory Lane Assist optional. Certain older ACC and ABS/ESP hardware may not support resuming from a stop without driver intervention.
 
 Community Maintained Cars are not confirmed by comma.ai to meet our [safety model](https://github.com/commaai/openpilot/blob/devel/SAFETY.md). Be extra cautious using them.
 
 In Progress Cars
 ------
 
-- All Volkswagen, Audi, Seat, and Škoda [MQB platform](https://en.wikipedia.org/wiki/Volkswagen_Group_MQB_platform) vehicles, except for MQB-A0 micro/city cars, not listed as validated already. Support should be trivial with the same MQB port code, and may need no work at all, but each still needs to be validated before marking them as Supported. Volkswagen/Audi [MLB platform](https://en.wikipedia.org/wiki/Volkswagen_Group_MLB_platform) cars use Flexray and will not be supported in the near term future. 
+- All Volkswagen, Audi, SEAT, and Škoda [MQB platform](https://en.wikipedia.org/wiki/Volkswagen_Group_MQB_platform) vehicles, except for MQB-A0 micro/city cars, not yet listed as Community Supported. Adding support should be trivial, and might actually need no work at all, but each still needs to be validated before marking it as Supported.
   - Audi A3/S3 2013--
   - Audi RS3 2015--
   - Audi Q2 2017--
@@ -176,7 +176,7 @@ If your car has adaptive cruise control and lane keep assist, you are in luck. U
 
 We've written guides for [Brand](https://medium.com/@comma_ai/how-to-write-a-car-port-for-openpilot-7ce0785eda84) and [Model](https://medium.com/@comma_ai/openpilot-port-guide-for-toyota-models-e5467f4b5fe6) ports. These guides might help you after you have the basics figured out.
 
-- BMW, Audi, Volvo, and Mercedes all use [FlexRay](https://en.wikipedia.org/wiki/FlexRay) and can be supported after [FlexRay support](https://github.com/commaai/openpilot/pull/463) is merged.
+- BMW, [MLB platform](https://en.wikipedia.org/wiki/Volkswagen_Group_MLB_platform) Audi, Volvo, and Mercedes all use [FlexRay](https://en.wikipedia.org/wiki/FlexRay) and can be supported after [FlexRay support](https://github.com/commaai/openpilot/pull/463) is merged. [MQB platform](https://en.wikipedia.org/wiki/Volkswagen_Group_MQB_platform) Audi are supported by the Volkswagen port.
 - We put time into a Ford port, but the steering has a 10 second cutout limitation that makes it unusable.
 - The 2016-2017 Honda Accord uses a custom signaling protocol for steering that's unlikely to ever be upstreamed.
 
