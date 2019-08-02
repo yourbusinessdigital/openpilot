@@ -147,5 +147,22 @@ Subaru (Lateral only)
     torque exceeds 60 units in the opposite dicrection to ensure limited applied torque against the
     driver's will.
 
+Volkswagen, Audi, SEAT, Škoda (Lateral only)
+------
+
+  - While the system is engaged, steer commands are subject to the same limits used by
+    the stock system.
+
+  - Steering torque is controlled through the CAN message 0x126, also known as HCA_01 for Heading Control Assist.
+    It's limited by OP, Panda, and the vehicle EPS unit itself to a value between -300 and 300, representing 3.00nm
+    of torque applied at the steering rack. The vehicle EPS unit will fault for values outside this range.
+
+  - The vehicle EPS unit will permit any rate of increase or decrease. In accordance with the Comma AI safety model
+    requirements, a rate limit is enforced by the Panda firmware and by openpilot, so that the commanded steering
+    torque must rise from 0 to max value no faster than XXXTBD. Commanded steering torque is gradually limited by the
+    panda firmware and by openpilot if the driver's torque exceeds XXXTBD units in the opposite direction to ensure
+    limited applied torque against the driver's will.
+
+
 **Extra note**: comma.ai strongly discourages the use of openpilot forks with safety code either missing or
   not fully meeting the above requirements.

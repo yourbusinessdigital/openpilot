@@ -128,12 +128,12 @@ Community Maintained Cars
 | ---------------------| ---------------------------------------------| ----------------------| --------| ---------------| -----------------| ---------------|-------------------|
 | Honda                | Fit 2018                                     | Honda Sensing         | Yes     | Yes            | 25mph<sup>1</sup>| 12mph          | Inverted Nidec    |
 | Tesla                | Model S 2012-13                              | All                   | Yes     | Not yet        | Not applicable   | 0mph           | Custom<sup>8</sup>|
-| Škoda                | Octavia 2013-- <sup>9</sup>                  |                       | Yes     | Factory ACC    | Not applicable   | 0mph           | Community         |
-| Volkswagen           | Atlas 2018-- <sup>9</sup>                    | SEL and above         | Yes     | Factory ACC    | Not applicable   | 0mph           | Community         |
-| Volkswagen           | Golf 2013-2019 <sup>9</sup>                  | Driver Assist Package | Yes     | Factory ACC    | Not applicable   | 0mph           | Community         |
-| Volkswagen           | Golf GTI 2013-19 <sup>9</sup>                | Autobahn              | Yes     | Factory ACC    | Not applicable   | 0mph           | Community         |
-| Volkswagen           | Golf R 2013-17 <sup>9</sup>                  | Driver Assist Package | Yes     | Factory ACC    | Not applicable   | 0mph           | Community         |
-| Volkswagen           | Golf R 2018-19 <sup>9</sup>                  | All                   | Yes     | Factory ACC    | Not applicable   | 0mph           | Community         |
+| Škoda                | Octavia 2013-- <sup>9</sup>                  |                       | Yes     | Stock          | Not applicable   | 0mph           | Community         |
+| Volkswagen           | Atlas 2018-- <sup>9</sup>                    | SEL and above         | Yes     | Stock          | Not applicable   | 0mph           | Community         |
+| Volkswagen           | Golf 2013-19 <sup>9</sup>                    | Driver Assist Package | Yes     | Stock          | Not applicable   | 0mph           | Community         |
+| Volkswagen           | Golf GTI 2013-19 <sup>9</sup>                | Autobahn              | Yes     | Stock          | Not applicable   | 0mph           | Community         |
+| Volkswagen           | Golf R 2013-17 <sup>9</sup>                  | Driver Assist Package | Yes     | Stock          | Not applicable   | 0mph           | Community         |
+| Volkswagen           | Golf R 2018-19 <sup>9</sup>                  | All                   | Yes     | Stock          | Not applicable   | 0mph           | Community         |
 
 [[Honda Fit Pull Request]](https://github.com/commaai/openpilot/pull/266). <br />
 [[Tesla Model S Pull Request]](https://github.com/commaai/openpilot/pull/246) <br />
@@ -145,7 +145,7 @@ Community Maintained Cars are not confirmed by comma.ai to meet our [safety mode
 In Progress Cars
 ------
 
-- All Volkswagen, Audi, SEAT, and Škoda [MQB platform](https://en.wikipedia.org/wiki/Volkswagen_Group_MQB_platform) vehicles, except for MQB-A0 micro/city cars, not yet listed as Community Supported. Adding support should be trivial, and might actually need no work at all, but each still needs to be validated before marking it as Supported.
+- All Volkswagen, Audi, SEAT, and Škoda [MQB platform](https://en.wikipedia.org/wiki/Volkswagen_Group_MQB_platform) vehicles, except for MQB-A0 micro/city cars, not yet listed as Community Supported. Adding support should be trivial, and might actually need no work at all, but each one still needs to be tested before it can be marked Supported. If you have one of these vehicles, contact the #volkswagen Discord community for help.
   - Audi A3/S3 2013--
   - Audi RS3 2015--
   - Audi Q2 2017--
