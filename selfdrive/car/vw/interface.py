@@ -240,11 +240,11 @@ class CarInterface(object):
     # Vehicle health safety checks and events
     if self.CS.acc_error:
       # ACC radar is alive but reporting a health or visibility problem.
-      events.append(create_event('radarFault', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE, ET.PERMANENT]))
+      events.append(create_event('radarFault', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE]))
     if self.CS.steer_error:
       # Steering rack is not configured for Heading Control Assist, or there
       # has been a timeout or other error in its reception of HCA messages.
-      events.append(create_event('steerUnavailable', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE]))
+      events.append(create_event('steerTempUnavailable', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE]))
 
     ret.events = events
     ret.canMonoTimes = canMonoTimes
