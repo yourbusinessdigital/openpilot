@@ -138,14 +138,14 @@ Community Maintained Cars
 [[Honda Fit Pull Request]](https://github.com/commaai/openpilot/pull/266). <br />
 [[Tesla Model S Pull Request]](https://github.com/commaai/openpilot/pull/246) <br />
 <sup>8</sup>Community built Giraffe, find more information here [Community Tesla Giraffe](https://github.com/jeankalud/neo/tree/tesla_giraffe/giraffe/tesla) <br />
-<sup>9</sup>All Volkswagen, Audi, Seat, and Skoda [MQB platform](https://en.wikipedia.org/wiki/Volkswagen_Group_MQB_platform) vehicles are supported by the same code base. Factory ACC and Lane Assist are required at this time. Future versions will make factory Lane Assist optional. Certain older ACC implementations may not support resuming from a stop without driver intervention.
+<sup>9</sup>All Volkswagen, Audi, Seat, and Skoda [MQB platform](https://en.wikipedia.org/wiki/Volkswagen_Group_MQB_platform) vehicles are supported by the same vehicle port. Factory ACC and Lane Assist are required at this time. Future versions will make factory Lane Assist optional. Certain older ACC implementations may not support resuming from a stop without driver intervention.
 
 Community Maintained Cars are not confirmed by comma.ai to meet our [safety model](https://github.com/commaai/openpilot/blob/devel/SAFETY.md). Be extra cautious using them.
 
 In Progress Cars
 ------
 
-- All Volkswagen, Audi, Seat, and Skoda [MQB platform](https://en.wikipedia.org/wiki/Volkswagen_Group_MQB_platform) vehicles, except for MQB-A0 micro/city cars, not listed as validated already. Support should be trivial with the same MQB port code, and may need no work at all, but each one still does need to be validated. Volkswagen/Audi [MLB platform](vhttps://en.wikipedia.org/wiki/Volkswagen_Group_MLB_platform) cars use Flexray and will not be supported in the near term future. 
+- All Volkswagen, Audi, Seat, and Škoda [MQB platform](https://en.wikipedia.org/wiki/Volkswagen_Group_MQB_platform) vehicles, except for MQB-A0 micro/city cars, not listed as validated already. Support should be trivial with the same MQB port code, and may need no work at all, but each still needs to be validated before marking them as Supported. Volkswagen/Audi [MLB platform](https://en.wikipedia.org/wiki/Volkswagen_Group_MLB_platform) cars use Flexray and will not be supported in the near term future. 
   - Audi A3/S3 2013--
   - Audi RS3 2015--
   - Audi Q2 2017--
