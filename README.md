@@ -124,29 +124,45 @@ Supported Cars
 Community Maintained Cars
 ------
 
-| Make                 | Model                          | Supported Package    | Lateral | Longitudinal   | No Accel Below   | No Steer Below | Giraffe           |
-| ---------------------| -------------------------------| ---------------------| --------| ---------------| -----------------| ---------------|-------------------|
-| Honda                | Fit 2018                       | Honda Sensing        | Yes     | Yes            | 25mph<sup>1</sup>| 12mph          | Inverted Nidec    |
-| Tesla                | Model S 2012-13                | All                  | Yes     | Not yet        | Not applicable   | 0mph           | Custom<sup>8</sup>|
-| Volkswagen           | Arteon 2018-- <sup>9</sup>     | SEL and above        | Yes     | Stock          | Not applicable   | 0mph           | Community         |
-| Volkswagen           | Atlas 2018-- <sup>9</sup>      | SEL and above        | Yes     | Stock          | Not applicable   | 0mph           | Community         |
-| Volkswagen           | Golf 2013-2019 <sup>9</sup>    | Driver Assist Package| Yes     | Stock          | Not applicable   | 0mph           | Community         |
-| Volkswagen           | Golf GTI 2013-2017 <sup>9</sup>| Autobahn             | Yes     | Stock          | Not applicable   | 0mph           | Community         |
-| Volkswagen           | Golf R 2013-2017 <sup>9</sup>  | Driver Assist Package| Yes     | Stock          | Not applicable   | 0mph           | Community         |
-| Volkswagen           | Golf R 2018-2019 <sup>9</sup>  | All                  | Yes     | Stock          | Not applicable   | 0mph           | Community         |
-| Volkswagen           | Jetta 2019-- <sup>9</sup>      | SEL and above        | Yes     | Stock          | Not applicable   | 0mph           | Community         |
-| Volkswagen           | Tiguan 2018-- <sup>9</sup>     | SEL and above        | Yes     | Stock          | Not applicable   | 0mph           | Community         |
-| Volkswagen           | Teramont 2018-- <sup>9</sup>   | SEL and above        | Yes     | Stock          | Not applicable   | 0mph           | Community         |
+| Make                 | Model                                        | Supported Package     | Lateral | Longitudinal   | No Accel Below   | No Steer Below | Giraffe           |
+| ---------------------| ---------------------------------------------| ----------------------| --------| ---------------| -----------------| ---------------|-------------------|
+| Honda                | Fit 2018                                     | Honda Sensing         | Yes     | Yes            | 25mph<sup>1</sup>| 12mph          | Inverted Nidec    |
+| Tesla                | Model S 2012-13                              | All                   | Yes     | Not yet        | Not applicable   | 0mph           | Custom<sup>8</sup>|
+| Škoda                | Octavia 2013-- <sup>9</sup>                  |                       | Yes     | Factory ACC    | Not applicable   | 0mph           | Community         |
+| Volkswagen           | Atlas 2018-- <sup>9</sup>                    | SEL and above         | Yes     | Factory ACC    | Not applicable   | 0mph           | Community         |
+| Volkswagen           | Golf 2013-2019 <sup>9</sup>                  | Driver Assist Package | Yes     | Factory ACC    | Not applicable   | 0mph           | Community         |
+| Volkswagen           | Golf GTI 2013-19 <sup>9</sup>                | Autobahn              | Yes     | Factory ACC    | Not applicable   | 0mph           | Community         |
+| Volkswagen           | Golf R 2013-17 <sup>9</sup>                  | Driver Assist Package | Yes     | Factory ACC    | Not applicable   | 0mph           | Community         |
+| Volkswagen           | Golf R 2018-19 <sup>9</sup>                  | All                   | Yes     | Factory ACC    | Not applicable   | 0mph           | Community         |
 
 [[Honda Fit Pull Request]](https://github.com/commaai/openpilot/pull/266). <br />
 [[Tesla Model S Pull Request]](https://github.com/commaai/openpilot/pull/246) <br />
 <sup>8</sup>Community built Giraffe, find more information here [Community Tesla Giraffe](https://github.com/jeankalud/neo/tree/tesla_giraffe/giraffe/tesla) <br />
-<sup>9</sup>All Volkswagen, Audi, Seat, and Skoda [MQB platform](https://en.wikipedia.org/wiki/Volkswagen_Group_MQB_platform) vehicles are supported by the same code base. There may be minor tweaks needed as each vehicle is validated for the first time in the field. Work with the #volkswagen Discord community for details. Factory ACC and Lane Assist are required at this time. Certain older ACC implementations may not support resuming from a stop without driver intervention. Future versions will make factory Lane Assist optional. 
+<sup>9</sup>All Volkswagen, Audi, Seat, and Skoda [MQB platform](https://en.wikipedia.org/wiki/Volkswagen_Group_MQB_platform) vehicles are supported by the same code base. Factory ACC and Lane Assist are required at this time. Future versions will make factory Lane Assist optional. Certain older ACC implementations may not support resuming from a stop without driver intervention.
 
 Community Maintained Cars are not confirmed by comma.ai to meet our [safety model](https://github.com/commaai/openpilot/blob/devel/SAFETY.md). Be extra cautious using them.
 
 In Progress Cars
 ------
+
+- All Volkswagen, Audi, Seat, and Skoda [MQB platform](https://en.wikipedia.org/wiki/Volkswagen_Group_MQB_platform) vehicles, except for MQB-A0 micro/city cars, not listed as validated already. Support should be trivial with the same MQB port code, and may need no work at all, but each one still does need to be validated. Volkswagen/Audi [MLB platform](vhttps://en.wikipedia.org/wiki/Volkswagen_Group_MLB_platform) cars use Flexray and will not be supported in the near term future. 
+  - Audi A3/S3 2013--
+  - Audi RS3 2015--
+  - Audi Q2 2017--
+  - Audi Q3/SQ3/RSQ3 2019--
+  - SEAT León Mk3 2012--
+  - SEAT Ateca 2016--
+  - SEAT Tarraco 2019--
+  - Škoda Karoq 2018--
+  - Škoda Kodiaq 2017--
+  - Škoda Superb Mk3 2016--
+  - Volkswagen Arteon 2018--
+  - Volkswagen Bora 2018--
+  - Volkswagen Jetta Mk7 2019--
+  - Volkswagen Passat B8 2015-- (RoW only, North America has the NMS platform Passat instead of MQB)
+  - Volkswagen Tiguan Mk2 2018-- (not including the 2018 Tiguan Limited, which is based on the previous generation)
+  - Volkswagen Teramont 2018-- (RoW branding for Atlas, with a special variant in the Chinese market)
+  - Volkswagen Touaran 2015--
 - All TSS-P Toyota with Steering Assist and LSS-P Lexus with Steering Assist or Lane Keep Assist.
   - Only remaining Toyota cars with no port yet are the Avalon and the Sienna.
 - All Hyundai with SmartSense.
