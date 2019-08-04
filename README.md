@@ -170,7 +170,7 @@ In Progress Cars
     - Teramont is the branding used for the Atlas outside of North America.
     - A slightly different version is sold under the Teramont name in the Chinese market, which will probably work as well.
   - Volkswagen Touaran 2015--
-- All Volkswagen, Audi, SEAT, and Škoda [PQ35](https://en.wikipedia.org/wiki/Volkswagen_Group_A_platform#PQ35_(A5)) and [PQ46/NMS](https://en.wikipedia.org/wiki/Volkswagen_Group_B_platform#PQ46) with factory ACC and Lane Assist.
+- Volkswagen, Audi, SEAT, and Škoda [PQ35](https://en.wikipedia.org/wiki/Volkswagen_Group_A_platform#PQ35_(A5)) and [PQ46/NMS](https://en.wikipedia.org/wiki/Volkswagen_Group_B_platform#PQ46) with factory ACC and Lane Assist are not supported at this time, but there are plans to eventually include them in the Community MQB port.
 - All TSS-P Toyota with Steering Assist and LSS-P Lexus with Steering Assist or Lane Keep Assist.
   - Only remaining Toyota cars with no port yet are the Avalon and the Sienna.
 - All Hyundai with SmartSense.
