@@ -43,10 +43,11 @@ class CarInterface(object):
     return 1.0
 
   @staticmethod
-  def get_params(candidate, fingerprint, vin=""):
+  def get_params(candidate, fingerprint, vin="", is_panda_black=False):
     ret = car.CarParams.new_message()
 
     ret.carFingerprint = candidate
+    ret.isPandaBlack = is_panda_black
     ret.carVin = vin
 
     ret.carName = "vw"

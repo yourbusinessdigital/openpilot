@@ -66,7 +66,7 @@ class TestVwSafety(unittest.TestCase):
   def test_enable_control_allowed_from_cruise(self):
     to_push = libpandasafety_py.ffi.new('CAN_FIFOMailBox_TypeDef *')
     to_push[0].RIR = 0x122 << 21
-    to_push[0].RDHR = 0x6000000
+    to_push[0].RDHR = 0x30000000
 
     self.safety.safety_rx_hook(to_push)
     self.assertTrue(self.safety.get_controls_allowed())

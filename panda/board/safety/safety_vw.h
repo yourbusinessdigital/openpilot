@@ -1,6 +1,6 @@
 const int VW_MAX_STEER = 300;               // 3.0 nm
 const int VW_MAX_RT_DELTA = 128;            // max delta torque allowed for real time checks
-const int32_t VW_RT_INTERVAL = 250000;      // 250ms between real time checks
+const uint32_t VW_RT_INTERVAL = 250000;     // 250ms between real time checks
 const int VW_MAX_RATE_UP = 16;
 const int VW_MAX_RATE_DOWN = 32;
 const int VW_DRIVER_TORQUE_ALLOWANCE = 100;
@@ -18,7 +18,7 @@ static void vw_init(int16_t param) {
   vw_ignition_started = 0;
 }
 
-int vw_ign_hook() {
+static int vw_ign_hook(void) {
   // While we do monitor VW Terminal 15 (ignition-on) state, we are not currently acting on it. We may do so in the
   // future for harness integrations at the camera (where we only have T30 unswitched power) instead of the gateway
   // (where we have both T30 and T15 ignition-switched power). For now, use the default GPIO pin behavior.
@@ -48,8 +48,8 @@ static void vw_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
 
   // Monitor ACC_06.ACC_Status_ACC for stock ACC status. Because the current MQB port is lateral-only, OP's control
   // allowed state is directly driven by stock ACC engagement.
-  if (bus == 0 && addr == 0x122) {
-    uint8_t acc_status = (GET_BYTE(to_push,7) & 0xE) >> 1;
+  if (addr == 0x122) {
+    uint8_t acc_status = (GET_BYTE(to_push,7) & 0x70) >> 4;
     controls_allowed = (acc_status == 3) ? true : false;
   }
 }

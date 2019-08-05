@@ -1,9 +1,7 @@
 from cereal import car
-from common.numpy_fast import clip, interp
-from selfdrive.config import Conversions as CV
-from selfdrive.car.vw.carstate import CarState, get_gateway_can_parser, get_extended_can_parser
+from selfdrive.car import apply_std_steer_torque_limits
 from selfdrive.car.vw import vwcan
-from selfdrive.car.vw.values import CAR, DBC
+from selfdrive.car.vw.values import DBC
 from selfdrive.can.packer import CANPacker
 
 VisualAlert = car.CarControl.HUDControl.VisualAlert
@@ -18,14 +16,17 @@ class CarControllerParams():
     self.LDW_STEP = 10                  # LDW_02 message frequency 10Hz (100 / 10)
 
     self.STEER_MAX = 300                # Max heading control assist torque 3.00nm
-    self.STEER_DELTA_INC = 16           # Max HCA reached in 0.375s (STEER_MAX / (50Hz * 0.375))
-    self.STEER_DELTA_DEC = 16           # Min HCA reached in 0.375s (STEER_MAX / (50Hz * 0.375))
+    self.STEER_DELTA_UP = 16            # Max HCA reached in 0.375s (STEER_MAX / (50Hz * 0.375))
+    self.STEER_DELTA_DOWN = 32          # Min HCA reached in 0.375s (STEER_MAX / (50Hz * 0.375))
+    self.STEER_DRIVER_ALLOWANCE = 100
+    self.STEER_DRIVER_MULTIPLIER = 4  # weight driver torque heavily
+    self.STEER_DRIVER_FACTOR = 1  # from dbc
 
 
 class CarController(object):
   def __init__(self, canbus, car_fingerprint):
     self.counter = 0
-    self.apply_steer_prev = 0
+    self.apply_steer_last = 0
     self.car_fingerprint = car_fingerprint
 
     # Setup detection helper. Routes commands to
@@ -50,24 +51,14 @@ class CarController(object):
     if (frame % P.HCA_STEP_ACTIVE) == 0:
 
       if enabled and not CS.standstill:
-        # TODO: Verify our lkas_enabled DBC bit is correct, VCDS thinks it may not be
         lkas_enabled = 1
-        plan_requested_torque = int(round(actuators.steer * P.STEER_MAX))
+        apply_steer = int(round(actuators.steer * P.STEER_MAX))
 
-        # If the driver is actively providing steering input, prevent the planned torque request
-        # from exceeding one-third of maximum. We adjust the plan prior to smoothing so we get
-        # smooth ramp-down of HCA torque if we were above this before the driver intervened.
-        if(CS.steer_override):
-          plan_requested_torque = clip(plan_requested_torque, -P.STEER_MAX / 3, P.STEER_MAX / 3)
+        apply_steer = apply_std_steer_torque_limits(apply_steer, self.apply_steer_last, CS.steer_torque_driver, P)
+        self.apply_steer_last = apply_steer
 
-        # FIXME: torque rate smoothing logic has been temporarily removed. Need to replace with global version.
-        apply_steer = plan_requested_torque
-        self.apply_steer_prev = apply_steer
-
-        # FIXME: Ugly hack to reset EPS hardcoded 180 second limit for HCA intervention.
-        # Deal with this by disengaging HCA anytime we have a zero-crossing. Need to refactor
-        # the up/down rate code above to enforce a zero-crossing on all changes of direction
-        # just for additional safety margin.
+        # Ugly hack to reset EPS hardcoded 180 second limit for HCA intervention.
+        # Deal with this by disengaging HCA anytime we have a zero-crossing.
         if apply_steer == 0:
           lkas_enabled = 0
 
@@ -75,7 +66,7 @@ class CarController(object):
         # Disable heading control assist
         lkas_enabled = 0
         apply_steer = 0
-        self.apply_steer_prev = 0
+        self.apply_steer_last = 0
 
       idx = (frame / P.HCA_STEP_ACTIVE) % 16
       can_sends.append(vwcan.create_steering_control(self.packer_gw, canbus.gateway, CS.CP.carFingerprint, apply_steer, idx, lkas_enabled))
