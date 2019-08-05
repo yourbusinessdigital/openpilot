@@ -49,14 +49,13 @@ static void vw_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
   // Monitor ACC_06.ACC_Status_ACC for stock ACC status. Because the current MQB port is lateral-only, OP's control
   // allowed state is directly driven by stock ACC engagement.
   if (bus == 0 && addr == 0x122) {
-    uint8_t acc_status = to_push->RDLR & 0x70;
-    controls_allowed = (acc_status == 3) ? 1 : 0;
+    uint8_t acc_status = (GET_BYTE(to_push,7) & 0xE) >> 1;
+    controls_allowed = (acc_status == 3) ? true : false;
   }
 }
 
 static int vw_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
-  int bus = GET_BUS(to_push);
-  int addr = GET_ADDR(to_push);
+  int addr = GET_ADDR(to_send);
   int violation = 0;
 
   // Safety check for HCA_01 Heading Control Assist torque.
@@ -113,7 +112,7 @@ static int vw_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
 
 static int vw_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
   int addr = GET_ADDR(to_fwd);
-  bus_fwd = -1;
+  int bus_fwd = -1;
 
   // TODO: Will need refactoring for other bus layouts, for example, camera-side split or J533 running-gear xmit only
   switch(bus_num) {
