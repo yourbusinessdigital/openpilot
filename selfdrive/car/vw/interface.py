@@ -7,7 +7,7 @@ from selfdrive.controls.lib.vehicle_model import VehicleModel
 from selfdrive.car.vw.values import DBC, CAR
 from selfdrive.car.vw.carstate import CarState, get_gateway_can_parser, get_extended_can_parser
 from common.params import Params
-from selfdrive.car import STD_CARGO_KG
+from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness
 
 class CanBus(object):
   def __init__(self):
@@ -32,7 +32,6 @@ class CarInterface(object):
     # sending if read only is False
     if CarController is not None:
       self.CC = CarController(canbus, CP.carFingerprint)
-
 
   @staticmethod
   def compute_gb(accel, speed):
@@ -65,9 +64,9 @@ class CarInterface(object):
       ret.wheelbase = 2.64
       ret.centerToFront = ret.wheelbase * 0.5
 
-      ret.steerRatio = 14
+      ret.steerRatio = 15
       ret.steerActuatorDelay = 0.05
-      ret.steerRateCost = 0.5
+      ret.steerRateCost = 0.4
       ret.lateralTuning.pid.kf = 0.00006
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]] # m/s
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.5], [0.25]]
@@ -90,8 +89,7 @@ class CarInterface(object):
 
     ret.steerRatioRear = 0.
 
-    # FIXME: from gm
-    # Testing removal of unused longitudinal stuffs
+    # VW MQB does not support longitudinal control at this time, but these variables must be set anyway.
     ret.gasMaxBP = [0.]
     ret.gasMaxV = [.5]
     ret.brakeMaxBP = [0.]
@@ -108,29 +106,13 @@ class CarInterface(object):
     ret.stoppingControl = True
     ret.startAccel = 0.8
 
-    # hardcoding honda civic 2016 touring params so they can be used to
-    # scale unknown params for other cars
-    mass_civic = 2923./2.205 + STD_CARGO_KG
-    wheelbase_civic = 2.70
-    centerToFront_civic = wheelbase_civic * 0.4
-    centerToRear_civic = wheelbase_civic - centerToFront_civic
-    rotationalInertia_civic = 2500
-    tireStiffnessFront_civic = 192150
-    tireStiffnessRear_civic = 202500
-    centerToRear = ret.wheelbase - ret.centerToFront
     # TODO: get actual value, for now starting with reasonable value for
     # civic and scaling by mass and wheelbase
-    ret.rotationalInertia = rotationalInertia_civic * \
-                            ret.mass * ret.wheelbase**2 / (mass_civic * wheelbase_civic**2)
+    ret.rotationalInertia = scale_rot_inertia(ret.mass, ret.wheelbase)
 
     # TODO: start from empirically derived lateral slip stiffness for the civic and scale by
     # mass and CG position, so all cars will have approximately similar dyn behaviors
-    ret.tireStiffnessFront = tireStiffnessFront_civic * \
-                             ret.mass / mass_civic * \
-                             (centerToRear / ret.wheelbase) / (centerToRear_civic / wheelbase_civic)
-    ret.tireStiffnessRear = tireStiffnessRear_civic * \
-                            ret.mass / mass_civic * \
-                            (ret.centerToFront / ret.wheelbase) / (centerToFront_civic / wheelbase_civic)
+    ret.tireStiffnessFront, ret.tireStiffnessRear = scale_tire_stiffness(ret.mass, ret.wheelbase, ret.centerToFront)
 
     return ret
 

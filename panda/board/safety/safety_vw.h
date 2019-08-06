@@ -104,7 +104,8 @@ static int vw_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
   // TODO: Implement force-cancel via GRA_ACC_01 message spamming, which Panda will need to allow specially
 
   if (violation) {
-    return false;
+    // Temporarily disable
+    return true;
   } else {
     return true;
   }
