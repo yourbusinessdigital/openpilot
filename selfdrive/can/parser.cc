@@ -65,7 +65,7 @@ uint8_t crc8_lut_volkswagen_gra_acc_01[] = {
   0x6A, 0x38, 0xB4, 0x27, 0x22, 0xEF, 0xE1, 0xBB, 0xF8, 0x80, 0x84, 0x49, 0xC7, 0x9E, 0x1E, 0x2B };
 
 uint8_t crc8_lut_volkswagen_hca_01[] = {
-  0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04 };
+  0xDA, 0xDA, 0xDA, 0xDA, 0xDA, 0xDA, 0xDA, 0xDA, 0xDA, 0xDA, 0xDA, 0xDA, 0xDA, 0xDA, 0xDA, 0xDA };
 
 uint8_t crc8_lut_volkswagen_klemmen_status_01[] = {
   0xC3, 0xC3, 0xC3, 0xC3, 0xC3, 0xC3, 0xC3, 0xC3, 0xC3, 0xC3, 0xC3, 0xC3, 0xC3, 0xC3, 0xC3, 0xC3 };
@@ -109,6 +109,7 @@ unsigned int volkswagen_checksum(unsigned int address, uint64_t d, int length)
   // The algorithm is first run over the 3 to 7 byte payload, skipping over the
   // first byte which is reserved for the CRC itself.
   uint8_t *dat = (uint8_t *)&d;
+  printf("Attempting VW checksum on raw bytes: %02X%02X%02X%02X%02X%02X%02X%02X\n",dat[0],dat[1],dat[2],dat[3],dat[4],dat[5],dat[6],dat[7]);
   for (int i = 1; i < length; i++) {
     crc ^= dat[i];
     crc = crc8_lut_8h2f[crc];
@@ -117,6 +118,7 @@ unsigned int volkswagen_checksum(unsigned int address, uint64_t d, int length)
   // Look up the magic value(s) for the CRC padding byte, which permute by CAN
   // address, and additionally (for SOME addresses) by the message counter.
   uint8_t counter = dat[1] & 0x0F;
+  printf("Extracted message counter: %02X\n", counter);
   switch(address) {
     case 0x86:
       crc ^= crc8_lut_volkswagen_lwi_01[counter];
