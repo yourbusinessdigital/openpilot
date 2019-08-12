@@ -101,7 +101,7 @@ namespace {
           ret = set_value(ret, sig, chksm);
         }
         else if (sig.type == SignalType::VOLKSWAGEN_CHECKSUM) {
-          unsigned int chksm = volkswagen_checksum(address, ret, message_lookup[address].size, counter);
+          unsigned int chksm = volkswagen_checksum(address, ret, message_lookup[address].size);
           ret = set_value(ret, sig, chksm);
         } else {
           //WARN("CHECKSUM signal type not valid\n");

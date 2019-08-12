@@ -10,7 +10,7 @@
 
 unsigned int honda_checksum(unsigned int address, uint64_t d, int l);
 unsigned int toyota_checksum(unsigned int address, uint64_t d, int l);
-unsigned int volkswagen_checksum(unsigned int address, uint64_t d, int length, int counter);
+unsigned int volkswagen_checksum(unsigned int address, uint64_t d, int length);
 unsigned int pedal_checksum(unsigned int address, uint64_t d, int l);
 
 struct SignalPackValue {

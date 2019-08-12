@@ -1,15 +1,7 @@
-import crcmod
 from selfdrive.car.volkswagen.values import CAR, DBC
 
-# Python crcmod works differently from every other CRC calculator in the planet in some subtle
-# way. The implied leading 1 on the polynomial isn't a big deal, but for some reason, we need
-# to feed it initCrc 0x00 instead of 0xFF like it should be.
-vw_checksum = crcmod.mkCrcFun(0x12F, initCrc=0x00, rev=False, xorOut=0xFF)
-
-def create_steering_control(packer, bus, car_fingerprint, apply_steer, idx, lkas_enabled):
+def create_steering_control(packer, apply_steer, idx, lkas_enabled):
   values = {
-    "HCA_01_CRC": 0xB5, # Magic value that stands in for the CRC during calculation
-    "HCA_01_BZ": idx,
     "3": 3,
     "254": 254,
     "7": 7,
@@ -20,13 +12,9 @@ def create_steering_control(packer, bus, car_fingerprint, apply_steer, idx, lkas
     "HCA_Standby": not lkas_enabled,
     "HCA_Active": lkas_enabled,
   }
-  dat = packer.make_can_msg("HCA_01", 0, values)[2]
-  dat = dat + '\0'
-  checksum = vw_checksum(dat)
-  values["HCA_01_CRC"] = checksum
-  return packer.make_can_msg("HCA_01", 0, values)
+  return packer.make_can_msg("HCA_01", 0, values, idx)
 
-def create_hud_control(packer, bus, car_fingerprint, lkas_enabled, hud_alert, leftLaneVisible, rightLaneVisible):
+def create_hud_control(packer, lkas_enabled, hud_alert, leftLaneVisible, rightLaneVisible):
 
   if lkas_enabled:
     leftlanehud = 3 if leftLaneVisible else 1

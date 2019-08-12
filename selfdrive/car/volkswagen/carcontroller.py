@@ -69,7 +69,7 @@ class CarController(object):
         self.apply_steer_last = 0
 
       idx = (frame / P.HCA_STEP_ACTIVE) % 16
-      can_sends.append(vwcan.create_steering_control(self.packer_gw, canbus.gateway, CS.CP.carFingerprint, apply_steer, idx, lkas_enabled))
+      can_sends.append(vwcan.create_steering_control(self.packer_gw, apply_steer, idx, lkas_enabled))
 
     #
     # Prepare LDW_02 HUD message with lane lines and confidence levels
@@ -90,7 +90,7 @@ class CarController(object):
       else:
         hud_alert = 0
 
-      can_sends.append(vwcan.create_hud_control(self.packer_gw, canbus.gateway, CS.CP.carFingerprint, lkas_enabled, hud_alert, leftLaneVisible, rightLaneVisible))
+      can_sends.append(vwcan.create_hud_control(self.packer_gw, lkas_enabled, hud_alert, leftLaneVisible, rightLaneVisible))
 
     return can_sends
 
