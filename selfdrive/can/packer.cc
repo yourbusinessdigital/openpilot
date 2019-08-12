@@ -82,7 +82,7 @@ namespace {
         }
         auto sig = sig_it->second;
 
-        if (sig.type != SignalType::HONDA_COUNTER){
+        if ((sig.type != SignalType::HONDA_COUNTER) && (sig.type != SignalType::VOLKSWAGEN_COUNTER)) {
           WARN("COUNTER signal type not valid\n");
         }
 
@@ -92,12 +92,16 @@ namespace {
       auto sig_it = signal_lookup.find(std::make_pair(address, "CHECKSUM"));
       if (sig_it != signal_lookup.end()) {
         auto sig = sig_it->second;
-        if (sig.type == SignalType::HONDA_CHECKSUM){
+        if (sig.type == SignalType::HONDA_CHECKSUM) {
           unsigned int chksm = honda_checksum(address, ret, message_lookup[address].size);
           ret = set_value(ret, sig, chksm);
         }
-        else if (sig.type == SignalType::TOYOTA_CHECKSUM){
+        else if (sig.type == SignalType::TOYOTA_CHECKSUM) {
           unsigned int chksm = toyota_checksum(address, ret, message_lookup[address].size);
+          ret = set_value(ret, sig, chksm);
+        }
+        else if (sig.type == SignalType::VOLKSWAGEN_CHECKSUM) {
+          unsigned int chksm = volkswagen_checksum(address, ret, message_lookup[address].size, counter);
           ret = set_value(ret, sig, chksm);
         } else {
           //WARN("CHECKSUM signal type not valid\n");

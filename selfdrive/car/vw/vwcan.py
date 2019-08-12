@@ -1,5 +1,5 @@
 import crcmod
-from selfdrive.car.vw.values import CAR, DBC
+from selfdrive.car.volkswagen.values import CAR, DBC
 
 # Python crcmod works differently from every other CRC calculator in the planet in some subtle
 # way. The implied leading 1 on the polynomial isn't a big deal, but for some reason, we need

@@ -12,13 +12,13 @@ int vw_rt_torque_last = 0;
 int vw_desired_torque_last = 0;
 uint32_t vw_ts_last = 0;
 
-static void vw_init(int16_t param) {
+static void volksagen_init(int16_t param) {
   UNUSED(param); // May use param in the future to indicate MQB vs PQ35/PQ46/NMS vs MLB, or wiring configuration.
   controls_allowed = 0;
   vw_ignition_started = 0;
 }
 
-static int vw_ign_hook(void) {
+static int volkswagen_ign_hook(void) {
   // While we do monitor VW Terminal 15 (ignition-on) state, we are not currently acting on it. We may do so in the
   // future for harness integrations at the camera (where we only have T30 unswitched power) instead of the gateway
   // (where we have both T30 and T15 ignition-switched power). For now, use the default GPIO pin behavior.
@@ -27,7 +27,7 @@ static int vw_ign_hook(void) {
   return -1;
 }
 
-static void vw_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
+static void volkswagen_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
   int bus = GET_BUS(to_push);
   int addr = GET_ADDR(to_push);
 
@@ -54,7 +54,7 @@ static void vw_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
   }
 }
 
-static int vw_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
+static int volkswagen_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
   int addr = GET_ADDR(to_send);
   int violation = 0;
 
@@ -111,7 +111,7 @@ static int vw_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
   }
 }
 
-static int vw_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
+static int volkswagen_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
   int addr = GET_ADDR(to_fwd);
   int bus_fwd = -1;
 
@@ -139,11 +139,11 @@ static int vw_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
   return bus_fwd;
 }
 
-const safety_hooks vw_hooks = {
-  .init = vw_init,
-  .rx = vw_rx_hook,
-  .tx = vw_tx_hook,
+const safety_hooks volkswagen_hooks = {
+  .init = volkswagen_init,
+  .rx = volkswagen_rx_hook,
+  .tx = volkswagen_tx_hook,
   .tx_lin = nooutput_tx_lin_hook,
-  .ignition = vw_ign_hook,
-  .fwd = vw_fwd_hook,
+  .ignition = volkswagen_ign_hook,
+  .fwd = volkswagen_fwd_hook,
 };

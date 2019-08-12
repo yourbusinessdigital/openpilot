@@ -1,7 +1,7 @@
 from cereal import car
 from selfdrive.car import apply_std_steer_torque_limits
-from selfdrive.car.vw import vwcan
-from selfdrive.car.vw.values import DBC
+from selfdrive.car.volkswagen import vwcan
+from selfdrive.car.volkswagen.values import DBC
 from selfdrive.can.packer import CANPacker
 
 VisualAlert = car.CarControl.HUDControl.VisualAlert

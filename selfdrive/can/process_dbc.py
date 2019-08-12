@@ -50,22 +50,33 @@ def main():
     elif can_dbc.name.startswith("toyota") or can_dbc.name.startswith("lexus"):
       checksum_type = "toyota"
       checksum_size = 8
+    elif can_dbc.name.startswith("vw") or can_dbc.name.startswith("volkswagen") or can_dbc.name.startswith("audi") or can_dbc.name.startswith("seat") or can_dbc.name.startswith("skoda"):
+      checksum_type = "volkswagen"
+      checksum_size = 8
     else:
       checksum_type = None
+      checksum_size = None
 
     for address, msg_name, msg_size, sigs in msgs:
       for sig in sigs:
         if checksum_type is not None and sig.name == "CHECKSUM":
           if sig.size != checksum_size:
-            sys.exit("CHECKSUM is not %d bits longs %s" % (checksum_size, msg_name))
+            sys.exit("CHECKSUM is not %d bits long %s" % (checksum_size, msg_name))
           if checksum_type == "honda" and sig.start_bit % 8 != 3:
             sys.exit("CHECKSUM starts at wrong bit %s" % msg_name)
           if checksum_type == "toyota" and sig.start_bit % 8 != 7:
             sys.exit("CHECKSUM starts at wrong bit %s" % msg_name)
+          if checksum_type == "volkswagen" and sig.start_bit % 8 != 0:
+            sys.exit("CHECKSUM starts at wrong bit %s" % msg_name)
         if checksum_type == "honda" and sig.name == "COUNTER":
           if sig.size != 2:
-            sys.exit("COUNTER is not 2 bits longs %s" % msg_name)
+            sys.exit("COUNTER is not 2 bits long %s" % msg_name)
           if sig.start_bit % 8 != 5:
+            sys.exit("COUNTER starts at wrong bit %s" % msg_name)
+        if checksum_type == "volkswagen" and sig.name == "COUNTER":
+          if sig.size != 4:
+            sys.exit("COUNTER is not 4 bits long %s" % msg_name)
+          if sig.start_bit % 8 != 0:
             sys.exit("COUNTER starts at wrong bit %s" % msg_name)
         if address in [0x200, 0x201]:
           if sig.name == "COUNTER_PEDAL" and sig.size != 4:

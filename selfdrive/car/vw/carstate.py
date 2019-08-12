@@ -3,7 +3,7 @@ from common.kalman.simple_kalman import KF1D
 from selfdrive.config import Conversions as CV
 from selfdrive.can.parser import CANParser
 from selfdrive.can.can_define import CANDefine
-from selfdrive.car.vw.values import DBC, CAR
+from selfdrive.car.volkswagen.values import DBC, CAR
 
 # FIXME: Temporarily use a hardcoded J533 vs R242 location during development.
 CONNECTED_TO_GATEWAY = True

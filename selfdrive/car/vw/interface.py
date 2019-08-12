@@ -4,8 +4,8 @@ from common.realtime import sec_since_boot
 from selfdrive.config import Conversions as CV
 from selfdrive.controls.lib.drive_helpers import create_event, EventTypes as ET
 from selfdrive.controls.lib.vehicle_model import VehicleModel
-from selfdrive.car.vw.values import DBC, CAR
-from selfdrive.car.vw.carstate import CarState, get_gateway_can_parser, get_extended_can_parser
+from selfdrive.car.volkswagen.values import DBC, CAR
+from selfdrive.car.volkswagen.carstate import CarState, get_gateway_can_parser, get_extended_can_parser
 from common.params import Params
 from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness
 
@@ -49,8 +49,8 @@ class CarInterface(object):
     ret.isPandaBlack = is_panda_black
     ret.carVin = vin
 
-    ret.carName = "vw"
-    ret.safetyModel = car.CarParams.SafetyModel.vw
+    ret.carName = "volkswagen"
+    ret.safetyModel = car.CarParams.SafetyModel.volkswagen
     ret.enableCruise = True # Stock ACC still controls acceleration and braking
     ret.steerControlType = car.CarParams.SteerControlType.torque
     ret.steerLimitAlert = True # Enable UI alert when steering torque is maxed out
