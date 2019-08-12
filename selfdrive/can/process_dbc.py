@@ -66,7 +66,7 @@ def main():
             sys.exit("CHECKSUM starts at wrong bit %s" % msg_name)
           if checksum_type == "toyota" and sig.start_bit % 8 != 7:
             sys.exit("CHECKSUM starts at wrong bit %s" % msg_name)
-          if checksum_type == "volkswagen" and sig.start_bit % 8 != 7:
+          if checksum_type == "volkswagen" and sig.start_bit % 8 != 0:
             sys.exit("CHECKSUM starts at wrong bit %s" % msg_name)
         if checksum_type == "honda" and sig.name == "COUNTER":
           if sig.size != 2:
@@ -76,7 +76,7 @@ def main():
         if checksum_type == "volkswagen" and sig.name == "COUNTER":
           if sig.size != 4:
             sys.exit("COUNTER is not 4 bits long %s" % msg_name)
-          if sig.start_bit % 8 != 3:
+          if sig.start_bit % 8 != 0:
             sys.exit("COUNTER starts at wrong bit %s" % msg_name)
         if address in [0x200, 0x201]:
           if sig.name == "COUNTER_PEDAL" and sig.size != 4:
