@@ -2,15 +2,15 @@ from selfdrive.car.volkswagen.values import CAR, DBC
 
 def create_steering_control(packer, apply_steer, idx, lkas_enabled):
   values = {
-    "3": 3,
-    "254": 254,
-    "7": 7,
+    "SET_ME_0X3": 0X3,
     "Assist_Torque": abs(apply_steer),
     "Assist_Requested": lkas_enabled,
     "Assist_VZ": 1 if apply_steer < 0 else 0,
     "HCA_Available": 1,
     "HCA_Standby": not lkas_enabled,
     "HCA_Active": lkas_enabled,
+    "SET_ME_0XFE": 0XFE,
+    "SET_ME_0X07": 0X07,
   }
   return packer.make_can_msg("HCA_01", 0, values, idx)
 
