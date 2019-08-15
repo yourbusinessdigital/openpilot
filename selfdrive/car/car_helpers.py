@@ -54,6 +54,9 @@ interfaces = load_interfaces(_get_interface_names())
 def only_toyota_left(candidate_cars):
   return all(("TOYOTA" in c or "LEXUS" in c) for c in candidate_cars) and len(candidate_cars) > 0
 
+def only_volkswagen_left(candidate_cars):
+  return all(("VOLKSWAGEN" in c or "AUDI" in c or "SEAT" in c or "SKODA" in c) for c in candidate_cars) and len(candidate_cars) > 0
+
 # BOUNTY: every added fingerprint in selfdrive/car/*/values.py is a $100 coupon code on shop.comma.ai
 # **** for use live only ****
 def fingerprint(logcan, sendcan, is_panda_black):
@@ -75,15 +78,13 @@ def fingerprint(logcan, sendcan, is_panda_black):
   else:
     vin = VIN_UNKNOWN
 
-  cloudlog.warning("VIN %s", vin)
-  Params().put("CarVin", vin)
-
   finger = {i: {} for i in range(0, 4)}  # collect on all buses
   candidate_cars = {i: all_known_cars() for i in [0, 1]}  # attempt fingerprint on both bus 0 and 1
   frame = 0
   frame_fingerprint = 10  # 0.1s
   car_fingerprint = None
   done = False
+  vw_mqb_vin, vw_vin_frag1, vw_vin_frag2, vw_vin_frag3 = VIN_UNKNOWN, "", "", ""
 
   while not done:
     a = messaging.recv_one(logcan)
@@ -100,12 +101,39 @@ def fingerprint(logcan, sendcan, is_panda_black):
           finger[can.src][can.address] = len(can.dat)
           candidate_cars[b] = eliminate_incompatible_cars(can, candidate_cars[b])
 
+      # As an alternative, try to read the VIN from Volkswagen MQB "Component
+      # Protection" messages, received without any active query. Messages
+      # WILL be received out-of-order, as a simple multiplex CAN message:
+      #
+      #   @ 0.2hz, message 00, 01, 00, 02, 00, 01, 00, 02, ...
+      #
+      # making the worst-case time just under 800ms to collect all three
+      # messages required to reassemble the VIN. Other vehicles might use
+      # ID 0x6b4, but we only try to use this calculated VIN if the vehicle
+      # is confirmed as VW MQB by generic fingerprint.
+      if can.src == 0 and can.address == 0x6b4:
+        if can.dat[0] == '\x00':
+          vw_vin_frag1 = can.dat[5:]
+        elif can.dat[0] == '\x01':
+          vw_vin_frag2 = can.dat[1:]
+        elif can.dat[0] == '\x02':
+          vw_vin_frag3 = can.dat[1:]
+        if vw_vin_frag1 and vw_vin_frag2 and vw_vin_frag3:
+          vw_mqb_vin = vw_vin_frag1 + vw_vin_frag2 + vw_vin_frag3
+
     # if we only have one car choice and the time since we got our first
     # message has elapsed, exit
     for b in candidate_cars:
       # Toyota needs higher time to fingerprint, since DSU does not broadcast immediately
       if only_toyota_left(candidate_cars[b]):
         frame_fingerprint = 100  # 1s
+      elif only_volkswagen_left(candidate_cars[b]):
+        if vin == VIN_UNKNOWN:
+          # No VIN discovered yet, VW needs higher time to discover fingerprint via CP mux message
+          frame_fingerprint = 120  # 1.2s, should be done in 0.8s but allow for a retry or two
+          if not vw_mqb_vin == VIN_UNKNOWN:
+            vin = vw_mqb_vin
+            frame_fingerprint = 10  # reset back to 0.1s, finishing now if we've already got it
       if len(candidate_cars[b]) == 1:
         if frame > frame_fingerprint:
           # fingerprint done
@@ -117,6 +145,9 @@ def fingerprint(logcan, sendcan, is_panda_black):
     done = failed or succeeded
 
     frame += 1
+
+  cloudlog.warning("VIN %s", vin)
+  Params().put("CarVin", vin)
 
   cloudlog.warning("fingerprinted %s", car_fingerprint)
   return car_fingerprint, finger, vin
