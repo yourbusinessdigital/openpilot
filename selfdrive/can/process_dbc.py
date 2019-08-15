@@ -95,7 +95,7 @@ def main():
       if count > 1:
         sys.exit("Duplicate message name in DBC file %s" % name)
 
-    parser_code = template.render(dbc=can_dbc, checksum_type=checksum_type, msgs=msgs, def_vals=def_vals, len=len)
+    parser_code = template.render(dbc=can_dbc, checksum_type=car_type, msgs=msgs, def_vals=def_vals, len=len)
 
 
     with open(out_fn, "w") as out_f:
