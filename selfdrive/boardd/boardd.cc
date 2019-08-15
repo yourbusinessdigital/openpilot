@@ -43,7 +43,7 @@
 #define SAFETY_TESLA 8
 #define SAFETY_CHRYSLER 9
 #define SAFETY_SUBARU 10
-#define SAFETY_VW 11
+#define SAFETY_VOLKSWAGEN 11
 #define SAFETY_TOYOTA_IPAS 0x1335
 #define SAFETY_TOYOTA_NOLIMITS 0x1336
 #define SAFETY_ALLOUTPUT 0x1337
@@ -154,8 +154,8 @@ void *safety_setter_thread(void *s) {
   case cereal::CarParams::SafetyModel::SUBARU:
     safety_setting = SAFETY_SUBARU;
     break;
-  case cereal::CarParams::SafetyModel::VW:
-    safety_setting = SAFETY_VW;
+  case cereal::CarParams::SafetyModel::VOLKSWAGEN:
+    safety_setting = SAFETY_VOLKSWAGEN;
     break;
   default:
     LOGE("unknown safety model: %d", safety_model);

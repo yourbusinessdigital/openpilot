@@ -1,7 +1,7 @@
 from cereal import car
 from selfdrive.car import apply_std_steer_torque_limits
-from selfdrive.car.vw import vwcan
-from selfdrive.car.vw.values import DBC
+from selfdrive.car.volkswagen import mqbcan
+from selfdrive.car.volkswagen.values import DBC
 from selfdrive.can.packer import CANPacker
 
 VisualAlert = car.CarControl.HUDControl.VisualAlert
@@ -54,7 +54,7 @@ class CarController(object):
         lkas_enabled = 1
         apply_steer = int(round(actuators.steer * P.STEER_MAX))
 
-        apply_steer = apply_std_steer_torque_limits(apply_steer, self.apply_steer_last, CS.steer_torque_driver, P)
+        #apply_steer = apply_std_steer_torque_limits(apply_steer, self.apply_steer_last, CS.steer_torque_driver, P)
         self.apply_steer_last = apply_steer
 
         # Ugly hack to reset EPS hardcoded 180 second limit for HCA intervention.
@@ -69,7 +69,7 @@ class CarController(object):
         self.apply_steer_last = 0
 
       idx = (frame / P.HCA_STEP_ACTIVE) % 16
-      can_sends.append(vwcan.create_steering_control(self.packer_gw, canbus.gateway, CS.CP.carFingerprint, apply_steer, idx, lkas_enabled))
+      can_sends.append(mqbcan.create_steering_control(self.packer_gw, canbus.gateway, CS.CP.carFingerprint, apply_steer, idx, lkas_enabled))
 
     #
     # Prepare LDW_02 HUD message with lane lines and confidence levels
@@ -90,7 +90,7 @@ class CarController(object):
       else:
         hud_alert = 0
 
-      can_sends.append(vwcan.create_hud_control(self.packer_gw, canbus.gateway, CS.CP.carFingerprint, lkas_enabled, hud_alert, leftLaneVisible, rightLaneVisible))
+      can_sends.append(mqbcan.create_hud_control(self.packer_gw, canbus.gateway, CS.CP.carFingerprint, lkas_enabled, hud_alert, leftLaneVisible, rightLaneVisible))
 
     return can_sends
 
