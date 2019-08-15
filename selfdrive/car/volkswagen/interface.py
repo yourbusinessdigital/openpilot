@@ -7,7 +7,6 @@ from selfdrive.controls.lib.vehicle_model import VehicleModel
 from selfdrive.car.volkswagen.values import DBC, CAR
 from selfdrive.car.volkswagen.carstate import CarState, get_gateway_can_parser, get_extended_can_parser
 from common.params import Params
-from common.vin import vin_model_year
 from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness
 
 
@@ -51,9 +50,16 @@ class CarInterface(object):
     ret.carFingerprint = candidate
     ret.isPandaBlack = is_panda_black
     ret.carVin = vin
-    year, make, model = None, None, None
 
     if candidate == CAR.GENERICMQB:
+      # Set common MQB parameters
+      ret.carName = "volkswagen"
+      ret.safetyModel = car.CarParams.SafetyModel.volkswagen
+
+      ret.enableCruise = True # Stock ACC still controls acceleration and braking
+      ret.steerControlType = car.CarParams.SteerControlType.torque
+      ret.steerLimitAlert = True # Enable UI alert when steering torque is maxed out
+
       # We should know the VIN; process that to get specific make and model details
       chassiscode = vin[6:8]
 
@@ -61,8 +67,6 @@ class CarInterface(object):
       if chassiscode == "CA":
         # Mk1 Volkswagen Atlas, 2018-present
         # TODO: Placeholder tuning values, needs testing
-        make = "Volkswagen"
-        model = "Atlas"
         ret.mass = 2042
         ret.wheelbase = 2.97
         ret.steerRatio = 15
@@ -71,8 +75,6 @@ class CarInterface(object):
         ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.5], [0.25]]
       elif chassiscode == "AU":
         # Mk7 and Mk7.5 Volkswagen Golf, ~2013-2020 depending on market
-        make = "Volkswagen"
-        model = "Golf"
         ret.mass = 1372
         ret.wheelbase = 2.64
         ret.steerRatio = 15
@@ -89,15 +91,7 @@ class CarInterface(object):
         ret.lateralTuning.pid.kf = 0.00006
         ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.375], [0.1]]
 
-      # Set common MQB parameters
-      ret.carName = "volkswagen"
-      #ret.carName = str(vin_model_year(vin)) + " " + make + " " + model
-      ret.safetyModel = car.CarParams.SafetyModel.volkswagen
-
-      ret.enableCruise = True # Stock ACC still controls acceleration and braking
-      ret.steerControlType = car.CarParams.SteerControlType.torque
-      ret.steerLimitAlert = True # Enable UI alert when steering torque is maxed out
-
+      # Additional common MQB parameters
       ret.mass += STD_CARGO_KG
       ret.centerToFront = ret.wheelbase * 0.5
       tire_stiffness_factor = 1.
@@ -110,21 +104,17 @@ class CarInterface(object):
     ret.enableCamera = True
     ret.steerRatioRear = 0.
 
-    # FIXME: from gm
-    # Testing removal of unused longitudinal stuffs
+    # No support for OP longitudinal control on Volkswagen at this time.
     ret.gasMaxBP = [0.]
     ret.gasMaxV = [.5]
     ret.brakeMaxBP = [0.]
     ret.brakeMaxV = [1.]
-
     ret.longitudinalTuning.deadzoneBP = [0.]
     ret.longitudinalTuning.deadzoneV = [0.]
-
     ret.longitudinalTuning.kpBP = [5., 35.]
     ret.longitudinalTuning.kpV = [2.4, 1.5]
     ret.longitudinalTuning.kiBP = [0.]
     ret.longitudinalTuning.kiV = [0.36]
-
     ret.stoppingControl = True
     ret.startAccel = 0.8
 

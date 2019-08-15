@@ -4,14 +4,6 @@ from selfdrive.boardd.boardd import can_list_to_can_capnp
 
 VIN_UNKNOWN = "0" * 17
 
-def vin_model_year(vin):
-  VIN_MODEL_YEARS = {
-    "Y": 2000, "1": 2001, "2": 2002, "3": 2003, "4": 2004, "5": 2005, "6": 2006,
-    "7": 2007, "8": 2008, "9": 2009, "A": 2010, "B": 2011, "C": 2012, "D": 2013,
-    "E": 2014, "F": 2015, "G": 2016, "H": 2017, "J": 2018, "K": 2019,
-  }
-  return VIN_MODEL_YEARS[vin[9]]
-
 # sanity checks on response messages from vin query
 def is_vin_response_valid(can_dat, step, cnt):
 
