@@ -94,9 +94,9 @@ void set_subaru_rt_torque_last(int t);
 void set_subaru_torque_driver(int min, int max);
 
 void init_tests_volkswagen(void);
-void set_volkswagen_desired_torque_last(int t);
-void set_volkswagen_rt_torque_last(int t);
-void set_volkswagen_torque_driver(int min, int max);
+void set_vw_desired_torque_last(int t);
+void set_vw_rt_torque_last(int t);
+void set_vw_torque_driver(int min, int max);
 
 """)
 
