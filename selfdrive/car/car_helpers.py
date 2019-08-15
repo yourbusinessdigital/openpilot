@@ -55,7 +55,7 @@ def only_toyota_left(candidate_cars):
   return all(("TOYOTA" in c or "LEXUS" in c) for c in candidate_cars) and len(candidate_cars) > 0
 
 def only_volkswagen_left(candidate_cars):
-  return all(("VOLKSWAGEN" in c or "AUDI" in c or "SEAT" in c or "SKODA" in c) for c in candidate_cars) and len(candidate_cars) > 0
+  return all(("VW" in c or "VOLKSWAGEN" in c or "AUDI" in c or "SEAT" in c or "SKODA" in c) for c in candidate_cars) and len(candidate_cars) > 0
 
 # BOUNTY: every added fingerprint in selfdrive/car/*/values.py is a $100 coupon code on shop.comma.ai
 # **** for use live only ****

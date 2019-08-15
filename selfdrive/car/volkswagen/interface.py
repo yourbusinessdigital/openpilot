@@ -7,7 +7,9 @@ from selfdrive.controls.lib.vehicle_model import VehicleModel
 from selfdrive.car.volkswagen.values import DBC, CAR
 from selfdrive.car.volkswagen.carstate import CarState, get_gateway_can_parser, get_extended_can_parser
 from common.params import Params
-from selfdrive.car import STD_CARGO_KG
+from common.vin import vin_model_year
+from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness
+
 
 class CanBus(object):
   def __init__(self):
@@ -49,45 +51,61 @@ class CarInterface(object):
     ret.carFingerprint = candidate
     ret.isPandaBlack = is_panda_black
     ret.carVin = vin
+    year, make, model = None, None, None
 
-    ret.carName = "volkswagen"
-    ret.safetyModel = car.CarParams.SafetyModel.volkswagen
-    ret.enableCruise = True # Stock ACC still controls acceleration and braking
-    ret.steerControlType = car.CarParams.SteerControlType.torque
-    ret.steerLimitAlert = True # Enable UI alert when steering torque is maxed out
+    if candidate == CAR.GENERICMQB:
+      # We should know the VIN; process that to get specific make and model details
+      chassiscode = vin[6:8]
+
+      # Set per-vehicle parameters
+      if chassiscode == "CA":
+        # Mk1 Volkswagen Atlas, 2018-present
+        # FIXME: Placeholder tuning values, needs testing
+        make = "Volkswagen"
+        model = "Atlas"
+        ret.mass = 2042
+        ret.wheelbase = 2.97
+        ret.steerRatio = 15
+        ret.steerRateCost = 0.5
+        ret.lateralTuning.pid.kf = 0.00006
+        ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.5], [0.25]]
+      elif chassiscode == "AU":
+        # Mk7 and Mk7.5 Volkswagen Golf, ~2013-2020 depending on market
+        make = "Volkswagen"
+        model = "Golf"
+        ret.mass = 1372
+        ret.wheelbase = 2.64
+        ret.steerRatio = 15
+        ret.steerRateCost = 0.5
+        ret.lateralTuning.pid.kf = 0.00006
+        ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.5], [0.25]]
+      elif chassiscode == "5E":
+        # Mk3 Skoda Octavia, 2013-present
+        # FIXME: Placeholder tuning values, needs testing
+        ret.mass = 1360
+        ret.wheelbase = 2.69
+        ret.steerRatio = 15
+        ret.steerRateCost = 0.5
+        ret.lateralTuning.pid.kf = 0.00006
+        ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.375], [0.1]]
+
+      # Set common MQB parameters
+      ret.carName = vin_model_year(vin) + " " + make + " " + model
+      ret.safetyModel = car.CarParams.SafetyModel.volkswagen
+
+      ret.enableCruise = True # Stock ACC still controls acceleration and braking
+      ret.steerControlType = car.CarParams.SteerControlType.torque
+      ret.steerLimitAlert = True # Enable UI alert when steering torque is maxed out
+
+      ret.mass += STD_CARGO_KG
+      ret.centerToFront = ret.wheelbase * 0.5
+      ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]  # m/s
+      ret.steerActuatorDelay = 0.05
+      ret.steerMaxBP = [0.]  # m/s
+      ret.steerMaxV = [1.]
 
     # TODO: gate this on detection
     ret.enableCamera = True
-
-    # TODO: Remove these when converting to chassisdata.py VIN detection
-    if candidate == CAR.GOLF or candidate == CAR.ATLAS:
-      ret.mass = 1372 + STD_CARGO_KG
-      ret.wheelbase = 2.64
-      ret.centerToFront = ret.wheelbase * 0.5
-
-      ret.steerRatio = 14
-      ret.steerActuatorDelay = 0.05
-      ret.steerRateCost = 0.5
-      ret.lateralTuning.pid.kf = 0.00006
-      ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]] # m/s
-      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.5], [0.25]]
-      ret.steerMaxBP = [0.] # m/s
-      ret.steerMaxV = [1.]
-
-    if candidate == CAR.OCTAVIA:
-      ret.mass = 1360 + STD_CARGO_KG
-      ret.wheelbase = 2.69
-      ret.centerToFront = ret.wheelbase * 0.5
-
-      ret.steerRatio = 14
-      ret.steerActuatorDelay = 0.1
-      ret.steerRateCost = 0.5
-      ret.lateralTuning.pid.kf = 0.00006
-      ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]] # m/s
-      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.375], [0.1]]
-      ret.steerMaxBP = [0.] # m/s
-      ret.steerMaxV = [1.]
-
     ret.steerRatioRear = 0.
 
     # FIXME: from gm
@@ -108,29 +126,14 @@ class CarInterface(object):
     ret.stoppingControl = True
     ret.startAccel = 0.8
 
-    # hardcoding honda civic 2016 touring params so they can be used to
-    # scale unknown params for other cars
-    mass_civic = 2923./2.205 + STD_CARGO_KG
-    wheelbase_civic = 2.70
-    centerToFront_civic = wheelbase_civic * 0.4
-    centerToRear_civic = wheelbase_civic - centerToFront_civic
-    rotationalInertia_civic = 2500
-    tireStiffnessFront_civic = 192150
-    tireStiffnessRear_civic = 202500
-    centerToRear = ret.wheelbase - ret.centerToFront
     # TODO: get actual value, for now starting with reasonable value for
     # civic and scaling by mass and wheelbase
-    ret.rotationalInertia = rotationalInertia_civic * \
-                            ret.mass * ret.wheelbase**2 / (mass_civic * wheelbase_civic**2)
+    ret.rotationalInertia = scale_rot_inertia(ret.mass, ret.wheelbase)
 
     # TODO: start from empirically derived lateral slip stiffness for the civic and scale by
     # mass and CG position, so all cars will have approximately similar dyn behaviors
-    ret.tireStiffnessFront = tireStiffnessFront_civic * \
-                             ret.mass / mass_civic * \
-                             (centerToRear / ret.wheelbase) / (centerToRear_civic / wheelbase_civic)
-    ret.tireStiffnessRear = tireStiffnessRear_civic * \
-                            ret.mass / mass_civic * \
-                            (ret.centerToFront / ret.wheelbase) / (centerToFront_civic / wheelbase_civic)
+    ret.tireStiffnessFront, ret.tireStiffnessRear = scale_tire_stiffness(ret.mass, ret.wheelbase, ret.centerToFront,
+                                                                         tire_stiffness_factor=tire_stiffness_factor)
 
     return ret
 
