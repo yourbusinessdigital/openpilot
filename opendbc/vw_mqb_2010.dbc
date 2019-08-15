@@ -1160,8 +1160,8 @@ BO_ 294 HCA_01: 8 XXX
  SG_ 3 : 15|4@0+ (1,0) [0|15] "" XXX
  SG_ 7 : 55|8@0+ (1,0) [0|255] "" XXX
  SG_ 254 : 47|8@0+ (1,0) [0|255] "" XXX
- SG_ HCA_01_CRC : 7|8@0+ (1,0) [0|255] "" XXX
- SG_ HCA_01_BZ : 11|4@0+ (1,0) [0|255] "" XXX
+ SG_ CRC : 7|8@0+ (1,0) [0|255] "" XXX
+ SG_ COUNTER : 11|4@0+ (1,0) [0|255] "" XXX
  SG_ Assist_Requested : 30|1@0+ (1,0) [0|1] "" XXX
  SG_ Assist_Torque : 16|14@1+ (1,0) [0|300] "Nm" XXX
  SG_ Assist_VZ : 31|1@0+ (1,0) [0|1] "" XXX
@@ -1170,8 +1170,8 @@ BO_ 294 HCA_01: 8 XXX
  SG_ HCA_Active : 34|1@0+ (1,0) [0|1] "" XXX
 
 BO_ 159 EPS_01: 8 XXX
- SG_ EPS_01_CRC : 0|8@1+ (1,0) [0|255] "" XXX
- SG_ EPS_01_BZ : 8|4@1+ (1,0) [0|15] "" XXX
+ SG_ CRC : 0|8@1+ (1,0) [0|255] "" XXX
+ SG_ COUNTER : 8|4@1+ (1,0) [0|15] "" XXX
  SG_ Steering_Wheel_Angle : 16|13@1+ (0.15,0) [0|16383] "Unit_DegreOfArc" XXX
  SG_ Steering_Wheel_Angle_VZ : 31|1@0+ (1,0) [0|1] "" XXX
  SG_ HCA_Active : 34|1@0+ (1,0) [0|1] "" XXX
