@@ -60,7 +60,7 @@ class CarInterface(object):
       # Set per-vehicle parameters
       if chassiscode == "CA":
         # Mk1 Volkswagen Atlas, 2018-present
-        # FIXME: Placeholder tuning values, needs testing
+        # TODO: Placeholder tuning values, needs testing
         make = "Volkswagen"
         model = "Atlas"
         ret.mass = 2042
@@ -81,7 +81,7 @@ class CarInterface(object):
         ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.5], [0.25]]
       elif chassiscode == "5E":
         # Mk3 Skoda Octavia, 2013-present
-        # FIXME: Placeholder tuning values, needs testing
+        # TODO: Placeholder tuning values, needs testing
         ret.mass = 1360
         ret.wheelbase = 2.69
         ret.steerRatio = 15
@@ -90,7 +90,8 @@ class CarInterface(object):
         ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.375], [0.1]]
 
       # Set common MQB parameters
-      ret.carName = vin_model_year(vin) + " " + make + " " + model
+      ret.carName = "volkswagen"
+      #ret.carName = str(vin_model_year(vin)) + " " + make + " " + model
       ret.safetyModel = car.CarParams.SafetyModel.volkswagen
 
       ret.enableCruise = True # Stock ACC still controls acceleration and braking
@@ -99,6 +100,7 @@ class CarInterface(object):
 
       ret.mass += STD_CARGO_KG
       ret.centerToFront = ret.wheelbase * 0.5
+      tire_stiffness_factor = 1.
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]  # m/s
       ret.steerActuatorDelay = 0.05
       ret.steerMaxBP = [0.]  # m/s

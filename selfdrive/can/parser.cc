@@ -251,11 +251,11 @@ struct MessageState {
         tmp -= (tmp >> (sig.b2-1)) ? (1ULL << sig.b2) : 0; //signed
       }
 
-      DEBUG("parse %X %s -> %lld\n", address, sig.name, tmp);
+      DEBUG("parse %X -> %lld\n", address, tmp);
 
       if (sig.type == SignalType::HONDA_CHECKSUM) {
         if (honda_checksum(address, dat, size) != tmp) {
-          INFO("0x%X %s CHECKSUM FAIL\n", address, sig.name);
+          INFO("0x%X CHECKSUM FAIL\n", address);
           return false;
         }
       } else if (sig.type == SignalType::HONDA_COUNTER) {
@@ -264,12 +264,12 @@ struct MessageState {
         }
       } else if (sig.type == SignalType::TOYOTA_CHECKSUM) {
         if (toyota_checksum(address, dat, size) != tmp) {
-          INFO("0x%X %s CHECKSUM FAIL\n", address, sig.name);
+          INFO("0x%X CHECKSUM FAIL\n", address);
           return false;
         }
       } else if (sig.type == SignalType::VOLKSWAGEN_CRC) {
         if (volkswagen_crc(address, dat, size) != tmp) {
-          INFO("0x%X %s CRC FAIL\n", address, sig.name);
+          INFO("0x%X CRC FAIL\n", address);
           return false;
         }
       } else if (sig.type == SignalType::VOLKSWAGEN_COUNTER) {
