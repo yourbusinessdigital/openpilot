@@ -89,9 +89,9 @@ namespace {
         ret = set_value(ret, sig, counter);
       }
 
-      auto sig_it = signal_lookup.find(std::make_pair(address, "CHECKSUM"));
-      if (sig_it != signal_lookup.end()) {
-        auto sig = sig_it->second;
+      auto sig_it_checksum = signal_lookup.find(std::make_pair(address, "CHECKSUM"));
+      if (sig_it_checksum != signal_lookup.end()) {
+        auto sig = sig_it_checksum->second;
         if (sig.type == SignalType::HONDA_CHECKSUM) {
           unsigned int chksm = honda_checksum(address, ret, message_lookup[address].size);
           ret = set_value(ret, sig, chksm);
@@ -104,9 +104,9 @@ namespace {
         }
       }
 
-      auto sig_it = signal_lookup.find(std::make_pair(address, "CRC"));
-      if (sig_it != signal_lookup.end()) {
-        auto sig = sig_it->second;
+      auto sig_it_crc = signal_lookup.find(std::make_pair(address, "CRC"));
+      if (sig_it_crc != signal_lookup.end()) {
+        auto sig = sig_it_crc->second;
         if (sig.type == SignalType::VOLKSWAGEN_CRC) {
           // FIXME: Hackish fix for an endianness issue. The message is in reverse byte order
           // until later in the pack process. Checksums can be run backwards, CRCs not so much.
