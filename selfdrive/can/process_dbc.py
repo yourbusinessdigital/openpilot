@@ -45,43 +45,43 @@ def main():
     def_vals = [(address, sig) for address, sig in sorted(def_vals.items())]
 
     if can_dbc.name.startswith("honda") or can_dbc.name.startswith("acura"):
-      checksum_type = "honda"
+      car_type = "honda"
       checksum_size = 4
       counter_size = 2
     elif can_dbc.name.startswith("toyota") or can_dbc.name.startswith("lexus"):
-      checksum_type = "toyota"
+      car_type = "toyota"
       checksum_size = 8
       counter_size = None
     elif can_dbc.name.startswith("vw") or can_dbc.name.startswith("volkswagen") or can_dbc.name.startswith("audi") or can_dbc.name.startswith ("seat") or can_dbc.name.startswith("skoda"):
-      checksum_type = "volkswagen"
+      car_type = "volkswagen"
       checksum_size = 8
       counter_size = 4
     else:
-      checksum_type = None
+      car_type = None
       checksum_size = None
       counter_size = None
 
     for address, msg_name, msg_size, sigs in msgs:
       for sig in sigs:
-        if checksum_type is not None:
+        if car_type is not None:
           if sig.name == "CHECKSUM":
             if sig.size != checksum_size:
               sys.exit("CHECKSUM is not %d bits long %s" % (checksum_size, msg_name))
-            if checksum_type == "honda" and sig.start_bit % 8 != 3:
+            if car_type == "honda" and sig.start_bit % 8 != 3:
               sys.exit("CHECKSUM starts at wrong bit %s" % msg_name)
-            if checksum_type == "toyota" and sig.start_bit % 8 != 7:
+            if car_type == "toyota" and sig.start_bit % 8 != 7:
               sys.exit("CHECKSUM starts at wrong bit %s" % msg_name)
           elif sig.name == "CRC":
             if sig.size != checksum_size:
               sys.exit("CRC is not %d bits long %s" % (checksum_size, msg_name))
             if checksum_type == "volkswagen" and sig.start_bit % 8 != 0:
               sys.exit("CRC starts at wrong bit %s" % msg_name)
-          elif sig.name == "COUNTER" and checksum_type is not None:
+          elif sig.name == "COUNTER" and car_type in ["honda", "volkswagen"]:
             if sig.size != counter_size:
               sys.exit("COUNTER is not %d bits long %s" % (counter_size, msg_name))
-            if checksum_type == "honda" and sig.start_bit % 8 != 5:
+            if car_type == "honda" and sig.start_bit % 8 != 5:
               sys.exit("COUNTER starts at wrong bit %s" % msg_name)
-            if checksum_type == "volkswagen" and sig.start_bit % 8 != 0:
+            if car_type == "volkswagen" and sig.start_bit % 8 != 0:
               sys.exit("COUNTER starts at wrong bit %s" % msg_name)
         if address in [0x200, 0x201]:
           if sig.name == "COUNTER_PEDAL" and sig.size != 4:
