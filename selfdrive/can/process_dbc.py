@@ -76,7 +76,7 @@ def main():
               sys.exit("CRC is not %d bits long %s" % (checksum_size, msg_name))
             if checksum_type == "volkswagen" and sig.start_bit % 8 != 0:
               sys.exit("CRC starts at wrong bit %s" % msg_name)
-          elif sig.name == "COUNTER":
+          elif sig.name == "COUNTER" and checksum_type is not None:
             if sig.size != counter_size:
               sys.exit("COUNTER is not %d bits long %s" % (counter_size, msg_name))
             if checksum_type == "honda" and sig.start_bit % 8 != 5:
