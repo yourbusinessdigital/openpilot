@@ -22,8 +22,8 @@ class TestVolkswagenSafety(unittest.TestCase):
     cls.safety.init_tests_volkswagen()
 
   def _set_prev_torque(self, t):
-    self.safety.set_volkswagen_desired_torque_last(t)
-    self.safety.set_volkswagen_rt_torque_last(t)
+    self.safety.set_vw_desired_torque_last(t)
+    self.safety.set_vw_rt_torque_last(t)
 
   def _torque_driver_msg(self, torque):
     to_send = libpandasafety_py.ffi.new('CAN_FIFOMailBox_TypeDef *')
@@ -81,7 +81,7 @@ class TestVolkswagenSafety(unittest.TestCase):
     self.assertFalse(self.safety.get_controls_allowed())
 
   def test_non_realtime_limit_up(self):
-    self.safety.set_volkswagen_torque_driver(0, 0)
+    self.safety.set_vw_torque_driver(0, 0)
     self.safety.set_controls_allowed(True)
 
     self._set_prev_torque(0)
@@ -96,7 +96,7 @@ class TestVolkswagenSafety(unittest.TestCase):
     self.assertFalse(self.safety.safety_tx_hook(self._torque_msg(-MAX_RATE_UP - 1)))
 
   def test_non_realtime_limit_down(self):
-    self.safety.set_volkswagen_torque_driver(0, 0)
+    self.safety.set_vw_torque_driver(0, 0)
     self.safety.set_controls_allowed(True)
 
   def test_against_torque_driver(self):
@@ -105,11 +105,11 @@ class TestVolkswagenSafety(unittest.TestCase):
     for sign in [-1, 1]:
       for t in np.arange(0, DRIVER_TORQUE_ALLOWANCE + 1, 1):
         t *= -sign
-        self.safety.set_volkswagen_torque_driver(t, t)
+        self.safety.set_vw_torque_driver(t, t)
         self._set_prev_torque(MAX_STEER * sign)
         self.assertTrue(self.safety.safety_tx_hook(self._torque_msg(MAX_STEER * sign)))
 
-      self.safety.set_volkswagen_torque_driver(DRIVER_TORQUE_ALLOWANCE + 1, DRIVER_TORQUE_ALLOWANCE + 1)
+      self.safety.set_vw_torque_driver(DRIVER_TORQUE_ALLOWANCE + 1, DRIVER_TORQUE_ALLOWANCE + 1)
       self.assertFalse(self.safety.safety_tx_hook(self._torque_msg(-MAX_STEER)))
 
     # spot check some individual cases
@@ -118,20 +118,20 @@ class TestVolkswagenSafety(unittest.TestCase):
       torque_desired = (MAX_STEER - 10 * DRIVER_TORQUE_FACTOR) * sign
       delta = 1 * sign
       self._set_prev_torque(torque_desired)
-      self.safety.set_volkswagen_torque_driver(-driver_torque, -driver_torque)
+      self.safety.set_vw_torque_driver(-driver_torque, -driver_torque)
       self.assertTrue(self.safety.safety_tx_hook(self._torque_msg(torque_desired)))
       self._set_prev_torque(torque_desired + delta)
-      self.safety.set_volkswagen_torque_driver(-driver_torque, -driver_torque)
+      self.safety.set_vw_torque_driver(-driver_torque, -driver_torque)
       self.assertFalse(self.safety.safety_tx_hook(self._torque_msg(torque_desired + delta)))
 
       self._set_prev_torque(MAX_STEER * sign)
-      self.safety.set_volkswagen_torque_driver(-MAX_STEER * sign, -MAX_STEER * sign)
+      self.safety.set_vw_torque_driver(-MAX_STEER * sign, -MAX_STEER * sign)
       self.assertTrue(self.safety.safety_tx_hook(self._torque_msg((MAX_STEER - MAX_RATE_DOWN) * sign)))
       self._set_prev_torque(MAX_STEER * sign)
-      self.safety.set_volkswagen_torque_driver(-MAX_STEER * sign, -MAX_STEER * sign)
+      self.safety.set_vw_torque_driver(-MAX_STEER * sign, -MAX_STEER * sign)
       self.assertTrue(self.safety.safety_tx_hook(self._torque_msg(0)))
       self._set_prev_torque(MAX_STEER * sign)
-      self.safety.set_volkswagen_torque_driver(-MAX_STEER * sign, -MAX_STEER * sign)
+      self.safety.set_vw_torque_driver(-MAX_STEER * sign, -MAX_STEER * sign)
       self.assertFalse(self.safety.safety_tx_hook(self._torque_msg((MAX_STEER - MAX_RATE_DOWN + 1) * sign)))
 
   def test_realtime_limits(self):
@@ -140,7 +140,7 @@ class TestVolkswagenSafety(unittest.TestCase):
     for sign in [-1, 1]:
       self.safety.init_tests_volkswagen()
       self._set_prev_torque(0)
-      self.safety.set_volkswagen_torque_driver(0, 0)
+      self.safety.set_vw_torque_driver(0, 0)
       for t in np.arange(0, MAX_RT_DELTA, 1):
         t *= sign
         self.assertTrue(self.safety.safety_tx_hook(self._torque_msg(t)))

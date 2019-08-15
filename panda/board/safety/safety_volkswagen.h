@@ -43,7 +43,7 @@ static void volkswagen_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
     int torque_driver_new = (to_push->RDLR & 0x1f00) | ((to_push->RDLR >> 16) & 0xFF);
     uint8_t sign = (to_push->RDLR & 0x8000) > 0;
     if (sign == 1) torque_driver_new *= -1;
-    update_sample(&volkswagen_torque_driver, torque_driver_new);
+    update_sample(&vw_torque_driver, torque_driver_new);
   }
 
   // Monitor ACC_06.ACC_Status_ACC for stock ACC status. Because the current MQB port is lateral-only, OP's control
