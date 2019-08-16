@@ -60,36 +60,91 @@ class CarInterface(object):
       ret.steerControlType = car.CarParams.SteerControlType.torque
       ret.steerLimitAlert = True # Enable UI alert when steering torque is maxed out
 
-      # We should know the VIN; process that to get specific make and model details
+      # Use the VIN to look up specific make and model details
       chassiscode = vin[6:8]
-
-      # Set per-vehicle parameters
-      if chassiscode == "CA":
-        # Mk1 Volkswagen Atlas, 2018-present
-        # TODO: Placeholder tuning values, needs testing
-        ret.mass = 2042
-        ret.wheelbase = 2.97
+      if chassiscode == "3G":
+        # B8 Passat, RoW only (North America Passat is PQ/NMS)
+        # FIXME: Mass is average between the sedan and wagon, and the spread is pretty high, may need more detection here somehow.
+        ret.mass = 1554
+        ret.wheelbase = 2.79
+        # TODO: Untested vehicle, placeholder tuning values
+        ret.steerRatio = 15
+        ret.steerRateCost = 0.5
+        ret.lateralTuning.pid.kf = 0.00006
+        ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.375], [0.1]]
+      elif chassiscode == "3H":
+        # Mk1 Volkswagen Arteon 2018-present
+        ret.mass = 1704
+        ret.wheelbase = 2.84
+        # TODO: Untested vehicle, placeholder tuning values
+        ret.steerRatio = 15
+        ret.steerRateCost = 0.5
+        ret.lateralTuning.pid.kf = 0.00006
+        ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.375], [0.1]]
+      elif chassiscode == "5E" or chassiscode == "NE":
+        # Mk3 Skoda Octavia, 2013-present
+        ret.mass = 1360
+        ret.wheelbase = 2.69
+        # TODO: Untested vehicle, placeholder tuning values
+        ret.steerRatio = 15
+        ret.steerRateCost = 0.5
+        ret.lateralTuning.pid.kf = 0.00006
+        ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.375], [0.1]]
+      elif chassiscode == "8V" or chassiscode == "FF":
+        # Mk3 Audi A3, S3, and RS3
+        # FIXME: Wheelbase will vary between some versions (hatch vs sportback) so we may need more detection here somehow
+        ret.mass = 1910
+        ret.wheelbase = 2.61
+        # TODO: Untested vehicle, placeholder tuning values
         ret.steerRatio = 15
         ret.steerRateCost = 0.5
         ret.lateralTuning.pid.kf = 0.00006
         ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.5], [0.25]]
       elif chassiscode == "AU":
-        # Mk7 and Mk7.5 Volkswagen Golf, ~2013-2020 depending on market
+        # Mk7 and Mk7.5 Volkswagen Golf, Alltrack, Sportwagen, GTI, Golf R, and e-Golf, 2013-2020 depending on market
+        # Mass will vary a bit, but wheelbase is identical for all variants
         ret.mass = 1372
         ret.wheelbase = 2.64
         ret.steerRatio = 15
         ret.steerRateCost = 0.5
         ret.lateralTuning.pid.kf = 0.00006
         ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.5], [0.25]]
-      elif chassiscode == "5E":
-        # Mk3 Skoda Octavia, 2013-present
-        # TODO: Placeholder tuning values, needs testing
-        ret.mass = 1360
+      elif chassiscode == "BU":
+        # Mk7 Volkswagen Jetta (Sagitar in Chinese market), 2019-present
+        ret.mass = 1347
         ret.wheelbase = 2.69
+        # TODO: Untested vehicle, placeholder tuning values
         ret.steerRatio = 15
         ret.steerRateCost = 0.5
         ret.lateralTuning.pid.kf = 0.00006
         ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.375], [0.1]]
+      elif chassiscode == "CA":
+        # Mk1 Volkswagen Atlas (Teramont in some markets), 2018-present
+        ret.mass = 2042
+        ret.wheelbase = 2.97
+        # TODO: Untested vehicle, placeholder tuning values
+        ret.steerRatio = 15
+        ret.steerRateCost = 0.5
+        ret.lateralTuning.pid.kf = 0.00006
+        ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.5], [0.25]]
+      elif chassiscode == "FV":
+        # Mk3 Audi TT/TTS/TTRS, 2014-present
+        ret.mass = 1328
+        ret.wheelbase = 2.50
+        # TODO: Untested vehicle, placeholder tuning values
+        ret.steerRatio = 15
+        ret.steerRateCost = 0.5
+        ret.lateralTuning.pid.kf = 0.00006
+        ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.5], [0.25]]
+      elif chassiscode == "GA":
+        # Mk1 Audi Q2 2017-present
+        ret.mass = 1205
+        ret.wheelbase = 2.60
+        # TODO: Untested vehicle, placeholder tuning values
+        ret.steerRatio = 15
+        ret.steerRateCost = 0.5
+        ret.lateralTuning.pid.kf = 0.00006
+        ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.5], [0.25]]
 
       # Additional common MQB parameters
       ret.mass += STD_CARGO_KG
