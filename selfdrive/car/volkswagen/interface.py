@@ -55,7 +55,7 @@ class CarInterface(object):
 
     if candidate == CAR.GENERICMQB:
       # Check to make sure we received the VIN; we should have this for all MQBs
-      assert(ret.carVin != VIN_UNKNOWN) "Fingerprinted as Generic MQB but did not detect VIN"
+      assert(ret.carVin != VIN_UNKNOWN), "Fingerprinted as Generic MQB but did not detect VIN"
 
       # Set common MQB parameters
       ret.carName = "volkswagen"
