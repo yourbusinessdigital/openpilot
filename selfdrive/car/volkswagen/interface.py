@@ -8,6 +8,8 @@ from selfdrive.car.volkswagen.values import DBC, CAR
 from selfdrive.car.volkswagen.carstate import CarState, get_gateway_can_parser, get_extended_can_parser
 from common.params import Params
 from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness
+from common.vin import VIN_UNKNOWN
+
 
 
 class CanBus(object):
@@ -52,6 +54,9 @@ class CarInterface(object):
     ret.carVin = vin
 
     if candidate == CAR.GENERICMQB:
+      # Check to make sure we received the VIN; we should have this for all MQBs
+      assert(ret.carVin != VIN_UNKNOWN) "Fingerprinted as Generic MQB but did not detect VIN"
+
       # Set common MQB parameters
       ret.carName = "volkswagen"
       ret.safetyModel = car.CarParams.SafetyModel.volkswagen
@@ -149,7 +154,6 @@ class CarInterface(object):
       # Additional common MQB parameters
       ret.mass += STD_CARGO_KG
       ret.centerToFront = ret.wheelbase * 0.5
-      tire_stiffness_factor = 1.
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]  # m/s
       ret.steerActuatorDelay = 0.05
       ret.steerMaxBP = [0.]  # m/s
@@ -158,6 +162,7 @@ class CarInterface(object):
     # TODO: gate this on detection
     ret.enableCamera = True
     ret.steerRatioRear = 0.
+    tire_stiffness_factor = 1. # Placeholder in lieu of vehicle-specific tuning
 
     # No support for OP longitudinal control on Volkswagen at this time.
     ret.gasMaxBP = [0.]

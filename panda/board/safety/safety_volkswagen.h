@@ -50,7 +50,7 @@ static void volkswagen_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
   // allowed state is directly driven by stock ACC engagement.
   if (addr == 0x122) {
     uint8_t acc_status = (GET_BYTE(to_push,7) & 0x70) >> 4;
-    controls_allowed = (acc_status == 3) ? true : false;
+    controls_allowed = (acc_status == 3 || acc_status == 4 || acc_status == 5) ? true : false;
   }
 }
 

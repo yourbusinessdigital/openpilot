@@ -224,6 +224,7 @@ class CarState(object):
       acc_cp = gw_cp
 
     acc_control_status = acc_cp.vl["ACC_06"]['ACC_Status_ACC']
+    # TODO: refactor ACC state into a nicer dict
     if acc_control_status == 1:
       # ACC okay but disabled
       self.acc_enabled = False
@@ -234,8 +235,8 @@ class CarState(object):
       self.acc_enabled = True
       self.acc_active = False
       self.acc_error = False
-    elif acc_control_status == 3 or acc_control_status == 4:
-      # ACC okay and enabled, currently engaged and regulating speed (3) or engaged with driver accelerating (4)
+    elif acc_control_status == 3 or acc_control_status == 4 or acc_control_status == 5:
+      # ACC okay and enabled, currently engaged and regulating speed (3) or engaged with driver accelerating (4) or overrun (5)
       self.acc_enabled = True
       self.acc_active = True
       self.acc_error = False
