@@ -20,6 +20,8 @@ def get_gateway_can_parser(CP, canbus):
     ("ESP_HR_Radgeschw_02", "ESP_19", 0),         # ABS wheel speed, rear right
     ("ESP_VL_Radgeschw_02", "ESP_19", 0),         # ABS wheel speed, front left
     ("ESP_VR_Radgeschw_02", "ESP_19", 0),         # ABS wheel speed, front right
+    ("ESP_Gierrate", "ESP_02", 0),                # Absolute yaw rate
+    ("ESP_VZ_Gierrate", "ESP_02", 0),             # Yaw rate sign
     ("ZV_FT_offen", "Gateway_72", 0),             # Door open, driver
     ("ZV_BT_offen", "Gateway_72", 0),             # Door open, passenger
     ("ZV_HFS_offen", "Gateway_72", 0),            # Door open, rear left
@@ -132,6 +134,7 @@ class CarState(object):
     self.steer_error = 0
     self.park_brake = 0
     self.esp_disabled = 0
+    self.yaw_rate = 0
     self.is_metric, is_metric_prev = False, None
     self.acc_enabled, self.acc_active, self.acc_error = False, False, False
 
@@ -171,7 +174,6 @@ class CarState(object):
     self.right_blinker_on = gw_cp.vl["Gateway_72"]['BH_Blinker_re']
 
     # Update speed from ABS wheel speeds
-    # TODO: Why aren't we using one of the perfectly good calculated speeds from the car?
     self.v_wheel_fl = gw_cp.vl["ESP_19"]['ESP_HL_Radgeschw_02'] * CV.KPH_TO_MS
     self.v_wheel_fr = gw_cp.vl["ESP_19"]['ESP_HR_Radgeschw_02'] * CV.KPH_TO_MS
     self.v_wheel_rl = gw_cp.vl["ESP_19"]['ESP_VL_Radgeschw_02'] * CV.KPH_TO_MS
@@ -194,6 +196,12 @@ class CarState(object):
       self.angle_steers_rate = gw_cp.vl["LWI_01"]['LWI_Lenkradw_Geschw'] * -1
     else:
       self.angle_steers_rate = gw_cp.vl["LWI_01"]['LWI_Lenkradw_Geschw']
+
+    # Update yaw rate
+    if gw_cp.vl["ESP_02"]['ESP_VZ_Gierrate'] == 1:
+      self.yaw_rate = gw_cp.vl["ESP_02"]['ESP_Gierrate'] * -1
+    else:
+      self.yaw_rate = gw_cp.vl["ESP_02"]['ESP_Gierrate']
 
     # Update driver steering torque input
     if gw_cp.vl["EPS_01"]['Driver_Strain_VZ'] == 1:

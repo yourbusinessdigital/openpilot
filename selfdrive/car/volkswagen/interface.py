@@ -10,8 +10,6 @@ from common.params import Params
 from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness
 from common.vin import VIN_UNKNOWN
 
-
-
 class CanBus(object):
   def __init__(self):
     self.gateway = 0
@@ -55,7 +53,8 @@ class CarInterface(object):
 
     if candidate == CAR.GENERICMQB:
       # Check to make sure we received the VIN; we should have this for all MQBs
-      assert(ret.carVin != VIN_UNKNOWN), "Fingerprinted as Generic MQB but did not detect VIN"
+      # XXX temp removed
+      # assert(ret.carVin != VIN_UNKNOWN), "Fingerprinted as Generic MQB but did not detect VIN"
 
       # Set common MQB parameters
       ret.carName = "volkswagen"
@@ -67,6 +66,10 @@ class CarInterface(object):
 
       # Use the VIN to look up specific make and model details
       chassiscode = vin[6:8]
+      # XXX temp hack
+      if(chassiscode == "00"):
+        chassiscode = "AU"
+
       if chassiscode == "3G":
         # B8 Passat, RoW only (North America Passat is PQ/NMS)
         # FIXME: Mass is average between the sedan and wagon, and the spread is pretty high, may need more detection here somehow.
@@ -210,7 +213,7 @@ class CarInterface(object):
     ret.vEgo = self.CS.v_ego
     ret.aEgo = self.CS.a_ego
     ret.vEgoRaw = self.CS.v_ego_raw
-    ret.yawRate = self.VM.yaw_rate(self.CS.angle_steers * CV.DEG_TO_RAD, self.CS.v_ego)
+    ret.yawRate = self.CS.yaw_rate * CV.DEG_TO_RAD VM.yaw_rate(self.CS.angle_steers * CV.DEG_TO_RAD, self.CS.v_ego)
     ret.standstill = self.CS.standstill
     ret.wheelSpeeds.fl = self.CS.v_wheel_fl
     ret.wheelSpeeds.fr = self.CS.v_wheel_fr

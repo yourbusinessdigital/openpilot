@@ -111,7 +111,7 @@ def fingerprint(logcan, sendcan, is_panda_black):
       # messages required to reassemble the VIN. Other vehicles might use
       # ID 0x6b4, but we only try to use this calculated VIN if the vehicle
       # is confirmed as VW MQB by generic fingerprint.
-      if can.src == 0 and can.address == 0x6b4:
+      if can.address == 0x6b4:
         if can.dat[0] == '\x00':
           vw_vin_frag1 = can.dat[5:]
         elif can.dat[0] == '\x01':
