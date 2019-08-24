@@ -185,29 +185,37 @@ class CarState(object):
     self.a_ego = float(v_ego_x[1])
     self.standstill = self.v_ego_raw < 0.1
 
+    # Import steering angle, rate, yaw rate, and driver input torque. VW send
+    # the sign/direction in a separate signal so they must be recombined.
+    self.angle_steers = gw_cp.vl["LWI_01"]['LWI_Lenkradwinkel'] * (1,-1)[gw_cp.vl["LWI_01"]['LWI_VZ_Lenkradwinkel']]
+    self.angle_steers_rate = gw_cp.vl["LWI_01"]['LWI_Lenkradw_Geschw'] * (1,-1)[gw_cp.vl["LWI_01"]['LWI_VZ_Lenkradwinkel']]
+    self.yaw_rate = gw_cp.vl["ESP_02"]['ESP_Gierrate'] * (1,-1)[gw_cp.vl["ESP_02"]['ESP_VZ_Gierrate']]
+    self.steer_torque_driver = gw_cp.vl["EPS_01"]['Driver_Strain'] * (1,-1)[gw_cp.vl["EPS_01"]['Driver_Strain_VZ']]
+
     # Update steering angle
-    if gw_cp.vl["LWI_01"]['LWI_VZ_Lenkradwinkel'] == 1:
-      self.angle_steers = gw_cp.vl["LWI_01"]['LWI_Lenkradwinkel'] * -1
-    else:
-      self.angle_steers = gw_cp.vl["LWI_01"]['LWI_Lenkradwinkel']
+    # FIXME: discard this old code once the new method is confirmed working
+    #if gw_cp.vl["LWI_01"]['LWI_VZ_Lenkradwinkel'] == 1:
+    #  self.angle_steers = gw_cp.vl["LWI_01"]['LWI_Lenkradwinkel'] * -1
+    #else:
+    #  self.angle_steers = gw_cp.vl["LWI_01"]['LWI_Lenkradwinkel']
 
     # Update steering rate
-    if gw_cp.vl["LWI_01"]['LWI_VZ_Lenkradw_Geschw'] == 1:
-      self.angle_steers_rate = gw_cp.vl["LWI_01"]['LWI_Lenkradw_Geschw'] * -1
-    else:
-      self.angle_steers_rate = gw_cp.vl["LWI_01"]['LWI_Lenkradw_Geschw']
+    #if gw_cp.vl["LWI_01"]['LWI_VZ_Lenkradw_Geschw'] == 1:
+    #  self.angle_steers_rate = gw_cp.vl["LWI_01"]['LWI_Lenkradw_Geschw'] * -1
+    #else:
+    #  self.angle_steers_rate = gw_cp.vl["LWI_01"]['LWI_Lenkradw_Geschw']
 
     # Update yaw rate
-    if gw_cp.vl["ESP_02"]['ESP_VZ_Gierrate'] == 1:
-      self.yaw_rate = gw_cp.vl["ESP_02"]['ESP_Gierrate'] * -1
-    else:
-      self.yaw_rate = gw_cp.vl["ESP_02"]['ESP_Gierrate']
+    #if gw_cp.vl["ESP_02"]['ESP_VZ_Gierrate'] == 1:
+    #  self.yaw_rate = gw_cp.vl["ESP_02"]['ESP_Gierrate'] * -1
+    #else:
+    #  self.yaw_rate = gw_cp.vl["ESP_02"]['ESP_Gierrate']
 
     # Update driver steering torque input
-    if gw_cp.vl["EPS_01"]['Driver_Strain_VZ'] == 1:
-        self.steer_torque_driver = gw_cp.vl["EPS_01"]['Driver_Strain'] * -1
-    else:
-        self.steer_torque_driver = gw_cp.vl["EPS_01"]['Driver_Strain']
+    #if gw_cp.vl["EPS_01"]['Driver_Strain_VZ'] == 1:
+    #    self.steer_torque_driver = gw_cp.vl["EPS_01"]['Driver_Strain'] * -1
+    #else:
+    #    self.steer_torque_driver = gw_cp.vl["EPS_01"]['Driver_Strain']
 
     # FIXME: make this into a tunable constant, preferably per-vehicle-type
     self.steer_override = abs(self.steer_torque_driver) > 100

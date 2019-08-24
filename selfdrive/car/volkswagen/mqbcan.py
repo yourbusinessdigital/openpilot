@@ -1,6 +1,6 @@
 from selfdrive.car.volkswagen.values import CAR, DBC
 
-def create_steering_control(packer, bus, car_fingerprint, apply_steer, idx, lkas_enabled):
+def create_steering_control(packer, apply_steer, idx, lkas_enabled):
   values = {
     "SET_ME_0X3": 0x3,
     "Assist_Torque": abs(apply_steer),

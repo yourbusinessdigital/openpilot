@@ -11,16 +11,16 @@ EMERGENCY_WARNINGS = [AudibleAlert.chimeWarningRepeat]
 
 class CarControllerParams():
   def __init__(self, car_fingerprint):
-    self.HCA_STEP_ACTIVE = 2            # HCA_01 message frequency 50Hz when applying torque (100 / 2)
+    self.HCA_STEP_ACTIVE = 1            # HCA_01 message frequency 100Hz when applying torque
     self.HCA_STEP_INACTIVE = 10         # HCA_01 message frequency 10Hz when not applying torque (100 / 10)
     self.LDW_STEP = 10                  # LDW_02 message frequency 10Hz (100 / 10)
 
     self.STEER_MAX = 300                # Max heading control assist torque 3.00nm
-    self.STEER_DELTA_UP = 16            # Max HCA reached in 0.375s (STEER_MAX / (50Hz * 0.375))
-    self.STEER_DELTA_DOWN = 32          # Min HCA reached in 0.375s (STEER_MAX / (50Hz * 0.375))
+    self.STEER_DELTA_UP = 8             # Max HCA reached in 0.375s (STEER_MAX / (100Hz * 0.375))
+    self.STEER_DELTA_DOWN = 8           # Min HCA reached in 0.375s (STEER_MAX / (100Hz * 0.375))
     self.STEER_DRIVER_ALLOWANCE = 100
-    self.STEER_DRIVER_MULTIPLIER = 4  # weight driver torque heavily
-    self.STEER_DRIVER_FACTOR = 1  # from dbc
+    self.STEER_DRIVER_MULTIPLIER = 4    # weight driver torque heavily
+    self.STEER_DRIVER_FACTOR = 1        # from dbc
 
 
 class CarController(object):
@@ -54,7 +54,7 @@ class CarController(object):
         lkas_enabled = 1
         apply_steer = int(round(actuators.steer * P.STEER_MAX))
 
-        #apply_steer = apply_std_steer_torque_limits(apply_steer, self.apply_steer_last, CS.steer_torque_driver, P)
+        apply_steer = apply_std_steer_torque_limits(apply_steer, self.apply_steer_last, CS.steer_torque_driver, P)
         self.apply_steer_last = apply_steer
 
         # Ugly hack to reset EPS hardcoded 180 second limit for HCA intervention.
@@ -69,7 +69,7 @@ class CarController(object):
         self.apply_steer_last = 0
 
       idx = (frame / P.HCA_STEP_ACTIVE) % 16
-      can_sends.append(mqbcan.create_steering_control(self.packer_gw, canbus.gateway, CS.CP.carFingerprint, apply_steer, idx, lkas_enabled))
+      can_sends.append(mqbcan.create_steering_control(self.packer_gw, apply_steer, idx, lkas_enabled))
 
     #
     # Prepare LDW_02 HUD message with lane lines and confidence levels
