@@ -3,7 +3,7 @@ from common.kalman.simple_kalman import KF1D
 from selfdrive.config import Conversions as CV
 from selfdrive.can.parser import CANParser
 from selfdrive.can.can_define import CANDefine
-from selfdrive.car.volkswagen.values import DBC, CAR
+from selfdrive.car.volkswagen.values import DBC, gra_acc_buttons_dict
 
 # FIXME: Temporarily use a hardcoded J533 vs R242 location during development.
 CONNECTED_TO_GATEWAY = True
@@ -138,6 +138,9 @@ class CarState(object):
     self.is_metric, is_metric_prev = False, None
     self.acc_enabled, self.acc_active, self.acc_error = False, False, False
 
+    self.acc_but_main, self.acc_but_accel, self.acc_but_decel, self.acc_but_cancel, self.acc_but_set,\
+      self.acc_but_resume, self.acc_but_timegap = False, False, False, False, False, False, False
+
     # vEgo kalman filter
     dt = 0.01
     self.v_ego_kf = KF1D(x0=[[0.], [0.]],
@@ -145,6 +148,9 @@ class CarState(object):
                          C=[1., 0.],
                          K=[[0.12287673], [0.29666309]])
     self.v_ego = 0.
+
+    self.gra_acc_buttons = gra_acc_buttons_dict
+    self.gra_acc_buttons_prev = self.gra_acc_buttons.copy()
 
   def update(self, gw_cp, ex_cp):
     # Check to make sure the electric power steering rack is configured to
@@ -185,7 +191,7 @@ class CarState(object):
     self.a_ego = float(v_ego_x[1])
     self.standstill = self.v_ego_raw < 0.1
 
-    # Import steering angle, rate, yaw rate, and driver input torque. VW send
+    # Update steering angle, rate, yaw rate, and driver input torque. VW send
     # the sign/direction in a separate signal so they must be recombined.
     self.angle_steers = gw_cp.vl["LWI_01"]['LWI_Lenkradwinkel'] * (1,-1)[int(gw_cp.vl["LWI_01"]['LWI_VZ_Lenkradwinkel'])]
     self.angle_steers_rate = gw_cp.vl["LWI_01"]['LWI_Lenkradw_Geschw'] * (1,-1)[int(gw_cp.vl["LWI_01"]['LWI_VZ_Lenkradwinkel'])]
@@ -204,6 +210,16 @@ class CarState(object):
     self.esp_disabled = gw_cp.vl["ESP_21"]['ESP_Tastung_passiv']
     can_gear_shifter = int(gw_cp.vl["Getriebe_11"]['GE_Fahrstufe'])
     self.gear_shifter = parse_gear_shifter(can_gear_shifter, self.shifter_values)
+
+    # Update ACC cruise control buttons
+    self.gra_acc_buttons_prev = self.gra_acc_buttons.copy()
+    self.gra_acc_buttons["main"] = bool(gw_cp.vl["GRA_ACC_01"]['GRA_Hauptschalter'])
+    self.gra_acc_buttons["cancel"] = bool(gw_cp.vl["GRA_ACC_01"]['GRA_Abbrechen'])
+    self.gra_acc_buttons["set"] = bool(gw_cp.vl["GRA_ACC_01"]['GRA_Tip_Setzen'])
+    self.gra_acc_buttons["accel"] = bool(gw_cp.vl["GRA_ACC_01"]['GRA_Tip_Hoch'])
+    self.gra_acc_buttons["decel"] = bool(gw_cp.vl["GRA_ACC_01"]['GRA_Tip_Runter'])
+    self.gra_acc_buttons["resume"] = bool(gw_cp.vl["GRA_ACC_01"]['GRA_Tip_Wiederaufnahme'])
+    self.gra_acc_buttons["timegap"] = bool(gw_cp.vl["GRA_ACC_01"]['GRA_Verstellung_Zeitluecke'])
 
     #
     # Update ACC engagement details

@@ -111,15 +111,15 @@ def fingerprint(logcan, sendcan, is_panda_black):
       # messages required to reassemble the VIN. Other vehicles might use
       # ID 0x6b4, but we only try to use this calculated VIN if the vehicle
       # is confirmed as VW MQB by generic fingerprint.
-      if can.address == 0x6b4:
-        if can.dat[0] == '\x00':
-          vw_vin_frag1 = can.dat[5:]
-        elif can.dat[0] == '\x01':
-          vw_vin_frag2 = can.dat[1:]
-        elif can.dat[0] == '\x02':
-          vw_vin_frag3 = can.dat[1:]
-        if vw_vin_frag1 and vw_vin_frag2 and vw_vin_frag3:
-          vw_mqb_vin = vw_vin_frag1 + vw_vin_frag2 + vw_vin_frag3
+      #if can.address == 0x6b4:
+      #  if can.dat[0] == '\x00':
+      #    vw_vin_frag1 = can.dat[5:]
+      #  elif can.dat[0] == '\x01':
+      #    vw_vin_frag2 = can.dat[1:]
+      #  elif can.dat[0] == '\x02':
+      #    vw_vin_frag3 = can.dat[1:]
+      #  if vw_vin_frag1 and vw_vin_frag2 and vw_vin_frag3:
+      #    vw_mqb_vin = vw_vin_frag1 + vw_vin_frag2 + vw_vin_frag3
 
     # if we only have one car choice and the time since we got our first
     # message has elapsed, exit
@@ -127,13 +127,13 @@ def fingerprint(logcan, sendcan, is_panda_black):
       # Toyota needs higher time to fingerprint, since DSU does not broadcast immediately
       if only_toyota_left(candidate_cars[b]):
         frame_fingerprint = 100  # 1s
-      elif only_volkswagen_left(candidate_cars[b]):
-        if vin == VIN_UNKNOWN:
-          # No VIN discovered yet, VW needs higher time to discover fingerprint via CP mux message
-          frame_fingerprint = 120  # 1.2s, should be done in 0.8s but allow for a retry or two
-          if not vw_mqb_vin == VIN_UNKNOWN:
-            vin = vw_mqb_vin
-            frame_fingerprint = 10  # reset back to 0.1s, finishing now if we've already got it
+#      elif only_volkswagen_left(candidate_cars[b]):
+#        if vin == VIN_UNKNOWN:
+#          # No VIN discovered yet, VW needs higher time to discover fingerprint via CP mux message
+#          frame_fingerprint = 120  # 1.2s, should be done in 0.8s but allow for a retry or two
+#          if not vw_mqb_vin == VIN_UNKNOWN:
+#            vin = vw_mqb_vin
+#            frame_fingerprint = 10  # reset back to 0.1s, finishing now if we've already got it
       if len(candidate_cars[b]) == 1:
         if frame > frame_fingerprint:
           # fingerprint done

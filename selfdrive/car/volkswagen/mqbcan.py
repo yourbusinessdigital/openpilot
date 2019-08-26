@@ -1,6 +1,6 @@
 from selfdrive.car.volkswagen.values import CAR, DBC
 
-def create_steering_control(packer, apply_steer, idx, lkas_enabled):
+def create_steering_control(packer, bus, apply_steer, idx, lkas_enabled):
   values = {
     "SET_ME_0X3": 0x3,
     "Assist_Torque": abs(apply_steer),
@@ -12,9 +12,9 @@ def create_steering_control(packer, apply_steer, idx, lkas_enabled):
     "SET_ME_0XFE": 0xFE,
     "SET_ME_0X07": 0x07,
   }
-  return packer.make_can_msg("HCA_01", 0, values, idx)
+  return packer.make_can_msg("HCA_01", bus, values, idx)
 
-def create_hud_control(packer, bus, car_fingerprint, lkas_enabled, hud_alert, leftLaneVisible, rightLaneVisible):
+def create_hud_control(packer, bus, lkas_enabled, hud_alert, leftLaneVisible, rightLaneVisible):
 
   if lkas_enabled:
     leftlanehud = 3 if leftLaneVisible else 1
@@ -31,4 +31,21 @@ def create_hud_control(packer, bus, car_fingerprint, lkas_enabled, hud_alert, le
     "Right_Lane_Status": rightlanehud,
     "Alert_Message": hud_alert,
   }
-  return packer.make_can_msg("LDW_02", 0, values)
+  return packer.make_can_msg("LDW_02", bus, values)
+
+def create_acc_buttons_control(packer, bus, gra_acc_buttons, idx):
+  values = {
+    "GRA_Hauptschalter": gra_acc_buttons["main"],
+    "GRA_Abbrechen": gra_acc_buttons["cancel"],
+    "GRA_Tip_Setzen": gra_acc_buttons["set"],
+    "GRA_Tip_Hoch": gra_acc_buttons["accel"],
+    "GRA_Tip_Runter": gra_acc_buttons["decel"],
+    "GRA_Tip_Wiederaufnahme": gra_acc_buttons["resume"],
+    "GRA_Verstellung_Zeitluecke": gra_acc_buttons["timegap"],
+    "GRA_Typ_Hauptschalter": 1,
+    "GRA_Codierung": 2,
+    "GRA_Tip_Stufe_2": 1,
+    "GRA_SET_ME_0X1": 1
+  }
+
+  return packer.make_can_msg("GRA_ACC_01", bus, values, idx)

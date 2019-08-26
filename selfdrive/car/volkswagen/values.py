@@ -1,6 +1,15 @@
 from cereal import car
 from selfdrive.car import dbc_dict
 
+gra_acc_buttons_dict = {
+  "main": False,
+  "accel": False,
+  "decel": False,
+  "set": False,
+  "cancel": False,
+  "timegap": False
+}
+
 class CAR:
   GENERICMQB = "Generic Volkswagen MQB Platform Vehicle"
 

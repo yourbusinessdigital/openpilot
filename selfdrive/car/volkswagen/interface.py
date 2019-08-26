@@ -29,6 +29,7 @@ class CarInterface(object):
     self.VM = VehicleModel(CP)
     self.gw_cp = get_gateway_can_parser(CP, canbus)
     self.ex_cp = get_extended_can_parser(CP, canbus)
+    self.gra_acc_buttons_tosend = []
 
     # sending if read only is False
     if CarController is not None:
@@ -256,6 +257,24 @@ class CarInterface(object):
 
     buttonEvents = []
 
+    self.gra_acc_buttons_tosend = self.CS.gra_acc_buttons.copy()
+    if self.CS.gra_acc_buttons != self.CS.gra_acc_buttons_prev:
+      if self.CS.gra_acc_buttons["main"] != self.CS.gra_acc_buttons_prev["main"]:
+        be = car.CarState.ButtonEvent.new_message()
+        be.type = 'altButton3'
+        be.pressed = bool(self.CS.gra_acc_buttons["main"])
+        buttonEvents.append(be)
+      if self.CS.gra_acc_buttons["accel"] != self.CS.gra_acc_buttons_prev["accel"]:
+        be = car.CarState.ButtonEvent.new_message()
+        be.type = 'accelCruise'
+        be.pressed = bool(self.CS.gra_acc_buttons["accel"])
+        buttonEvents.append(be)
+      if self.CS.gra_acc_buttons["decel"] != self.CS.gra_acc_buttons_prev["decel"]:
+        be = car.CarState.ButtonEvent.new_message()
+        be.type = 'decelCruise'
+        be.pressed = bool(self.CS.gra_acc_buttons["decel"])
+        buttonEvents.append(be)
+
     # blinkers
     if self.CS.left_blinker_on != self.CS.prev_left_blinker_on:
       be = car.CarState.ButtonEvent.new_message()
@@ -316,6 +335,6 @@ class CarInterface(object):
                    c.hudControl.visualAlert,
                    c.hudControl.audibleAlert,
                    c.hudControl.leftLaneVisible,
-                   c.hudControl.rightLaneVisible)
+                   c.hudControl.rightLaneVisible, self.gra_acc_buttons_tosend)
     self.frame += 1
     return can_sends

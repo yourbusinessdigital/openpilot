@@ -118,8 +118,13 @@ static int volkswagen_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
   // TODO: Will need refactoring for other bus layouts, for example, camera-side split or J533 running-gear xmit only
   switch(bus_num) {
     case 0:
-      // Forward all traffic from the J533 gateway to downstream Extended CAN bus devices
-      bus_fwd = 1;
+      if(addr == 0x12b) {
+        // Discard the car's 0x12B GRA_ACC_01 in favor of OpenPilot's version
+        bus_fwd = -1;
+      } else {
+        // Forward all remaining traffic from J533 gateway to Extended CAN devices
+        bus_fwd = 1;
+      }
       break;
     case 1:
       if(addr == 0x126 || addr == 0x397) {
