@@ -2,7 +2,7 @@
 from cereal import car, log
 from common.realtime import sec_since_boot
 from selfdrive.config import Conversions as CV
-from selfdrive.controls.lib.drive_helpers import create_event, EventTypes as ET
+from selfdrive.controls.lib.drive_helpers import create_event, get_events, EventTypes as ET
 from selfdrive.controls.lib.vehicle_model import VehicleModel
 from selfdrive.car.volkswagen.values import DBC, CAR
 from selfdrive.car.volkswagen.carstate import CarState, get_gateway_can_parser, get_extended_can_parser
@@ -21,6 +21,8 @@ class CarInterface(object):
 
     self.frame = 0
     self.acc_active_prev = 0
+    self.gas_pressed_prev = False
+    self.brake_pressed_prev = False
     self.CC = None
 
     # *** init the major players ***
@@ -29,7 +31,6 @@ class CarInterface(object):
     self.VM = VehicleModel(CP)
     self.gw_cp = get_gateway_can_parser(CP, canbus)
     self.ex_cp = get_extended_can_parser(CP, canbus)
-    self.gra_acc_buttons_tosend = []
 
     # sending if read only is False
     if CarController is not None:
@@ -257,12 +258,30 @@ class CarInterface(object):
 
     buttonEvents = []
 
-    self.gra_acc_buttons_tosend = self.CS.gra_acc_buttons.copy()
+    # Process button press or release events from ACC steering wheel or
+    # control stalk buttons. We don't have enough room in capnp to capture
+    # all seven buttons, even with the alt buttons, so the timegap button
+    # is not seen as an event at this time.
     if self.CS.gra_acc_buttons != self.CS.gra_acc_buttons_prev:
       if self.CS.gra_acc_buttons["main"] != self.CS.gra_acc_buttons_prev["main"]:
         be = car.CarState.ButtonEvent.new_message()
         be.type = 'altButton3'
         be.pressed = bool(self.CS.gra_acc_buttons["main"])
+        buttonEvents.append(be)
+      if self.CS.gra_acc_buttons["set"] != self.CS.gra_acc_buttons_prev["set"]:
+        be = car.CarState.ButtonEvent.new_message()
+        be.type = 'altButton1'
+        be.pressed = bool(self.CS.gra_acc_buttons["set"])
+        buttonEvents.append(be)
+      if self.CS.gra_acc_buttons["resume"] != self.CS.gra_acc_buttons_prev["resume"]:
+        be = car.CarState.ButtonEvent.new_message()
+        be.type = 'altButton2'
+        be.pressed = bool(self.CS.gra_acc_buttons["resume"])
+        buttonEvents.append(be)
+      if self.CS.gra_acc_buttons["cancel"] != self.CS.gra_acc_buttons_prev["cancel"]:
+        be = car.CarState.ButtonEvent.new_message()
+        be.type = 'cancel'
+        be.pressed = bool(self.CS.gra_acc_buttons["cancel"])
         buttonEvents.append(be)
       if self.CS.gra_acc_buttons["accel"] != self.CS.gra_acc_buttons_prev["accel"]:
         be = car.CarState.ButtonEvent.new_message()
@@ -293,11 +312,11 @@ class CarInterface(object):
     # Observe the car's ACC engage and disengage behavior and set OP engagement
     # to match.
     # FIXME: Eventually move to intercepting GRA_ACC_01 and generating button events instead
-    if self.CS.acc_active and not self.acc_active_prev:
-      events.append(create_event('pcmEnable', [ET.ENABLE]))
-    if not self.CS.acc_active:
-      events.append(create_event('pcmDisable', [ET.USER_DISABLE]))
-    self.acc_active_prev = self.CS.acc_active
+    #if self.CS.acc_active and not self.acc_active_prev:
+    #  events.append(create_event('pcmEnable', [ET.ENABLE]))
+    #if not self.CS.acc_active:
+    #  events.append(create_event('pcmDisable', [ET.USER_DISABLE]))
+    #self.acc_active_prev = self.CS.acc_active
 
     # Vehicle operation safety checks and events
     if not ret.gearShifter == 'drive':
@@ -306,8 +325,14 @@ class CarInterface(object):
       events.append(create_event('doorOpen', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
     if ret.gearShifter == 'reverse':
       events.append(create_event('reverseGear', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE]))
+
+    # disable on pedals rising edge or when brake is pressed and speed isn't zero
+    if (ret.gasPressed and not self.gas_pressed_prev) or \
+            (ret.brakePressed and (not self.brake_pressed_prev or not ret.standstill)):
+      events.append(create_event('pedalPressed', [ET.NO_ENTRY, ET.USER_DISABLE]))
     if ret.gasPressed:
       events.append(create_event('pedalPressed', [ET.PRE_ENABLE]))
+
     if ret.seatbeltUnlatched:
       events.append(create_event('seatbeltNotLatched', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
     if self.CS.esp_disabled:
@@ -324,8 +349,21 @@ class CarInterface(object):
       # has been a timeout or other error in its reception of HCA messages.
       events.append(create_event('steerTempUnavailable', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE]))
 
+    # Process engagement events based on the ACC set and resume buttons.
+    # The ACC increase and decrease buttons should not trigger engagement.
+    for b in buttonEvents:
+      if b.type in ["altButton1", "altButton2"] and b.pressed:
+        events.append(create_event('buttonEnable', [ET.ENABLE]))
+      if b.type in ["cancel"] and b.pressed:
+        events.append(create_event('buttonCancel', [ET.USER_DISABLE]))
+
     ret.events = events
+    ret.buttonEvents = buttonEvents
     ret.canMonoTimes = canMonoTimes
+
+    # update previous brake/gas pressed
+    self.gas_pressed_prev = ret.gasPressed
+    self.brake_pressed_prev = ret.brakePressed
 
     # cast to reader so it can't be modified
     return ret.as_reader()
@@ -335,6 +373,6 @@ class CarInterface(object):
                    c.hudControl.visualAlert,
                    c.hudControl.audibleAlert,
                    c.hudControl.leftLaneVisible,
-                   c.hudControl.rightLaneVisible, self.gra_acc_buttons_tosend)
+                   c.hudControl.rightLaneVisible)
     self.frame += 1
     return can_sends

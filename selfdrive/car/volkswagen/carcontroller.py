@@ -37,7 +37,7 @@ class CarController(object):
     print(DBC)
     self.packer_gw = CANPacker(DBC[car_fingerprint]['pt'])
 
-  def update(self, enabled, CS, frame, actuators, visual_alert, audible_alert, leftLaneVisible, rightLaneVisible, gra_acc_buttons_tosend):
+  def update(self, enabled, CS, frame, actuators, visual_alert, audible_alert, leftLaneVisible, rightLaneVisible):
     """ Controls thread """
 
     P = self.params
@@ -51,7 +51,9 @@ class CarController(object):
     #
     if (frame % P.HCA_STEP_ACTIVE) == 0:
 
-      if enabled and not CS.standstill:
+      # Don't send steering commands unless we've successfully enabled vehicle
+      # ACC (prevent controls mismatch) and we're moving (prevent EPS fault).
+      if enabled and CS.acc_active and not CS.standstill:
         lkas_enabled = 1
         apply_steer = int(round(actuators.steer * P.STEER_MAX))
 
@@ -95,10 +97,32 @@ class CarController(object):
 
     #
     # Prepare GRA_ACC_01 message with ACC cruise control buttons
-    # TODO: This is currently just a passthrough of what's read from the car, for testing purposes, will expand to more detailed control later
     #
     if (frame % P.GRA_ACC_STEP) == 0:
+
       idx = (frame / P.GRA_ACC_STEP) % 16
+
+      # Copy the ACC control button state from the car, and transparently pass
+      # most of it onto the ACC radar, with a few exceptions for conformance
+      # to Comma's strict safety model, and to support resume-from-stop.
+      # FIXME: Why is the timegap button not passing thru? May be in a different DBC bit than previously thought.
+      # TODO: More sophisticated handling of ACC set and resume press, including check to see if it was effective.
+      gra_acc_buttons_tosend = CS.gra_acc_buttons.copy()
+      if not enabled:
+        # Don't permit the ACC control button presses to pass through to the
+        # ACC radar unless OP has passed its safety checks and engaged.
+        gra_acc_buttons_tosend["set"] = False
+        gra_acc_buttons_tosend["resume"] = False
+        # Cancel ACC if it's already active, for example, if OP disengages
+        # due to a safety fault.
+        if CS.acc_active:
+          gra_acc_buttons_tosend["cancel"] = True
+
+      # Blip the Resume button ~3x/second if we're engaged at standstill
+      # TODO: Might want something more sophisticated here in creeping stop-and-go traffic, perhaps from visiond mock radar?
+      if enabled and CS.standstill and idx != 0:
+        gra_acc_buttons_tosend["resume"] = True
+
       can_sends.append(mqbcan.create_acc_buttons_control(self.packer_gw, canbus.extended, gra_acc_buttons_tosend, idx))
 
     return can_sends

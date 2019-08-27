@@ -3,10 +3,11 @@ from selfdrive.car import dbc_dict
 
 gra_acc_buttons_dict = {
   "main": False,
+  "set": False,
+  "resume": False,
+  "cancel": False,
   "accel": False,
   "decel": False,
-  "set": False,
-  "cancel": False,
   "timegap": False
 }
 

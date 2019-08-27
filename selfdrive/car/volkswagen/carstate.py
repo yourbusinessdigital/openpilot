@@ -242,7 +242,7 @@ class CarState(object):
       self.acc_enabled = True
       self.acc_active = False
       self.acc_error = False
-    elif acc_control_status == 3 or acc_control_status == 4 or acc_control_status == 5:
+    elif acc_control_status in [3, 4, 5]:
       # ACC okay and enabled, currently engaged and regulating speed (3) or engaged with driver accelerating (4) or overrun (5)
       self.acc_enabled = True
       self.acc_active = True
