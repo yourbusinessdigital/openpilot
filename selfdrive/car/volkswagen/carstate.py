@@ -4,6 +4,7 @@ from selfdrive.config import Conversions as CV
 from selfdrive.can.parser import CANParser
 from selfdrive.can.can_define import CANDefine
 from selfdrive.car.volkswagen.values import DBC, gra_acc_buttons_dict
+from selfdrive.car.volkswagen.carcontroller import CarControllerParams
 
 # FIXME: Temporarily use a hardcoded J533 vs R242 location during development.
 CONNECTED_TO_GATEWAY = True
@@ -204,8 +205,7 @@ class CarState(object):
     # it ourselves using the vehicle model instead like Honda and Toyota.
     self.yaw_rate = gw_cp.vl["ESP_02"]['ESP_Gierrate'] * (1,-1)[int(gw_cp.vl["ESP_02"]['ESP_VZ_Gierrate'])]
 
-    # FIXME: make this into a tunable constant, preferably per-vehicle-type
-    self.steer_override = abs(self.steer_torque_driver) > 100
+    self.steer_override = abs(self.steer_torque_driver) > CarControllerParams.STEER_DRIVER_ALLOWANCE
 
     # Update gas, brakes, and gearshift
     self.pedal_gas = gw_cp.vl["Motor_20"]['MO_Fahrpedalrohwert_01'] / 100.0

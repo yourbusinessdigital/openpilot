@@ -9,19 +9,18 @@ AudibleAlert = car.CarControl.HUDControl.AudibleAlert
 AUDIBLE_WARNINGS = [AudibleAlert.chimeWarning1, AudibleAlert.chimeWarning2]
 EMERGENCY_WARNINGS = [AudibleAlert.chimeWarningRepeat]
 
-class CarControllerParams():
-  def __init__(self, car_fingerprint):
-    self.HCA_STEP_ACTIVE = 1            # HCA_01 message frequency 100Hz when applying torque
-    self.HCA_STEP_INACTIVE = 10         # HCA_01 message frequency 10Hz when not applying torque (100 / 10)
-    self.LDW_STEP = 10                  # LDW_02 message frequency 10Hz (100 / 10)
-    self.GRA_ACC_STEP = 3               # GRA_ACC_01 message frequency 33Hz (100 / 3)
+class CarControllerParams:
+  HCA_STEP_ACTIVE = 1            # HCA_01 message frequency 100Hz when applying torque
+  HCA_STEP_INACTIVE = 10         # HCA_01 message frequency 10Hz when not applying torque (100 / 10)
+  LDW_STEP = 10                  # LDW_02 message frequency 10Hz (100 / 10)
+  GRA_ACC_STEP = 3               # GRA_ACC_01 message frequency 33Hz (100 / 3)
 
-    self.STEER_MAX = 300                # Max heading control assist torque 3.00nm
-    self.STEER_DELTA_UP = 8             # Max HCA reached in 0.375s (STEER_MAX / (100Hz * 0.375))
-    self.STEER_DELTA_DOWN = 8           # Min HCA reached in 0.375s (STEER_MAX / (100Hz * 0.375))
-    self.STEER_DRIVER_ALLOWANCE = 100
-    self.STEER_DRIVER_MULTIPLIER = 4    # weight driver torque heavily
-    self.STEER_DRIVER_FACTOR = 1        # from dbc
+  STEER_MAX = 300                # Max heading control assist torque 3.00nm
+  STEER_DELTA_UP = 8             # Max HCA reached in 0.375s (STEER_MAX / (100Hz * 0.375))
+  STEER_DELTA_DOWN = 8           # Min HCA reached in 0.375s (STEER_MAX / (100Hz * 0.375))
+  STEER_DRIVER_ALLOWANCE = 100
+  STEER_DRIVER_MULTIPLIER = 4    # weight driver torque heavily
+  STEER_DRIVER_FACTOR = 1        # from dbc
 
 class CarController(object):
   def __init__(self, canbus, car_fingerprint):
@@ -34,14 +33,13 @@ class CarController(object):
     # Setup detection helper. Routes commands to
     # an appropriate CAN bus number.
     self.canbus = canbus
-    self.params = CarControllerParams(car_fingerprint)
     print(DBC)
     self.packer_gw = CANPacker(DBC[car_fingerprint]['pt'])
 
   def update(self, enabled, CS, frame, actuators, visual_alert, audible_alert, leftLaneVisible, rightLaneVisible):
     """ Controls thread """
 
-    P = self.params
+    P = CarControllerParams
 
     # Send CAN commands.
     can_sends = []
