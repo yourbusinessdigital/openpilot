@@ -1,5 +1,8 @@
 from selfdrive.car.volkswagen.values import CAR, DBC
 
+# CAN controls for MQB platform Volkswagen, Audi, Skoda and SEAT.
+# PQ35/PQ46/NMS, and any future MLB, will reside in another file.
+
 def create_steering_control(packer, bus, apply_steer, idx, lkas_enabled):
   values = {
     "SET_ME_0X3": 0x3,
@@ -41,7 +44,7 @@ def create_acc_buttons_control(packer, bus, gra_acc_buttons, idx):
     "GRA_Tip_Hoch": gra_acc_buttons["accel"],
     "GRA_Tip_Runter": gra_acc_buttons["decel"],
     "GRA_Tip_Wiederaufnahme": gra_acc_buttons["resume"],
-    "GRA_Verstellung_Zeitluecke": gra_acc_buttons["timegap"],
+    "GRA_Verstellung_Zeitluecke": 3 if gra_acc_buttons["timegap"] else 0,
     "GRA_Typ_Hauptschalter": 1,
     "GRA_Codierung": 2,
     "GRA_Tip_Stufe_2": 1,

@@ -184,6 +184,9 @@ class CarState(object):
     self.v_wheel_fr = gw_cp.vl["ESP_19"]['ESP_HR_Radgeschw_02'] * CV.KPH_TO_MS
     self.v_wheel_rl = gw_cp.vl["ESP_19"]['ESP_VL_Radgeschw_02'] * CV.KPH_TO_MS
     self.v_wheel_rr = gw_cp.vl["ESP_19"]['ESP_VR_Radgeschw_02'] * CV.KPH_TO_MS
+
+    # NOTE: there are high-resolution speeds available from the car, should
+    # we use those instead?
     speed_estimate = float(np.mean([self.v_wheel_fl, self.v_wheel_fr, self.v_wheel_rl, self.v_wheel_rr]))
     self.v_ego_raw = speed_estimate
     v_ego_x = self.v_ego_kf.update(speed_estimate)
@@ -195,8 +198,11 @@ class CarState(object):
     # the sign/direction in a separate signal so they must be recombined.
     self.angle_steers = gw_cp.vl["LWI_01"]['LWI_Lenkradwinkel'] * (1,-1)[int(gw_cp.vl["LWI_01"]['LWI_VZ_Lenkradwinkel'])]
     self.angle_steers_rate = gw_cp.vl["LWI_01"]['LWI_Lenkradw_Geschw'] * (1,-1)[int(gw_cp.vl["LWI_01"]['LWI_VZ_Lenkradwinkel'])]
-    self.yaw_rate = gw_cp.vl["ESP_02"]['ESP_Gierrate'] * (1,-1)[int(gw_cp.vl["ESP_02"]['ESP_VZ_Gierrate'])]
     self.steer_torque_driver = gw_cp.vl["EPS_01"]['Driver_Strain'] * (1,-1)[int(gw_cp.vl["EPS_01"]['Driver_Strain_VZ'])]
+    # NOTE: Using a yaw rate signal from the vehicle's ESP controller, but the
+    # signal is a little noisy. We may want to Kalman filter it, or calculate
+    # it ourselves using the vehicle model instead like Honda and Toyota.
+    self.yaw_rate = gw_cp.vl["ESP_02"]['ESP_Gierrate'] * (1,-1)[int(gw_cp.vl["ESP_02"]['ESP_VZ_Gierrate'])]
 
     # FIXME: make this into a tunable constant, preferably per-vehicle-type
     self.steer_override = abs(self.steer_torque_driver) > 100

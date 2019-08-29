@@ -118,7 +118,7 @@ class CarInterface(object):
         ret.steerRatio = 15
         ret.steerRateCost = 0.5
         ret.lateralTuning.pid.kf = 0.00008
-        ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.4], [0.1]]
+        ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.5], [0.1]]
       elif chassiscode == "BU":
         # Mk7 Volkswagen Jetta (Sagitar in Chinese market), 2019-present
         ret.mass = 1347
