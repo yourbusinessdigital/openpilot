@@ -237,27 +237,18 @@ class CarState(object):
       acc_cp = gw_cp
 
     acc_control_status = acc_cp.vl["ACC_06"]['ACC_Status_ACC']
-    # TODO: refactor ACC state into a nicer dict
     if acc_control_status == 1:
       # ACC okay but disabled
-      self.acc_enabled = False
-      self.acc_active = False
-      self.acc_error = False
+      self.acc_error, self.acc_enabled, self.acc_active = False, False, False
     elif acc_control_status == 2:
       # ACC okay and enabled, but not currently engaged
-      self.acc_enabled = True
-      self.acc_active = False
-      self.acc_error = False
+      self.acc_error, self.acc_enabled, self.acc_active = False, True, False
     elif acc_control_status in [3, 4, 5]:
       # ACC okay and enabled, currently engaged and regulating speed (3) or engaged with driver accelerating (4) or overrun (5)
-      self.acc_enabled = True
-      self.acc_active = True
-      self.acc_error = False
+      self.acc_error, self.acc_enabled, self.acc_active = False, True, True
     else:
       # ACC fault of some sort. Seen statuses 6 or 7 for CAN comms disruptions, visibility issues, etc.
-      self.acc_enabled = False
-      self.acc_active = False
-      self.acc_error = True
+      self.acc_error, self.acc_enabled, self.acc_active = True, False, False
 
     self.cruise_set_speed = acc_cp.vl["ACC_02"]['SetSpeed']
     # When the setpoint is zero or there's an error, the radar sends a set-speed of ~90.69 m/s / 203mph
