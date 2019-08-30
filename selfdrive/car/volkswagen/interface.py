@@ -78,8 +78,6 @@ class CarInterface(object):
         ret.mass = 1554
         ret.wheelbase = 2.79
         # TODO: Untested vehicle, placeholder tuning values
-        ret.steerRatio = 15
-        ret.steerRateCost = 0.5
         ret.lateralTuning.pid.kf = 0.00006
         ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.375], [0.1]]
       elif chassiscode == "3H":
@@ -87,8 +85,6 @@ class CarInterface(object):
         ret.mass = 1704
         ret.wheelbase = 2.84
         # TODO: Untested vehicle, placeholder tuning values
-        ret.steerRatio = 15
-        ret.steerRateCost = 0.5
         ret.lateralTuning.pid.kf = 0.00006
         ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.375], [0.1]]
       elif chassiscode == "5E" or chassiscode == "NE":
@@ -96,8 +92,6 @@ class CarInterface(object):
         ret.mass = 1360
         ret.wheelbase = 2.69
         # TODO: Untested vehicle, placeholder tuning values
-        ret.steerRatio = 15
-        ret.steerRateCost = 0.5
         ret.lateralTuning.pid.kf = 0.00006
         ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.375], [0.1]]
       elif chassiscode == "8V" or chassiscode == "FF":
@@ -106,8 +100,6 @@ class CarInterface(object):
         ret.mass = 1910
         ret.wheelbase = 2.61
         # TODO: Untested vehicle, placeholder tuning values
-        ret.steerRatio = 15
-        ret.steerRateCost = 0.5
         ret.lateralTuning.pid.kf = 0.00006
         ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.5], [0.25]]
       elif chassiscode == "AU":
@@ -115,8 +107,6 @@ class CarInterface(object):
         # Mass will vary a bit, but wheelbase is identical for all variants
         ret.mass = 1372
         ret.wheelbase = 2.64
-        ret.steerRatio = 15
-        ret.steerRateCost = 0.5
         ret.lateralTuning.pid.kf = 0.00008
         ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.5], [0.1]]
       elif chassiscode == "BU":
@@ -124,8 +114,6 @@ class CarInterface(object):
         ret.mass = 1347
         ret.wheelbase = 2.69
         # TODO: Untested vehicle, placeholder tuning values
-        ret.steerRatio = 15
-        ret.steerRateCost = 0.5
         ret.lateralTuning.pid.kf = 0.00006
         ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.375], [0.1]]
       elif chassiscode == "CA":
@@ -133,8 +121,6 @@ class CarInterface(object):
         ret.mass = 2042
         ret.wheelbase = 2.97
         # TODO: Untested vehicle, placeholder tuning values
-        ret.steerRatio = 15
-        ret.steerRateCost = 0.5
         ret.lateralTuning.pid.kf = 0.00006
         ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.5], [0.25]]
       elif chassiscode == "FV":
@@ -142,8 +128,6 @@ class CarInterface(object):
         ret.mass = 1328
         ret.wheelbase = 2.50
         # TODO: Untested vehicle, placeholder tuning values
-        ret.steerRatio = 15
-        ret.steerRateCost = 0.5
         ret.lateralTuning.pid.kf = 0.00006
         ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.5], [0.25]]
       elif chassiscode == "GA":
@@ -151,12 +135,12 @@ class CarInterface(object):
         ret.mass = 1205
         ret.wheelbase = 2.60
         # TODO: Untested vehicle, placeholder tuning values
-        ret.steerRatio = 15
-        ret.steerRateCost = 0.5
         ret.lateralTuning.pid.kf = 0.00006
         ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.5], [0.25]]
 
       # Additional common MQB parameters
+      ret.steerRatio = 15
+      ret.steerRateCost = 0.5
       ret.mass += STD_CARGO_KG
       ret.centerToFront = ret.wheelbase * 0.5
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]  # m/s
@@ -257,8 +241,8 @@ class CarInterface(object):
       params.put("IsMetric", "1" if self.CS.is_metric == 1 else "0")
 
     # Update dynamic vehicle mass calculated by the drivetrain coordinator.
-    # NOTE: At this time, OP probably won't make use of a mass value updated
-    # after startup.
+    # NOTE: At this time, OP's ParamsLearner probably won't make use of a mass
+    # value that gets changed after startup.
     # FIXME: Can't actually do this without adding mass to CarState in capnp
     # ret.mass = self.CS.mass
 
@@ -268,6 +252,7 @@ class CarInterface(object):
     # control stalk buttons. We don't have enough room in capnp to capture
     # all seven buttons, even with the alt buttons, so the timegap button
     # is not seen as an event at this time.
+    # FIXME: Add real main, set, resume, and timegap buttons to be added to capnp
     if self.CS.gra_acc_buttons != self.CS.gra_acc_buttons_prev:
       if self.CS.gra_acc_buttons["main"] != self.CS.gra_acc_buttons_prev["main"]:
         be = car.CarState.ButtonEvent.new_message()
@@ -314,15 +299,6 @@ class CarInterface(object):
       buttonEvents.append(be)
 
     events = []
-
-    # Observe the car's ACC engage and disengage behavior and set OP engagement
-    # to match.
-    # FIXME: Eventually move to intercepting GRA_ACC_01 and generating button events instead
-    #if self.CS.acc_active and not self.acc_active_prev:
-    #  events.append(create_event('pcmEnable', [ET.ENABLE]))
-    #if not self.CS.acc_active:
-    #  events.append(create_event('pcmDisable', [ET.USER_DISABLE]))
-    #self.acc_active_prev = self.CS.acc_active
 
     # Vehicle operation safety checks and events
     if not ret.gearShifter == 'drive':
