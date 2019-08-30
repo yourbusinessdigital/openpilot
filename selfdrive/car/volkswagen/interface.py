@@ -259,7 +259,8 @@ class CarInterface(object):
     # Update dynamic vehicle mass calculated by the drivetrain coordinator.
     # NOTE: At this time, OP probably won't make use of a mass value updated
     # after startup.
-    ret.mass = self.CS.mass
+    # FIXME: Can't actually do this without adding mass to CarState in capnp
+    # ret.mass = self.CS.mass
 
     buttonEvents = []
 

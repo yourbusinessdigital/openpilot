@@ -177,7 +177,8 @@ class CarState(object):
                                     gw_cp.vl["Gateway_72"]['ZV_HD_offen']])
 
     # Update dynamic vehicle mass calculated by the drivetrain coordinator.
-    self.mass = gw_cp.vl["Motor_16"]['TSK_Fahrzeugmasse_02']
+    # FIXME: Can't actually do this without adding mass to CarState in capnp
+    # self.mass = gw_cp.vl["Motor_16"]['TSK_Fahrzeugmasse_02']
 
     # Update turn signal stalk status. This is the user control, not the
     # external lamps.
