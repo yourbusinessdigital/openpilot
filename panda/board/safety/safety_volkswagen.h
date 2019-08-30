@@ -60,7 +60,7 @@ static int volkswagen_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
 
   // Safety check for HCA_01 Heading Control Assist torque.
   if (addr == 0x126) {
-    int desired_torque = GET_BYTE(to_send,6) | ((GET_BYTE(to_send,7) << 8) & 0x3F)
+    int desired_torque = GET_BYTE(to_send,6) | ((GET_BYTE(to_send,7) << 8) & 0x3F);
     uint8_t sign = GET_BYTE(to_send,7) & 0x80;
     if (sign == 1) desired_torque *= -1;
 
