@@ -1,8 +1,8 @@
 const int VW_MAX_STEER = 300;               // 3.0 nm
 const int VW_MAX_RT_DELTA = 128;            // max delta torque allowed for real time checks
 const uint32_t VW_RT_INTERVAL = 250000;     // 250ms between real time checks
-const int VW_MAX_RATE_UP = 16;
-const int VW_MAX_RATE_DOWN = 32;
+const int VW_MAX_RATE_UP = 8;
+const int VW_MAX_RATE_DOWN = 8;
 const int VW_DRIVER_TORQUE_ALLOWANCE = 100;
 const int VW_DRIVER_TORQUE_FACTOR = 4;
 
@@ -60,8 +60,8 @@ static int volkswagen_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
 
   // Safety check for HCA_01 Heading Control Assist torque.
   if (addr == 0x126) {
-    int desired_torque = ((to_send->RDHR & 0x3f) << 8) | ((to_send->RDHR >> 8) & 0xFF);
-    uint8_t sign = (to_send->RDHR & 0x80) > 0;
+    int desired_torque = GET_BYTE(to_send,6) | ((GET_BYTE(to_send,7) << 8) & 0x3F)
+    uint8_t sign = GET_BYTE(to_send,7) & 0x80;
     if (sign == 1) desired_torque *= -1;
 
     uint32_t ts = TIM2->CNT;
