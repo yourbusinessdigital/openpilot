@@ -208,8 +208,7 @@ class CarInterface(object):
     # create message
     ret = car.CarState.new_message()
 
-    #ret.canValid = self.gw_cp.can_valid and self.ex_cp.can_valid
-    ret.canValid = True
+    ret.canValid = self.gw_cp.can_valid and self.ex_cp.can_valid
 
     # speeds
     ret.vEgo = self.CS.v_ego
@@ -240,7 +239,7 @@ class CarInterface(object):
     ret.leftBlinker = bool(self.CS.left_blinker_on)
     ret.rightBlinker = bool(self.CS.right_blinker_on)
 
-    # doors open, seatbelt unfastened
+    # Doors open, seatbelt unfastened
     ret.doorOpen = not self.CS.door_all_closed
     ret.seatbeltUnlatched = not self.CS.seatbelt
 
@@ -252,9 +251,15 @@ class CarInterface(object):
     ret.brakeLights = bool(self.CS.brake_lights)
     ret.gearShifter = self.CS.gear_shifter
 
-    # Update the EON metric configuration to match the car at first startup, or if there's been a change.
+    # Update the EON metric configuration to match the car at first startup,
+    # or if there's been a change.
     if self.CS.is_metric != self.CS.is_metric_prev:
       params.put("IsMetric", "1" if self.CS.is_metric == 1 else "0")
+
+    # Update dynamic vehicle mass calculated by the drivetrain coordinator.
+    # NOTE: At this time, OP probably won't make use of a mass value updated
+    # after startup.
+    ret.mass = self.CS.mass
 
     buttonEvents = []
 

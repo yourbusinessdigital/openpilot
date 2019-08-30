@@ -43,6 +43,7 @@ def get_gateway_can_parser(CP, canbus):
     ("ESP_Tastung_passiv", "ESP_21", 0),          # Stability control disabled
     ("KBI_MFA_v_Einheit_02", "Einheiten_01", 0),  # MPH vs KMH speed display
     ("KBI_Handbremse", "Kombi_01", 0),            # Manual handbrake applied
+    ("TSK_Fahrzeugmasse_02", "Motor_16", 0),      # Estimated vehicle mass from drivetrain coordinator
     ("GRA_Hauptschalter", "GRA_ACC_01", 0),       # ACC button, on/off
     ("GRA_Abbrechen", "GRA_ACC_01", 0),           # ACC button, cancel
     ("GRA_Tip_Setzen", "GRA_ACC_01", 0),          # ACC button, set
@@ -65,6 +66,7 @@ def get_gateway_can_parser(CP, canbus):
     ("Gateway_72", 10),   # From J533 CAN gateway (aggregated data)
     ("Airbag_02", 5),     # From J234 Airbag control module
     ("Kombi_01", 2),      # From J285 Instrument cluster
+    ("Motor_16", 2),      # From J623 Engine control module
     ("Einheiten_01", 1),  # From J??? not known if gateway, cluster, or BCM
   ]
 
@@ -136,6 +138,7 @@ class CarState(object):
     self.park_brake = 0
     self.esp_disabled = 0
     self.yaw_rate = 0
+    self.mass = 0
     self.is_metric, is_metric_prev = False, None
     self.acc_enabled, self.acc_active, self.acc_error = False, False, False
 
@@ -172,6 +175,9 @@ class CarState(object):
                                     gw_cp.vl["Gateway_72"]['ZV_HFS_offen'],
                                     gw_cp.vl["Gateway_72"]['ZV_HBFS_offen'],
                                     gw_cp.vl["Gateway_72"]['ZV_HD_offen']])
+
+    # Update dynamic vehicle mass calculated by the drivetrain coordinator.
+    self.mass = gw_cp.vl["Motor_16"]['TSK_Fahrzeugmasse_02']
 
     # Update turn signal stalk status. This is the user control, not the
     # external lamps.

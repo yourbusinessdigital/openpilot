@@ -104,9 +104,8 @@ class CarController(object):
       # Copy the ACC control button state from the car, and transparently pass
       # most of it onto the ACC radar, with a few exceptions for conformance
       # to comma's strict safety model, and to support resume-from-stop.
-      # FIXME: Why is the timegap button not passing thru? May be in a different DBC bit than previously thought.
-      # TODO: More sophisticated handling of ACC set and resume press, including check to see if it was effective.
-      # TODO: Add virtual button presses to tweak the ACC speed setpoint for "longitudinal lite" control by OP
+      # NOTE: Later, could potentially add virtual button presses to tweak the
+      # ACC speed setpoint for "longitudinal lite" control by OP.
       gra_acc_buttons_tosend = CS.gra_acc_buttons.copy()
 
       if enabled:
