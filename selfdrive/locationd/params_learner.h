@@ -7,11 +7,8 @@
 #define MAX_ANGLE_OFFSET_TH  (9.0 * DEGREES_TO_RADIANS)
 #define MIN_STIFFNESS  0.5
 #define MAX_STIFFNESS  2.0
-// Temporarily disabling steering ratio learner in order to test fixed 15:1 ratio from VW MQB LWI_01
-//#define MIN_SR  0.5
-//#define MAX_SR  2.0
-#define MIN_SR 1.
-#define MAX_SR 1.
+#define MIN_SR  0.5
+#define MAX_SR  2.0
 #define MIN_SR_TH  0.55
 #define MAX_SR_TH  1.9
 

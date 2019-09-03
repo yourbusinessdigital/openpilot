@@ -52,25 +52,35 @@ class CarInterface(object):
     ret.carFingerprint = candidate
     ret.isPandaBlack = is_panda_black
     ret.carVin = vin
+    tire_stiffness_factor = 1.
 
     if candidate == CAR.GENERICMQB:
       # Check to make sure we received the VIN; we should have this for all MQBs
       # XXX temp removed
       # assert(ret.carVin != VIN_UNKNOWN), "Fingerprinted as Generic MQB but did not detect VIN"
 
-      # Set common MQB parameters
+      # Set common MQB parameters that will apply globally
       ret.carName = "volkswagen"
       ret.safetyModel = car.CarParams.SafetyModel.volkswagen
-
       ret.enableCruise = True # Stock ACC still controls acceleration and braking
       ret.steerControlType = car.CarParams.SteerControlType.torque
       ret.steerLimitAlert = True # Enable UI alert when steering torque is maxed out
 
+      # Additional common MQB parameters that may be overridden per-vehicle
+      ret.steerRatio = 15
+      ret.steerRateCost = 0.6
+      ret.steerActuatorDelay = 0.05
+
+      # As a starting point for tuning, use the documented steering assist
+      # map breakpoints from a VW Tiguan.
+      ret.lateralTuning.pid.kpBP, ret.lateralTuning.pid.kiBP = [[0., 15 * CV.KPH_TO_MS, 50 * CV.KPH_TO_MS, 100 * CV.KPH_TO_MS, 250 * CV.KPH_TO_MS],
+                                                                [0., 15 * CV.KPH_TO_MS, 50 * CV.KPH_TO_MS, 100 * CV.KPH_TO_MS, 250 * CV.KPH_TO_MS]]
+
       # Use the VIN to look up specific make and model details
       chassiscode = vin[6:8]
-      # XXX temp hack
+      # XXX temp hack to make everything an Atlas if no VIN detected
       if(chassiscode == "00"):
-        chassiscode = "AU"
+        chassiscode = "CA"
 
       if chassiscode == "3G":
         # B8 Passat, RoW only (North America Passat is PQ/NMS)
@@ -105,6 +115,7 @@ class CarInterface(object):
       elif chassiscode == "AU":
         # Mk7 and Mk7.5 Volkswagen Golf, Alltrack, Sportwagen, GTI, Golf R, and e-Golf, 2013-2020 depending on market
         # Mass will vary a bit, but wheelbase is identical for all variants
+        # FIXME: Golf R and GTI will probably need different lateral tuning with their progressive variable ratio racks
         ret.mass = 1372
         ret.wheelbase = 2.64
         ret.lateralTuning.pid.kf = 0.00008
@@ -120,9 +131,11 @@ class CarInterface(object):
         # Mk1 Volkswagen Atlas (Teramont in some markets), 2018-present
         ret.mass = 2042
         ret.wheelbase = 2.97
-        # TODO: Untested vehicle, placeholder tuning values
         ret.lateralTuning.pid.kf = 0.00006
-        ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.5], [0.25]]
+        ret.lateralTuning.pid.kpV = [0.05, 0.10, 0.15, 0.20, 0.50]
+        ret.lateralTuning.pid.kiV = [0.20, 0.15, 0.10, 0.05, 0.05]
+        ret.steerRatio = 15.1 # LiveParams tuned
+        tire_stiffness_factor = 0.6 # LiveParams tuned
       elif chassiscode == "FV":
         # Mk3 Audi TT/TTS/TTRS, 2014-present
         ret.mass = 1328
@@ -139,19 +152,15 @@ class CarInterface(object):
         ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.5], [0.25]]
 
       # Additional common MQB parameters
-      ret.steerRatio = 15
-      ret.steerRateCost = 0.5
+
       ret.mass += STD_CARGO_KG
       ret.centerToFront = ret.wheelbase * 0.5
-      ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]  # m/s
-      ret.steerActuatorDelay = 0.05
       ret.steerMaxBP = [0.]  # m/s
       ret.steerMaxV = [1.]
 
     # TODO: gate this on detection
     ret.enableCamera = True
     ret.steerRatioRear = 0.
-    tire_stiffness_factor = 1. # Placeholder in lieu of vehicle-specific tuning
 
     # No support for OP longitudinal control on Volkswagen at this time.
     ret.gasMaxBP = [0.]

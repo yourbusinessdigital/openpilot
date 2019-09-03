@@ -119,7 +119,7 @@ static int volkswagen_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
   switch(bus_num) {
     case 0:
       if(addr == 0x12b) {
-        // Discard the car's 0x12B GRA_ACC_01 in favor of OpenPilot's version
+        // Discard the car's 0x12B GRA_ACC_01 in favor of openpilot's version
         bus_fwd = -1;
       } else {
         // Forward all remaining traffic from J533 gateway to Extended CAN devices
@@ -128,7 +128,7 @@ static int volkswagen_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
       break;
     case 1:
       if(addr == 0x126 || addr == 0x397) {
-        // Discard the car's 0x126 HCA_01 and 0x397 LDW_02 in favor of OpenPilot's version
+        // Discard the car's 0x126 HCA_01 and 0x397 LDW_02 in favor of openpilot's version
         bus_fwd = -1;
       } else {
         // Forward all remaining traffic from Extended CAN devices to J533 gateway
