@@ -23,6 +23,7 @@ class CarInterface(object):
     self.acc_active_prev = 0
     self.gas_pressed_prev = False
     self.brake_pressed_prev = False
+    self.engageable = False
     self.CC = None
 
     # *** init the major players ***
@@ -31,6 +32,7 @@ class CarInterface(object):
     self.VM = VehicleModel(CP)
     self.gw_cp = get_gateway_can_parser(CP, canbus)
     self.ex_cp = get_extended_can_parser(CP, canbus)
+
 
     # sending if read only is False
     if CarController is not None:
@@ -63,18 +65,25 @@ class CarInterface(object):
       ret.carName = "volkswagen"
       ret.safetyModel = car.CarParams.SafetyModel.volkswagen
       ret.enableCruise = True # Stock ACC still controls acceleration and braking
+      ret.openpilotLongitudinalControl = False
       ret.steerControlType = car.CarParams.SteerControlType.torque
       ret.steerLimitAlert = True # Enable UI alert when steering torque is maxed out
 
       # Additional common MQB parameters that may be overridden per-vehicle
       ret.steerRatio = 15
       ret.steerRateCost = 0.6
-      ret.steerActuatorDelay = 0.05
+      ret.steerActuatorDelay = 0.05 # Hopefully all MQB racks are similar here
+      ret.steerMaxBP = [0.]  # m/s
+      ret.steerMaxV = [1.]
 
-      # As a starting point for tuning, use the documented steering assist
-      # map breakpoints from a VW Tiguan.
-      ret.lateralTuning.pid.kpBP, ret.lateralTuning.pid.kiBP = [[0., 15 * CV.KPH_TO_MS, 50 * CV.KPH_TO_MS, 100 * CV.KPH_TO_MS, 250 * CV.KPH_TO_MS],
-                                                                [0., 15 * CV.KPH_TO_MS, 50 * CV.KPH_TO_MS, 100 * CV.KPH_TO_MS, 250 * CV.KPH_TO_MS]]
+      # As a starting point for speed-adjusted lateral tuning, use the example
+      # map speed breakpoints from a VW Tiguan (SSP 399 page 9). It's unclear
+      # whether the driver assist map breakpoints have any direct bearing on
+      # HCA assist torque, but if they're good breakpoints for the driver,
+      # they're probably good breakpoints for HCA as well. OP won't be driving
+      # 250kph/155mph but it provides interpolation scaling above 100kmh/62mph.
+      ret.lateralTuning.pid.kpBP = [0., 15 * CV.KPH_TO_MS, 50 * CV.KPH_TO_MS, 100 * CV.KPH_TO_MS, 250 * CV.KPH_TO_MS]
+      ret.lateralTuning.pid.kiBP = [0., 15 * CV.KPH_TO_MS, 50 * CV.KPH_TO_MS, 100 * CV.KPH_TO_MS, 250 * CV.KPH_TO_MS]
 
       # Use the VIN to look up specific make and model details
       chassiscode = vin[6:8]
@@ -82,81 +91,94 @@ class CarInterface(object):
       if(chassiscode == "00"):
         chassiscode = "CA"
 
+      # B8 Passat, RoW only (North America Passat of this era is PQ/NMS)
+      # TODO: Supportable but untested vehicle, will require test and tune
       if chassiscode == "3G":
-        # B8 Passat, RoW only (North America Passat is PQ/NMS)
-        # FIXME: Mass is average between the sedan and wagon, and the spread is pretty high, may need more detection here somehow.
+        # Mass given is average between the sedan and wagon, and the spread is
+        # pretty high, may need more detection here somehow.
+        # FIXME: Untested vehicle, placeholder tuning values
         ret.mass = 1554
         ret.wheelbase = 2.79
-        # TODO: Untested vehicle, placeholder tuning values
-        ret.lateralTuning.pid.kf = 0.00006
-        ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.375], [0.1]]
+
+      # Mk1 Volkswagen Arteon 2018-present
+      # TODO: Supportable but untested vehicle, will require test and tune
       elif chassiscode == "3H":
-        # Mk1 Volkswagen Arteon 2018-present
-        ret.mass = 1704
-        ret.wheelbase = 2.84
-        # TODO: Untested vehicle, placeholder tuning values
-        ret.lateralTuning.pid.kf = 0.00006
-        ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.375], [0.1]]
+        ret.mass = 1748 # Worst case with 4Motion, otherwise 1658
+        ret.wheelbase = 2.837
+        # Documented steering ratio: static 13.6:1, 2.8 turns L2L
+        # No LiveParams tuned steerRatio yet
+        # No LiveParams tuned tirestiffnessfactor yet
+
+      # Mk3 Skoda Octavia, 2013-present
+      # TODO: Supportable but untested vehicle, will require test and tune
       elif chassiscode == "5E" or chassiscode == "NE":
-        # Mk3 Skoda Octavia, 2013-present
         ret.mass = 1360
         ret.wheelbase = 2.69
-        # TODO: Untested vehicle, placeholder tuning values
-        ret.lateralTuning.pid.kf = 0.00006
-        ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.375], [0.1]]
+        # TODO: Untested vehicle
+
+      # Mk3 Audi A3, S3, and RS3
+      # TODO: Supportable but untested vehicle, will require test and tune
       elif chassiscode == "8V" or chassiscode == "FF":
-        # Mk3 Audi A3, S3, and RS3
         # FIXME: Wheelbase will vary between some versions (hatch vs sportback) so we may need more detection here somehow
         ret.mass = 1910
         ret.wheelbase = 2.61
-        # TODO: Untested vehicle, placeholder tuning values
-        ret.lateralTuning.pid.kf = 0.00006
-        ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.5], [0.25]]
+
+      # Mk7 and Mk7.5 Volkswagen Golf, Alltrack, Sportwagen, GTI, Golf R, and
+      # e-Golf, 2013-2020 depending on market.
+      # Tested and supported for Golf R
+      # TODO: All variants besides Golf R untested, will require test and tune
       elif chassiscode == "AU":
-        # Mk7 and Mk7.5 Volkswagen Golf, Alltrack, Sportwagen, GTI, Golf R, and e-Golf, 2013-2020 depending on market
-        # Mass will vary a bit, but wheelbase is identical for all variants
-        # FIXME: Golf R and GTI will probably need different lateral tuning with their progressive variable ratio racks
+        # FIXME: Golf R and GTI may need different lateral tuning with their progressive variable ratio racks
+        # FIXME: ... so we need to detect R and GTI distinct from regular Golf, and can't rely on VIN.. use Motor_Code_01 engine, or maybe look at LWI-to-EPS angle variance? May need to do both.
+        # Mass will vary a bit, but wheelbase is identical for all variants.
         ret.mass = 1372
-        ret.wheelbase = 2.64
-        ret.lateralTuning.pid.kf = 0.00008
-        ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.5], [0.1]]
-      elif chassiscode == "BU":
-        # Mk7 Volkswagen Jetta (Sagitar in Chinese market), 2019-present
-        ret.mass = 1347
-        ret.wheelbase = 2.69
-        # TODO: Untested vehicle, placeholder tuning values
+        ret.wheelbase = 2.630
+        ret.centerToFront = ret.wheelbase * 0.45 # Estimated from public sources
         ret.lateralTuning.pid.kf = 0.00006
-        ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.375], [0.1]]
+        ret.lateralTuning.pid.kpV = [0.10, 0.20, 0.30, 0.40, 0.50]
+        ret.lateralTuning.pid.kiV = [0.20, 0.15, 0.10, 0.05, 0.05]
+        # Documented steering ratio:
+        #   Golf R and GTI: progressive 14.1:1 to 9.5:1, 2.1 turns L2L (less software stop for R)
+        #   All other variants: static 13.6:1, 2.76 turns L2L
+        ret.steerRatio = 15.6 # LiveParams auto tuned for R
+        tire_stiffness_factor = 0.6 # LiveParams auto tuned
+
+      # Mk7 Volkswagen Jetta (Sagitar in Chinese market), 2019-present
+      # TODO: Supportable but untested vehicle, will require test and tune
+      elif chassiscode == "BU":
+        ret.mass = 1485
+        ret.wheelbase = 2.681
+        # Documented steering ratio:
+        #  Jetta GLI: static 10.3:1, 2.1 turns L2L
+
+      # Mk1 Volkswagen Atlas (Teramont in some markets), 2018-present
+      # Fully tested and supported
       elif chassiscode == "CA":
-        # Mk1 Volkswagen Atlas (Teramont in some markets), 2018-present
         ret.mass = 2042
         ret.wheelbase = 2.97
         ret.lateralTuning.pid.kf = 0.00006
         ret.lateralTuning.pid.kpV = [0.05, 0.10, 0.15, 0.20, 0.50]
         ret.lateralTuning.pid.kiV = [0.20, 0.15, 0.10, 0.05, 0.05]
-        ret.steerRatio = 15.1 # LiveParams tuned
-        tire_stiffness_factor = 0.6 # LiveParams tuned
+        # Documented steering ratio: static 16.3:1, 2.76 turns L2L
+        ret.steerRatio = 15.1 # LiveParams auto tuned
+        tire_stiffness_factor = 0.6 # LiveParams auto tuned, but wheel/tire size varies by trim package
+
+      # Mk3 Audi TT/TTS/TTRS, 2014-present
+      # TODO: Supportable but untested vehicle, will require test and tune
       elif chassiscode == "FV":
-        # Mk3 Audi TT/TTS/TTRS, 2014-present
         ret.mass = 1328
         ret.wheelbase = 2.50
-        # TODO: Untested vehicle, placeholder tuning values
-        ret.lateralTuning.pid.kf = 0.00006
-        ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.5], [0.25]]
+
+      # Mk1 Audi Q2 2017-present
+      # TODO: Supportable but untested vehicle, will require test and tune
       elif chassiscode == "GA":
-        # Mk1 Audi Q2 2017-present
         ret.mass = 1205
         ret.wheelbase = 2.60
-        # TODO: Untested vehicle, placeholder tuning values
-        ret.lateralTuning.pid.kf = 0.00006
-        ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.5], [0.25]]
 
-      # Additional common MQB parameters
-
+      # Additional common MQB parameters that need to be set after VIN parse
       ret.mass += STD_CARGO_KG
+      # FIXME: have to set this after VIN parse so we have wheelbase, but need to test and allow overrides at the VIN level...
       ret.centerToFront = ret.wheelbase * 0.5
-      ret.steerMaxBP = [0.]  # m/s
-      ret.steerMaxV = [1.]
 
     # TODO: gate this on detection
     ret.enableCamera = True
@@ -229,6 +251,7 @@ class CarInterface(object):
     ret.cruiseState.speed = self.CS.cruise_set_speed
 
     # Blinker updates
+    # TODO: We have a signal for actual external blinker state, need to import that in addition to the turnstalk
     ret.leftBlinker = bool(self.CS.left_blinker_on)
     ret.rightBlinker = bool(self.CS.right_blinker_on)
 
@@ -310,43 +333,59 @@ class CarInterface(object):
     events = []
 
     # Vehicle operation safety checks and events
-    if not ret.gearShifter == 'drive':
-      events.append(create_event('wrongGear', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
     if ret.doorOpen:
       events.append(create_event('doorOpen', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
+    if ret.seatbeltUnlatched:
+      events.append(create_event('seatbeltNotLatched', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
     if ret.gearShifter == 'reverse':
       events.append(create_event('reverseGear', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE]))
+    if not ret.gearShifter == 'drive':
+      events.append(create_event('wrongGear', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
+    if self.CS.esp_disabled:
+      events.append(create_event('espDisabled', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
+    if self.CS.park_brake:
+      events.append(create_event('parkBrake', [ET.NO_ENTRY, ET.USER_DISABLE]))
+    if not self.CS.acc_enabled:
+      events.append(create_event('wrongCarMode', [ET.NO_ENTRY, ET.USER_DISABLE]))
 
-    # disable on pedals rising edge or when brake is pressed and speed isn't zero
+    # Vehicle health safety checks and events
+    if self.CS.acc_error:
+      events.append(create_event('radarFault', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE]))
+    if self.CS.steer_error:
+      events.append(create_event('steerTempUnavailable', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE]))
+
+    # Per the Comma safety model, disable on pedals rising edge or when brake
+    # is pressed and speed isn't zero.
     if (ret.gasPressed and not self.gas_pressed_prev) or \
             (ret.brakePressed and (not self.brake_pressed_prev or not ret.standstill)):
       events.append(create_event('pedalPressed', [ET.NO_ENTRY, ET.USER_DISABLE]))
     if ret.gasPressed:
       events.append(create_event('pedalPressed', [ET.PRE_ENABLE]))
 
-    if ret.seatbeltUnlatched:
-      events.append(create_event('seatbeltNotLatched', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
-    if self.CS.esp_disabled:
-      events.append(create_event('espDisabled', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
-    if self.CS.park_brake:
-      events.append(create_event('parkBrake', [ET.NO_ENTRY, ET.USER_DISABLE]))
-
-    # Vehicle health safety checks and events
-    if self.CS.acc_error:
-      # ACC radar is alive but reporting a health or visibility problem.
-      events.append(create_event('radarFault', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE]))
-    if self.CS.steer_error:
-      # Steering rack is not configured for Heading Control Assist, or there
-      # has been a timeout or other error in its reception of HCA messages.
-      events.append(create_event('steerTempUnavailable', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE]))
-
-    # Process engagement events based on the ACC set and resume buttons.
-    # The ACC increase and decrease buttons should not trigger engagement.
-    for b in buttonEvents:
-      if b.type in ["altButton1", "altButton2"] and b.pressed:
-        events.append(create_event('buttonEnable', [ET.ENABLE]))
-      if b.type in ["cancel"] and b.pressed:
-        events.append(create_event('buttonCancel', [ET.USER_DISABLE]))
+    if self.CS.CP.openpilotLongitudinalControl:
+      # Engagement and longitudinal control by openpilot, using vision or radar
+      # fusion. Send OP engagement events based on the user ACC set and resume
+      # buttons. The ACC gap adjustment increase and decrease buttons should
+      # not trigger engagement.
+      # TODO: For future visiond or radar fusion use; not currently supported.
+      for b in buttonEvents:
+        if b.type in ["altButton1", "altButton2"] and b.pressed:
+          events.append(create_event('buttonEnable', [ET.ENABLE]))
+        if b.type in ["cancel"] and b.pressed:
+          events.append(create_event('buttonCancel', [ET.USER_DISABLE]))
+    else:
+      # Engagement and longitudinal control using stock ACC. Observe the car's
+      # ACC engagement events and set OP engagement to match. If an OP safety
+      # issue would prevent OP engagement, we prevent stock ACC from engaging
+      # by filtering set/resume button presses later in CarController.
+      self.engageable = not bool(get_events(events, [ET.NO_ENTRY]))
+      if self.CS.acc_active and not self.acc_active_prev:
+        events.append(create_event('pcmEnable', [ET.ENABLE]))
+      # Make sure we disengage if stock ACC does, just in case stock ACC goes
+      # away for a reason not already handled by OP above.
+      if not self.CS.acc_active:
+        events.append(create_event('pcmDisable', [ET.USER_DISABLE]))
+      self.acc_active_prev = self.CS.acc_active
 
     ret.events = events
     ret.buttonEvents = buttonEvents
@@ -364,6 +403,7 @@ class CarInterface(object):
                    c.hudControl.visualAlert,
                    c.hudControl.audibleAlert,
                    c.hudControl.leftLaneVisible,
-                   c.hudControl.rightLaneVisible)
+                   c.hudControl.rightLaneVisible,
+                   self.engageable)
     self.frame += 1
     return can_sends
