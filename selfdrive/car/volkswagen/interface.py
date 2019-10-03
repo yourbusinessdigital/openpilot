@@ -215,8 +215,8 @@ class CarInterface(object):
 
     params = Params()
 
-    self.gw_cp.update_strings(int(sec_since_boot() * 1e9), can_strings)
-    self.ex_cp.update_strings(int(sec_since_boot() * 1e9), can_strings)
+    self.gw_cp.update_strings(can_strings)
+    self.ex_cp.update_strings(can_strings)
 
     self.CS.update(self.gw_cp, self.ex_cp)
 
