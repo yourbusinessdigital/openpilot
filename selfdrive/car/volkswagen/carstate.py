@@ -3,7 +3,8 @@ from common.kalman.simple_kalman import KF1D
 from selfdrive.config import Conversions as CV
 from selfdrive.can.parser import CANParser
 from selfdrive.can.can_define import CANDefine
-from selfdrive.car.volkswagen.values import DBC, CAR
+from selfdrive.car.volkswagen.values import DBC, gra_acc_buttons_dict
+from selfdrive.car.volkswagen.carcontroller import CarControllerParams
 
 # FIXME: Temporarily use a hardcoded J533 vs R242 location during development.
 CONNECTED_TO_GATEWAY = True
@@ -20,6 +21,8 @@ def get_gateway_can_parser(CP, canbus):
     ("ESP_HR_Radgeschw_02", "ESP_19", 0),         # ABS wheel speed, rear right
     ("ESP_VL_Radgeschw_02", "ESP_19", 0),         # ABS wheel speed, front left
     ("ESP_VR_Radgeschw_02", "ESP_19", 0),         # ABS wheel speed, front right
+    ("ESP_Gierrate", "ESP_02", 0),                # Absolute yaw rate
+    ("ESP_VZ_Gierrate", "ESP_02", 0),             # Yaw rate sign
     ("ZV_FT_offen", "Gateway_72", 0),             # Door open, driver
     ("ZV_BT_offen", "Gateway_72", 0),             # Door open, passenger
     ("ZV_HFS_offen", "Gateway_72", 0),            # Door open, rear left
@@ -40,6 +43,7 @@ def get_gateway_can_parser(CP, canbus):
     ("ESP_Tastung_passiv", "ESP_21", 0),          # Stability control disabled
     ("KBI_MFA_v_Einheit_02", "Einheiten_01", 0),  # MPH vs KMH speed display
     ("KBI_Handbremse", "Kombi_01", 0),            # Manual handbrake applied
+    ("TSK_Fahrzeugmasse_02", "Motor_16", 0),      # Estimated vehicle mass from drivetrain coordinator
     ("GRA_Hauptschalter", "GRA_ACC_01", 0),       # ACC button, on/off
     ("GRA_Abbrechen", "GRA_ACC_01", 0),           # ACC button, cancel
     ("GRA_Tip_Setzen", "GRA_ACC_01", 0),          # ACC button, set
@@ -62,6 +66,7 @@ def get_gateway_can_parser(CP, canbus):
     ("Gateway_72", 10),   # From J533 CAN gateway (aggregated data)
     ("Airbag_02", 5),     # From J234 Airbag control module
     ("Kombi_01", 2),      # From J285 Instrument cluster
+    ("Motor_16", 2),      # From J623 Engine control module
     ("Einheiten_01", 1),  # From J??? not known if gateway, cluster, or BCM
   ]
 
@@ -132,8 +137,13 @@ class CarState(object):
     self.steer_error = 0
     self.park_brake = 0
     self.esp_disabled = 0
+    self.yaw_rate = 0
+    self.mass = 0
     self.is_metric, is_metric_prev = False, None
     self.acc_enabled, self.acc_active, self.acc_error = False, False, False
+
+    self.acc_but_main, self.acc_but_accel, self.acc_but_decel, self.acc_but_cancel, self.acc_but_set,\
+      self.acc_but_resume, self.acc_but_timegap = False, False, False, False, False, False, False
 
     # vEgo kalman filter
     dt = 0.01
@@ -142,6 +152,9 @@ class CarState(object):
                          C=[1., 0.],
                          K=[[0.12287673], [0.29666309]])
     self.v_ego = 0.
+
+    self.gra_acc_buttons = gra_acc_buttons_dict
+    self.gra_acc_buttons_prev = self.gra_acc_buttons.copy()
 
   def update(self, gw_cp, ex_cp):
     # Check to make sure the electric power steering rack is configured to
@@ -163,6 +176,10 @@ class CarState(object):
                                     gw_cp.vl["Gateway_72"]['ZV_HBFS_offen'],
                                     gw_cp.vl["Gateway_72"]['ZV_HD_offen']])
 
+    # Update dynamic vehicle mass calculated by the drivetrain coordinator.
+    # FIXME: Can't actually do this without adding mass to CarState in capnp
+    # self.mass = gw_cp.vl["Motor_16"]['TSK_Fahrzeugmasse_02']
+
     # Update turn signal stalk status. This is the user control, not the
     # external lamps.
     self.prev_left_blinker_on = self.left_blinker_on
@@ -171,11 +188,13 @@ class CarState(object):
     self.right_blinker_on = gw_cp.vl["Gateway_72"]['BH_Blinker_re']
 
     # Update speed from ABS wheel speeds
-    # TODO: Why aren't we using one of the perfectly good calculated speeds from the car?
     self.v_wheel_fl = gw_cp.vl["ESP_19"]['ESP_HL_Radgeschw_02'] * CV.KPH_TO_MS
     self.v_wheel_fr = gw_cp.vl["ESP_19"]['ESP_HR_Radgeschw_02'] * CV.KPH_TO_MS
     self.v_wheel_rl = gw_cp.vl["ESP_19"]['ESP_VL_Radgeschw_02'] * CV.KPH_TO_MS
     self.v_wheel_rr = gw_cp.vl["ESP_19"]['ESP_VR_Radgeschw_02'] * CV.KPH_TO_MS
+
+    # NOTE: there are high-resolution speeds available from the car, should
+    # we use those instead?
     speed_estimate = float(np.mean([self.v_wheel_fl, self.v_wheel_fr, self.v_wheel_rl, self.v_wheel_rr]))
     self.v_ego_raw = speed_estimate
     v_ego_x = self.v_ego_kf.update(speed_estimate)
@@ -183,26 +202,17 @@ class CarState(object):
     self.a_ego = float(v_ego_x[1])
     self.standstill = self.v_ego_raw < 0.1
 
-    # Update steering angle
-    if gw_cp.vl["LWI_01"]['LWI_VZ_Lenkradwinkel'] == 1:
-      self.angle_steers = gw_cp.vl["LWI_01"]['LWI_Lenkradwinkel'] * -1
-    else:
-      self.angle_steers = gw_cp.vl["LWI_01"]['LWI_Lenkradwinkel']
+    # Update steering angle, rate, yaw rate, and driver input torque. VW send
+    # the sign/direction in a separate signal so they must be recombined.
+    self.angle_steers = gw_cp.vl["LWI_01"]['LWI_Lenkradwinkel'] * (1,-1)[int(gw_cp.vl["LWI_01"]['LWI_VZ_Lenkradwinkel'])]
+    self.angle_steers_rate = gw_cp.vl["LWI_01"]['LWI_Lenkradw_Geschw'] * (1,-1)[int(gw_cp.vl["LWI_01"]['LWI_VZ_Lenkradwinkel'])]
+    self.steer_torque_driver = gw_cp.vl["EPS_01"]['Driver_Strain'] * (1,-1)[int(gw_cp.vl["EPS_01"]['Driver_Strain_VZ'])]
+    # NOTE: Using a yaw rate signal from the vehicle's ESP controller, but the
+    # signal is a little noisy. We may want to Kalman filter it, or calculate
+    # it ourselves using the vehicle model instead like Honda and Toyota.
+    self.yaw_rate = gw_cp.vl["ESP_02"]['ESP_Gierrate'] * (1,-1)[int(gw_cp.vl["ESP_02"]['ESP_VZ_Gierrate'])]
 
-    # Update steering rate
-    if gw_cp.vl["LWI_01"]['LWI_VZ_Lenkradw_Geschw'] == 1:
-      self.angle_steers_rate = gw_cp.vl["LWI_01"]['LWI_Lenkradw_Geschw'] * -1
-    else:
-      self.angle_steers_rate = gw_cp.vl["LWI_01"]['LWI_Lenkradw_Geschw']
-
-    # Update driver steering torque input
-    if gw_cp.vl["EPS_01"]['Driver_Strain_VZ'] == 1:
-        self.steer_torque_driver = gw_cp.vl["EPS_01"]['Driver_Strain'] * -1
-    else:
-        self.steer_torque_driver = gw_cp.vl["EPS_01"]['Driver_Strain']
-
-    # FIXME: make this into a tunable constant, preferably per-vehicle-type
-    self.steer_override = abs(self.steer_torque_driver) > 100
+    self.steer_override = abs(self.steer_torque_driver) > CarControllerParams.STEER_DRIVER_ALLOWANCE
 
     # Update gas, brakes, and gearshift
     self.pedal_gas = gw_cp.vl["Motor_20"]['MO_Fahrpedalrohwert_01'] / 100.0
@@ -213,6 +223,16 @@ class CarState(object):
     self.esp_disabled = gw_cp.vl["ESP_21"]['ESP_Tastung_passiv']
     can_gear_shifter = int(gw_cp.vl["Getriebe_11"]['GE_Fahrstufe'])
     self.gear_shifter = parse_gear_shifter(can_gear_shifter, self.shifter_values)
+
+    # Update ACC cruise control buttons
+    self.gra_acc_buttons_prev = self.gra_acc_buttons.copy()
+    self.gra_acc_buttons["main"] = bool(gw_cp.vl["GRA_ACC_01"]['GRA_Hauptschalter'])
+    self.gra_acc_buttons["cancel"] = bool(gw_cp.vl["GRA_ACC_01"]['GRA_Abbrechen'])
+    self.gra_acc_buttons["set"] = bool(gw_cp.vl["GRA_ACC_01"]['GRA_Tip_Setzen'])
+    self.gra_acc_buttons["accel"] = bool(gw_cp.vl["GRA_ACC_01"]['GRA_Tip_Hoch'])
+    self.gra_acc_buttons["decel"] = bool(gw_cp.vl["GRA_ACC_01"]['GRA_Tip_Runter'])
+    self.gra_acc_buttons["resume"] = bool(gw_cp.vl["GRA_ACC_01"]['GRA_Tip_Wiederaufnahme'])
+    self.gra_acc_buttons["timegap"] = bool(gw_cp.vl["GRA_ACC_01"]['GRA_Verstellung_Zeitluecke'])
 
     #
     # Update ACC engagement details
@@ -226,24 +246,16 @@ class CarState(object):
     acc_control_status = acc_cp.vl["ACC_06"]['ACC_Status_ACC']
     if acc_control_status == 1:
       # ACC okay but disabled
-      self.acc_enabled = False
-      self.acc_active = False
-      self.acc_error = False
+      self.acc_error, self.acc_enabled, self.acc_active = False, False, False
     elif acc_control_status == 2:
       # ACC okay and enabled, but not currently engaged
-      self.acc_enabled = True
-      self.acc_active = False
-      self.acc_error = False
-    elif acc_control_status == 3:
-      # ACC okay and enabled, currently engaged and regulating speed
-      self.acc_enabled = True
-      self.acc_active = True
-      self.acc_error = False
+      self.acc_error, self.acc_enabled, self.acc_active = False, True, False
+    elif acc_control_status in [3, 4, 5]:
+      # ACC okay and enabled, currently engaged and regulating speed (3) or engaged with driver accelerating (4) or overrun (5)
+      self.acc_error, self.acc_enabled, self.acc_active = False, True, True
     else:
       # ACC fault of some sort. Seen statuses 6 or 7 for CAN comms disruptions, visibility issues, etc.
-      self.acc_enabled = False
-      self.acc_active = False
-      self.acc_error = True
+      self.acc_error, self.acc_enabled, self.acc_active = True, False, False
 
     self.cruise_set_speed = acc_cp.vl["ACC_02"]['SetSpeed']
     # When the setpoint is zero or there's an error, the radar sends a set-speed of ~90.69 m/s / 203mph
