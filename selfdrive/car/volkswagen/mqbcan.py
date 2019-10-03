@@ -48,7 +48,7 @@ def create_acc_buttons_control(packer, bus, gra_acc_buttons, idx):
     "GRA_Typ_Hauptschalter": 1,
     "GRA_Codierung": 2,
     "GRA_Tip_Stufe_2": 1,
-    "SET_ME_0X1": 1
+    "GRA_ButtonTypeInfo": 1
   }
 
   return packer.make_can_msg("GRA_ACC_01", bus, values, idx)
