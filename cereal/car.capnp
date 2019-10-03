@@ -404,6 +404,7 @@ struct CarParams {
     tesla @10;
     subaru @11;
     gmPassive @12;
+    volkswagen @15;
   }
 
   enum SteerControlType {
