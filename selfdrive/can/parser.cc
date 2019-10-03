@@ -24,7 +24,6 @@
 // #define DEBUG printf
 #define INFO printf
 
-
 #define MAX_BAD_COUNTER 5
 
 // Lookup table for fast computation of CRC8 poly 0x1D, aka SAE J1850
@@ -177,7 +176,7 @@ unsigned int volkswagen_crc(unsigned int address, uint64_t d, int l)
       crc ^= (uint8_t[]){0xDA,0xDA,0xDA,0xDA,0xDA,0xDA,0xDA,0xDA,0xDA,0xDA,0xDA,0xDA,0xDA,0xDA,0xDA,0xDA}[counter];
       break;
     case 0x12B: // GRA_ACC_01 Steering wheel controls for ACC
-      crc ^= (uint8_t[]){0x3F,0x69,0x39,0xDC,0x94,0xF9,0x14,0x64,0xD8,0x6A,0x34,0xCE,0xA2,0x55,0xB5,0x2C}[counter];
+      crc ^= (uint8_t[]){0x6A,0x38,0xB4,0x27,0x22,0xEF,0xE1,0xBB,0xF8,0x80,0x84,0x49,0xC7,0x9E,0x1E,0x2B}[counter];
       break;
     case 0x30C: // ACC_02 Automatic Cruise Control
       crc ^= (uint8_t[]){0x0F,0x0F,0x0F,0x0F,0x0F,0x0F,0x0F,0x0F,0x0F,0x0F,0x0F,0x0F,0x0F,0x0F,0x0F,0x0F}[counter];
@@ -252,11 +251,11 @@ struct MessageState {
         tmp -= (tmp >> (sig.b2-1)) ? (1ULL << sig.b2) : 0; //signed
       }
 
-      DEBUG("parse %X %s -> %lld\n", address, sig.name, tmp);
+      DEBUG("parse %X -> %lld\n", address, tmp);
 
       if (sig.type == SignalType::HONDA_CHECKSUM) {
         if (honda_checksum(address, dat, size) != tmp) {
-          INFO("0x%X %s CHECKSUM FAIL\n", address, sig.name);
+          INFO("0x%X CHECKSUM FAIL\n", address);
           return false;
         }
       } else if (sig.type == SignalType::HONDA_COUNTER) {
@@ -265,12 +264,12 @@ struct MessageState {
         }
       } else if (sig.type == SignalType::TOYOTA_CHECKSUM) {
         if (toyota_checksum(address, dat, size) != tmp) {
-          INFO("0x%X %s CHECKSUM FAIL\n", address, sig.name);
+          INFO("0x%X CHECKSUM FAIL\n", address);
           return false;
         }
       } else if (sig.type == SignalType::VOLKSWAGEN_CRC) {
         if (volkswagen_crc(address, dat, size) != tmp) {
-          INFO("0x%X %s CRC FAIL\n", address, sig.name);
+          INFO("0x%X CRC FAIL\n", address);
           return false;
         }
       } else if (sig.type == SignalType::VOLKSWAGEN_COUNTER) {
