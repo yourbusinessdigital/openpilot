@@ -11,6 +11,7 @@
 unsigned int honda_checksum(unsigned int address, uint64_t d, int l);
 unsigned int toyota_checksum(unsigned int address, uint64_t d, int l);
 unsigned int pedal_checksum(unsigned int address, uint64_t d, int l);
+unsigned int volkswagen_crc(unsigned int address, uint64_t d, int l);
 
 struct SignalPackValue {
   const char* name;
@@ -44,6 +45,8 @@ enum SignalType {
   TOYOTA_CHECKSUM,
   PEDAL_CHECKSUM,
   PEDAL_COUNTER,
+  VOLKSWAGEN_CRC,
+  VOLKSWAGEN_COUNTER,
 };
 
 struct Signal {

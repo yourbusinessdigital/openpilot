@@ -631,7 +631,7 @@ void TIM3_IRQHandler(void) {
     #ifdef EON
     if (heartbeat_counter >= (current_board->check_ignition() ? EON_HEARTBEAT_THRESHOLD_IGNITION_ON : EON_HEARTBEAT_THRESHOLD_IGNITION_OFF)) {
       puts("EON hasn't sent a heartbeat for 0x"); puth(heartbeat_counter); puts(" seconds. Safety is set to NOOUTPUT mode.\n");
-      set_safety_mode(SAFETY_NOOUTPUT, 0U);
+      //set_safety_mode(SAFETY_NOOUTPUT, 0U); // Temp hack during Volkswagen development
     }
     #endif
 
@@ -705,7 +705,7 @@ int main(void) {
 
   // default to silent mode to prevent issues with Ford
   // hardcode a specific safety mode if you want to force the panda to be in a specific mode
-  int err = safety_set_mode(SAFETY_NOOUTPUT, 0);
+  int err = safety_set_mode(SAFETY_VOLKSWAGEN, 0);
   if (err == -1) {
     puts("Failed to set safety mode\n");
     while (true) {
