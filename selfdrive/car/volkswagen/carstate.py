@@ -6,10 +6,7 @@ from selfdrive.can.can_define import CANDefine
 from selfdrive.car.volkswagen.values import DBC, gra_acc_buttons_dict
 from selfdrive.car.volkswagen.carcontroller import CarControllerParams
 
-# FIXME: Temporarily use a hardcoded J533 vs R242 location during development.
-CONNECTED_TO_GATEWAY = True
-
-def get_gateway_can_parser(CP, canbus):
+def get_mqb_gateway_can_parser(CP, canbus):
   # this function generates lists for signal, messages and initial values
   signals = [
     # sig_name, sig_address, default
@@ -17,10 +14,10 @@ def get_gateway_can_parser(CP, canbus):
     ("LWI_VZ_Lenkradwinkel", "LWI_01", 0),        # Steering angle sign
     ("LWI_Lenkradw_Geschw", "LWI_01", 0),         # Absolute steering rate
     ("LWI_VZ_Lenkradw_Geschw", "LWI_01", 0),      # Steering rate sign
-    ("ESP_HL_Radgeschw_02", "ESP_19", 0),         # ABS wheel speed, rear left
-    ("ESP_HR_Radgeschw_02", "ESP_19", 0),         # ABS wheel speed, rear right
     ("ESP_VL_Radgeschw_02", "ESP_19", 0),         # ABS wheel speed, front left
     ("ESP_VR_Radgeschw_02", "ESP_19", 0),         # ABS wheel speed, front right
+    ("ESP_HL_Radgeschw_02", "ESP_19", 0),         # ABS wheel speed, rear left
+    ("ESP_HR_Radgeschw_02", "ESP_19", 0),         # ABS wheel speed, rear right
     ("ESP_Gierrate", "ESP_02", 0),                # Absolute yaw rate
     ("ESP_VZ_Gierrate", "ESP_02", 0),             # Yaw rate sign
     ("ZV_FT_offen", "Gateway_72", 0),             # Door open, driver
@@ -70,36 +67,22 @@ def get_gateway_can_parser(CP, canbus):
     ("Einheiten_01", 1),  # From J??? not known if gateway, cluster, or BCM
   ]
 
-  # FIXME: Temporarily use a hardcoded J533 vs R242 location during development.
-  if not CONNECTED_TO_GATEWAY:
-    signals += [("ACC_Status_ACC", "ACC_06", 0)]  # ACC engagement status
-    signals += [("ACC_Typ", "ACC_06", 0)]         # ACC type (follow to stop, stop&go)
-    signals += [("SetSpeed", "ACC_02", 0)]   # ACC set speed
-
-    checks += [("ACC_06", 50)]  # From J428 ACC radar control module
-    checks += [("ACC_02", 17)]
-
   return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, canbus.gateway)
 
-
-def get_extended_can_parser(CP, canbus):
+def get_mqb_extended_can_parser(CP, canbus):
 
   signals = [
     # sig_name, sig_address, default
+    ("ACC_Status_ACC", "ACC_06", 0),                          # ACC engagement status
+    ("ACC_Typ", "ACC_06", 0),                                 # ACC type (follow to stop, stop&go)
+    ("SetSpeed", "ACC_02", 0),                                # ACC set speed
   ]
 
   checks = [
     # sig_address, frequency
+    ("ACC_06", 50),                                           # From J428 ACC radar control module
+    ("ACC_02", 17),                                           # From J428 ACC radar control module
   ]
-
-  # FIXME: Temporarily use a hardcoded J533 vs R242 location during development.
-  if CONNECTED_TO_GATEWAY:
-    signals += [("ACC_Status_ACC", "ACC_06", 0)]  # ACC engagement status
-    signals += [("ACC_Typ", "ACC_06", 0)]         # ACC type (follow to stop, stop&go)
-    signals += [("SetSpeed", "ACC_02", 0)]   # ACC set speed
-
-    checks += [("ACC_06", 50)]  # From J428 ACC radar control module
-    checks += [("ACC_02", 17)]
 
   return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, canbus.extended)
 

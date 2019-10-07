@@ -30,8 +30,8 @@ class CarInterface(object):
     canbus = CanBus()
     self.CS = CarState(CP, canbus)
     self.VM = VehicleModel(CP)
-    self.gw_cp = get_gateway_can_parser(CP, canbus)
-    self.ex_cp = get_extended_can_parser(CP, canbus)
+    self.gw_cp = get_mqb_gateway_can_parser(CP, canbus)
+    self.ex_cp = get_mqb_extended_can_parser(CP, canbus)
 
 
     # sending if read only is False
