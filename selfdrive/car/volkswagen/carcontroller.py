@@ -10,14 +10,15 @@ AUDIBLE_WARNINGS = [AudibleAlert.chimeWarning1, AudibleAlert.chimeWarning2]
 EMERGENCY_WARNINGS = [AudibleAlert.chimeWarningRepeat]
 
 class CarControllerParams:
-  HCA_STEP_ACTIVE = 1            # HCA_01 message frequency 100Hz when applying torque
-  HCA_STEP_INACTIVE = 10         # HCA_01 message frequency 10Hz when not applying torque (100 / 10)
-  LDW_STEP = 10                  # LDW_02 message frequency 10Hz (100 / 10)
-  GRA_ACC_STEP = 3               # GRA_ACC_01 message frequency 33Hz (100 / 3)
+  HCA_STEP_ACTIVE = 2            # HCA_01 message frequency 50Hz when applying torque
+  HCA_STEP_INACTIVE = 10         # HCA_01 message frequency 10Hz when not applying torque
+  LDW_STEP = 10                  # LDW_02 message frequency 10Hz
+  GRA_ACC_STEP = 3               # GRA_ACC_01 message frequency 33Hz
 
+  # Observe documented MQB limits: 3.00nm max, rate of change 5.00nm/sec
   STEER_MAX = 300                # Max heading control assist torque 3.00nm
-  STEER_DELTA_UP = 8             # Max HCA reached in 0.375s (STEER_MAX / (100Hz * 0.375))
-  STEER_DELTA_DOWN = 8           # Min HCA reached in 0.375s (STEER_MAX / (100Hz * 0.375))
+  STEER_DELTA_UP = 10            # Max HCA reached in 0.600s (STEER_MAX / (50Hz * 0.600))
+  STEER_DELTA_DOWN = 10          # Min HCA reached in 0.600s (STEER_MAX / (50Hz * 0.600))
   STEER_DRIVER_ALLOWANCE = 100
   STEER_DRIVER_MULTIPLIER = 4    # weight driver torque heavily
   STEER_DRIVER_FACTOR = 1        # from dbc

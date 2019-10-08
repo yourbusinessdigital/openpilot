@@ -1,8 +1,8 @@
 const int VW_MAX_STEER = 300;               // 3.0 nm
-const int VW_MAX_RT_DELTA = 128;            // max delta torque allowed for real time checks
+const int VW_MAX_RT_DELTA = 130;            // max delta torque allowed for real time checks
 const uint32_t VW_RT_INTERVAL = 250000;     // 250ms between real time checks
-const int VW_MAX_RATE_UP = 16;
-const int VW_MAX_RATE_DOWN = 32;
+const int VW_MAX_RATE_UP = 10;
+const int VW_MAX_RATE_DOWN = 10;
 const int VW_DRIVER_TORQUE_ALLOWANCE = 100;
 const int VW_DRIVER_TORQUE_FACTOR = 4;
 
@@ -11,6 +11,13 @@ struct sample_t vw_torque_driver;           // last few driver torques measured
 int vw_rt_torque_last = 0;
 int vw_desired_torque_last = 0;
 uint32_t vw_ts_last = 0;
+
+#define MSG_EPS_01              0x9F
+#define MSG_ACC_06              0x122
+#define MSG_HCA_01              0x126
+#define MSG_GRA_ACC_01          0x12B
+#define MSG_LDW_02              0x397
+#define MSG_KLEMMEN_STATUS_01   0x3C0
 
 static void volkswagen_init(int16_t param) {
   UNUSED(param); // May use param in the future to indicate MQB vs PQ35/PQ46/NMS vs MLB, or wiring configuration.
@@ -32,14 +39,14 @@ static void volkswagen_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
   int addr = GET_ADDR(to_push);
 
   // Monitor Klemmen_Status_01.ZAS_Kl_15 for Terminal 15 (ignition-on) status, but we make no use of it at the moment.
-  if (bus == 0 && addr == 0x3c0) {
+  if (bus == 0 && addr == MSG_KLEMMEN_STATUS_01) {
     uint32_t ign = (to_push->RDLR) & 0x200;
     vw_ignition_started = ign > 0;
   }
 
   // Update driver input torque samples from EPS_01.Driver_Strain for absolute torque, and EPS_01.Driver_Strain_VZ
   // for the direction.
-  if (bus == 0 && addr == 0x9f) {
+  if (bus == 0 && addr == MSG_EPS_01) {
     int torque_driver_new = (to_push->RDLR & 0x1f00) | ((to_push->RDLR >> 16) & 0xFF);
     uint8_t sign = (to_push->RDLR & 0x8000) > 0;
     if (sign == 1) torque_driver_new *= -1;
@@ -48,9 +55,9 @@ static void volkswagen_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
 
   // Monitor ACC_06.ACC_Status_ACC for stock ACC status. Because the current MQB port is lateral-only, OP's control
   // allowed state is directly driven by stock ACC engagement.
-  if (addr == 0x122) {
+  if (addr == MSG_ACC_06) {
     uint8_t acc_status = (GET_BYTE(to_push,7) & 0x70) >> 4;
-    controls_allowed = (acc_status == 3) ? true : false;
+    controls_allowed = (acc_status == 3 || acc_status == 4 || acc_status == 5) ? true : false;
   }
 }
 
@@ -59,9 +66,9 @@ static int volkswagen_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
   int violation = 0;
 
   // Safety check for HCA_01 Heading Control Assist torque.
-  if (addr == 0x126) {
-    int desired_torque = ((to_send->RDHR & 0x3f) << 8) | ((to_send->RDHR >> 8) & 0xFF);
-    uint8_t sign = (to_send->RDHR & 0x80) > 0;
+  if (addr == MSG_HCA_01) {
+    int desired_torque = GET_BYTE(to_send,6) | ((GET_BYTE(to_send,7) << 8) & 0x3F);
+    uint8_t sign = GET_BYTE(to_send,7) & 0x80;
     if (sign == 1) desired_torque *= -1;
 
     uint32_t ts = TIM2->CNT;
@@ -101,8 +108,6 @@ static int volkswagen_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
 
   }
 
-  // TODO: Implement force-cancel via GRA_ACC_01 message spamming, which Panda will need to allow specially
-
   if (violation) {
     // return false;
     return true; // FIXME: torque rate limiting code isn't working right, disable the checks temporarily
@@ -118,12 +123,17 @@ static int volkswagen_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
   // TODO: Will need refactoring for other bus layouts, for example, camera-side split or J533 running-gear xmit only
   switch(bus_num) {
     case 0:
-      // Forward all traffic from the J533 gateway to downstream Extended CAN bus devices
-      bus_fwd = 1;
+      if(addr == MSG_GRA_ACC_01) {
+        // Discard the car's 0x12B GRA_ACC_01 in favor of openpilot's version
+        bus_fwd = -1;
+      } else {
+        // Forward all remaining traffic from J533 gateway to Extended CAN devices
+        bus_fwd = 1;
+      }
       break;
     case 1:
-      if(addr == 0x126 || addr == 0x397) {
-        // Discard the car's 0x126 HCA_01 and 0x397 LDW_02 in favor of OpenPilot's version
+      if(addr == MSG_HCA_01 || addr == MSG_LDW_02) {
+        // Discard the car's 0x126 HCA_01 and 0x397 LDW_02 in favor of openpilot's version
         bus_fwd = -1;
       } else {
         // Forward all remaining traffic from Extended CAN devices to J533 gateway
