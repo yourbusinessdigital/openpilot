@@ -13,7 +13,7 @@ from common.vin import VIN_UNKNOWN
 class CanBus(object):
   def __init__(self):
     self.gateway = 0
-    self.extended = 1
+    self.extended = 2
 
 class CarInterface(object):
   def __init__(self, CP, CarController):
