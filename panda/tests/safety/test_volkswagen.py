@@ -18,7 +18,7 @@ class TestVolkswagenSafety(unittest.TestCase):
   @classmethod
   def setUp(cls):
     cls.safety = libpandasafety_py.libpandasafety
-    cls.safety.safety_set_mode(11, 0)
+    cls.safety.safety_set_mode(15, 0)
     cls.safety.init_tests_volkswagen()
 
   def _set_prev_torque(self, t):
