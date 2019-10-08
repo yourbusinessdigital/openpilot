@@ -29,7 +29,7 @@ struct sample_t gm_torque_driver;
 struct sample_t hyundai_torque_driver;
 struct sample_t chrysler_torque_meas;
 struct sample_t subaru_torque_driver;
-struct sample_t vw_torque_driver;
+struct sample_t volkswagen_torque_driver;
 
 TIM_TypeDef timer;
 TIM_TypeDef *TIM2 = &timer;
@@ -156,7 +156,7 @@ void set_subaru_torque_driver(int min, int max){
   subaru_torque_driver.max = max;
 }
 
-void set_vw_torque_driver(int min, int max){
+void set_volkswagen_torque_driver(int min, int max){
   vw_torque_driver.min = min;
   vw_torque_driver.max = max;
 }
@@ -205,7 +205,7 @@ void set_subaru_rt_torque_last(int t){
   subaru_rt_torque_last = t;
 }
 
-void set_vw_rt_torque_last(int t){
+void set_volkswagen_rt_torque_last(int t){
   vw_rt_torque_last = t;
 }
 
@@ -233,7 +233,7 @@ void set_subaru_desired_torque_last(int t){
   subaru_desired_torque_last = t;
 }
 
-void set_vw_desired_torque_last(int t){
+void set_volkswagen_desired_torque_last(int t){
   vw_desired_torque_last = t;
 }
 
