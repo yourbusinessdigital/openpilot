@@ -12,6 +12,7 @@ int vw_rt_torque_last = 0;
 int vw_desired_torque_last = 0;
 uint32_t vw_ts_last = 0;
 
+// Safety-relevant CAN messages for the Volkswagen MQB platform.
 #define MSG_EPS_01              0x9F
 #define MSG_ACC_06              0x122
 #define MSG_HCA_01              0x126
@@ -53,7 +54,8 @@ static void volkswagen_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
   }
 
   // Monitor ACC_06.ACC_Status_ACC for stock ACC status. Because the current MQB port is lateral-only, OP's control
-  // allowed state is directly driven by stock ACC engagement.
+  // allowed state is directly driven by stock ACC engagement. Permit the ACC message to come from either bus, in
+  // order to accommodate future camera-side integrations if needed.
   if (addr == MSG_ACC_06) {
     uint8_t acc_status = (GET_BYTE(to_push,7) & 0x70) >> 4;
     controls_allowed = (acc_status == 3 || acc_status == 4 || acc_status == 5) ? true : false;
@@ -122,19 +124,19 @@ static int volkswagen_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
   switch(bus_num) {
     case 0:
       if(addr == MSG_GRA_ACC_01) {
-        // Discard the car's 0x12B GRA_ACC_01 in favor of openpilot's version
+        // OP intercepts, filters, and updates the cruise-control button messages before they reach the ACC radar.
         bus_fwd = -1;
       } else {
-        // Forward all remaining traffic from J533 gateway to Extended CAN devices
+        // Forward all remaining traffic from J533 gateway to Extended CAN devices.
         bus_fwd = 1;
       }
       break;
     case 1:
       if(addr == MSG_HCA_01 || addr == MSG_LDW_02) {
-        // Discard the car's 0x126 HCA_01 and 0x397 LDW_02 in favor of openpilot's version
+        // OP takes control of the Heading Control Assist and Lane Departure Warning messages from the camera.
         bus_fwd = -1;
       } else {
-        // Forward all remaining traffic from Extended CAN devices to J533 gateway
+        // Forward all remaining traffic from Extended CAN devices to J533 gateway.
         bus_fwd = 0;
       }
       break;

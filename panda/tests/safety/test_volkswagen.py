@@ -3,11 +3,11 @@ import unittest
 import numpy as np
 import libpandasafety_py
 
-MAX_RATE_UP = 16
-MAX_RATE_DOWN = 32
+MAX_RATE_UP = 10
+MAX_RATE_DOWN = 10
 MAX_STEER = 300
 
-MAX_RT_DELTA = 128
+MAX_RT_DELTA = 130
 RT_INTERVAL = 250000
 
 DRIVER_TORQUE_ALLOWANCE = 100
