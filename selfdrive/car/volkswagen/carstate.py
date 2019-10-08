@@ -220,13 +220,8 @@ class CarState(object):
     #
     # Update ACC engagement details
     #
-    # FIXME: Temporarily use a hardcoded J533 vs R242 location during development.
-    if CONNECTED_TO_GATEWAY:
-      acc_cp = ex_cp
-    else:
-      acc_cp = gw_cp
 
-    acc_control_status = acc_cp.vl["ACC_06"]['ACC_Status_ACC']
+    acc_control_status = ex_cp.vl["ACC_06"]['ACC_Status_ACC']
     if acc_control_status == 1:
       # ACC okay but disabled
       self.acc_error, self.acc_enabled, self.acc_active = False, False, False
@@ -240,6 +235,6 @@ class CarState(object):
       # ACC fault of some sort. Seen statuses 6 or 7 for CAN comms disruptions, visibility issues, etc.
       self.acc_error, self.acc_enabled, self.acc_active = True, False, False
 
-    self.cruise_set_speed = acc_cp.vl["ACC_02"]['SetSpeed']
+    self.cruise_set_speed = ex_cp.vl["ACC_02"]['SetSpeed']
     # When the setpoint is zero or there's an error, the radar sends a set-speed of ~90.69 m/s / 203mph
     if self.cruise_set_speed > 90: self.cruise_set_speed = 0
