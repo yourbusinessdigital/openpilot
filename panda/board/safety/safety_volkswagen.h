@@ -40,15 +40,14 @@ static void volkswagen_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
 
   // Monitor Klemmen_Status_01.ZAS_Kl_15 for Terminal 15 (ignition-on) status, but we make no use of it at the moment.
   if (bus == 0 && addr == MSG_KLEMMEN_STATUS_01) {
-    uint32_t ign = (to_push->RDLR) & 0x200;
-    vw_ignition_started = ign > 0;
+    vw_ignition_started = (GET_BYTE(to_push, 2) & 0x2) >> 1;
   }
 
   // Update driver input torque samples from EPS_01.Driver_Strain for absolute torque, and EPS_01.Driver_Strain_VZ
   // for the direction.
   if (bus == 0 && addr == MSG_EPS_01) {
-    int torque_driver_new = (to_push->RDLR & 0x1f00) | ((to_push->RDLR >> 16) & 0xFF);
-    uint8_t sign = (to_push->RDLR & 0x8000) > 0;
+    int torque_driver_new = GET_BYTE(to_push, 5) | ((GET_BYTE(to_push, 6) & 0x1F) << 8);
+    uint8_t sign = (GET_BYTE(to_push, 6) & 0x80) >> 7;
     if (sign == 1) torque_driver_new *= -1;
     update_sample(&vw_torque_driver, torque_driver_new);
   }
@@ -67,8 +66,8 @@ static int volkswagen_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
 
   // Safety check for HCA_01 Heading Control Assist torque.
   if (addr == MSG_HCA_01) {
-    int desired_torque = GET_BYTE(to_send,6) | ((GET_BYTE(to_send,7) << 8) & 0x3F);
-    uint8_t sign = GET_BYTE(to_send,7) & 0x80;
+    int desired_torque = GET_BYTE(to_send, 2) | ((GET_BYTE(to_send, 3) & 0x3F) << 8);
+    uint8_t sign = (GET_BYTE(to_send, 3) & 0x80) >> 7;
     if (sign == 1) desired_torque *= -1;
 
     uint32_t ts = TIM2->CNT;
@@ -109,8 +108,7 @@ static int volkswagen_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
   }
 
   if (violation) {
-    // return false;
-    return true; // FIXME: torque rate limiting code isn't working right, disable the checks temporarily
+    return false;
   } else {
     return true;
   }
