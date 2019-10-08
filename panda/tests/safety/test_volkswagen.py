@@ -13,12 +13,6 @@ RT_INTERVAL = 250000
 DRIVER_TORQUE_ALLOWANCE = 100
 DRIVER_TORQUE_FACTOR = 4
 
-def twos_comp(val, bits):
-  if val >= 0:
-    return val
-  else:
-    return (2**bits) + val
-
 def sign(a):
   if a > 0:
     return 1
