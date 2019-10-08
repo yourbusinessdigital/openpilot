@@ -29,9 +29,9 @@ class TestVolkswagenSafety(unittest.TestCase):
     to_send = libpandasafety_py.ffi.new('CAN_FIFOMailBox_TypeDef *')
     to_send[0].RIR = 0x9f << 21
     t = abs(torque)
-    to_send[0].RDLR = (t & 0x1f00) | ((t & 0xFF) << 16)
+    to_send[0].RDHR = ((t & 0x1f00) >> 8) | ((t & 0xFF) >> 16)
     if torque < 0:
-      to_send[0].RDLR |= 0x8000
+      to_send[0].RDHR |= 0x80000000
 
     return to_send
 
@@ -39,9 +39,9 @@ class TestVolkswagenSafety(unittest.TestCase):
     to_send = libpandasafety_py.ffi.new('CAN_FIFOMailBox_TypeDef *')
     to_send[0].RIR = 0x126 << 21
     t = abs(torque)
-    to_send[0].RDHR = ((t >> 8) & 0x3f) | ((t & 0xff) << 8)
+    to_send[0].RDLR = (t & 0x3f00) | ((t & 0xff) >> 8)
     if torque < 0:
-      to_send[0].RDHR |= 0x80
+      to_send[0].RDLR |= 0x80000000
     return to_send
 
   def test_default_controls_not_allowed(self):
