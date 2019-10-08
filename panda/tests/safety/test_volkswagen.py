@@ -174,8 +174,8 @@ class TestVolkswagenSafety(unittest.TestCase):
   def test_fwd_hook(self):
     buss = range(0x0, 0x3)
     msgs = range(0x1, 0x800)
-    blocked_msgs_0to2 = [12B]
-    blocked_msgs_2to0 = [122, 397]
+    blocked_msgs_0to2 = [0x12B]
+    blocked_msgs_2to0 = [0x122, 0x397]
     for b in buss:
       for m in msgs:
         if b == 0:
