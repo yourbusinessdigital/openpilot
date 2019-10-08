@@ -128,7 +128,7 @@ static int volkswagen_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
         bus_fwd = -1;
       } else {
         // Forward all remaining traffic from J533 gateway to Extended CAN devices.
-        bus_fwd = 1;
+        bus_fwd = 2;
       }
       break;
     case 2:
