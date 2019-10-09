@@ -48,6 +48,9 @@ def get_mqb_gateway_can_parser(CP, canbus):
     ("GRA_Tip_Runter", "GRA_ACC_01", 0),          # ACC button, decrease or decel
     ("GRA_Tip_Wiederaufnahme", "GRA_ACC_01", 0),  # ACC button, resume
     ("GRA_Verstellung_Zeitluecke", "GRA_ACC_01", 0), # ACC button, time gap adj
+    ("GRA_Typ_Hauptschalter", "GRA_ACC_01", 0),   # ACC main button type
+    ("GRA_Tip_Stufe_2", "GRA_ACC_01", 0),         # unknown related to stalk type
+    ("GRA_ButtonTypeInfo", "GRA_ACC_01", 0),      # unknown related to stalk type
   ]
 
   checks = [
@@ -216,6 +219,11 @@ class CarState(object):
     self.gra_acc_buttons["decel"] = bool(gw_cp.vl["GRA_ACC_01"]['GRA_Tip_Runter'])
     self.gra_acc_buttons["resume"] = bool(gw_cp.vl["GRA_ACC_01"]['GRA_Tip_Wiederaufnahme'])
     self.gra_acc_buttons["timegap"] = bool(gw_cp.vl["GRA_ACC_01"]['GRA_Verstellung_Zeitluecke'])
+
+    # Read ACC button configuration info to pass through
+    self.gra_typ_hauptschalter = gw_cp.vl["GRA_ACC_01"]['GRA_Typ_Hauptschalter']
+    self.gra_buttontypeinfo = gw_cp.vl["GRA_ACC_01"]['GRA_ButtonTypeInfo']
+    self.gra_tip_stufe_2 = gw_cp.vl["GRA_ACC_01"]['GRA_Tip_Stufe_2']
 
     #
     # Update ACC engagement details
