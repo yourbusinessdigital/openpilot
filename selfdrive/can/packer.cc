@@ -51,6 +51,8 @@ namespace {
           signal_lookup[std::make_pair(msg->address, std::string(sig->name))] = *sig;
         }
       }
+
+      init_crc_lookup_tables();
     }
 
     uint64_t pack(uint32_t address, const std::vector<SignalPackValue> &signals, int counter) {
