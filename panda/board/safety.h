@@ -31,6 +31,7 @@
 #define SAFETY_SUBARU 11U
 #define SAFETY_GM_PASSIVE 12U
 #define SAFETY_MAZDA 13U
+#define SAFETY_VOLKSWAGEN 15U
 #define SAFETY_TOYOTA_IPAS 16U
 #define SAFETY_ALLOUTPUT 17U
 #define SAFETY_GM_ASCM 18U
@@ -80,6 +81,7 @@ const safety_hook_config safety_hook_registry[] = {
   {SAFETY_SUBARU, &subaru_hooks},
   {SAFETY_GM_PASSIVE, &gm_passive_hooks},
   {SAFETY_MAZDA, &mazda_hooks},
+  {SAFETY_VOLKSWAGEN, &volkswagen_hooks},
   {SAFETY_TOYOTA_IPAS, &toyota_ipas_hooks},
   {SAFETY_ALLOUTPUT, &alloutput_hooks},
   {SAFETY_GM_ASCM, &gm_ascm_hooks},
