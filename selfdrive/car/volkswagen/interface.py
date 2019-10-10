@@ -8,7 +8,6 @@ from selfdrive.car.volkswagen.carstate import CarState, get_mqb_gateway_can_pars
 from common.params import Params
 from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, gen_empty_fingerprint, is_ecu_disconnected
 from selfdrive.car.interfaces import CarInterfaceBase
-from common.vin import VIN_UNKNOWN
 
 class CanBus(object):
   def __init__(self):
