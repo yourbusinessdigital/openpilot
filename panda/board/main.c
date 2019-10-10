@@ -615,14 +615,14 @@ void TIM3_IRQHandler(void) {
     }
 
     // check heartbeat counter if we are running EON code. If the heartbeat has been gone for a while, go to NOOUTPUT safety mode.
-    #ifdef EON
-    if (heartbeat_counter >= (current_board->check_ignition() ? EON_HEARTBEAT_IGNITION_CNT_ON : EON_HEARTBEAT_IGNITION_CNT_OFF)) {
-      puts("EON hasn't sent a heartbeat for 0x"); puth(heartbeat_counter); puts(" seconds. Safety is set to NOOUTPUT mode.\n");
-      if(current_safety_mode != SAFETY_NOOUTPUT){
-        set_safety_mode(SAFETY_NOOUTPUT, 0U);
-      }
-    }
-    #endif
+//    #ifdef EON
+//    if (heartbeat_counter >= (current_board->check_ignition() ? EON_HEARTBEAT_IGNITION_CNT_ON : EON_HEARTBEAT_IGNITION_CNT_OFF)) {
+//      puts("EON hasn't sent a heartbeat for 0x"); puth(heartbeat_counter); puts(" seconds. Safety is set to NOOUTPUT mode.\n");
+//      if(current_safety_mode != SAFETY_NOOUTPUT){
+//        set_safety_mode(SAFETY_NOOUTPUT, 0U);
+//      }
+//    }
+//    #endif
 
     // on to the next one
     tcnt += 1U;
@@ -694,7 +694,7 @@ int main(void) {
 
   // default to silent mode to prevent issues with Ford
   // hardcode a specific safety mode if you want to force the panda to be in a specific mode
-  int err = safety_set_mode(SAFETY_NOOUTPUT, 0);
+  int err = safety_set_mode(SAFETY_VOLKSWAGEN, 0);
   if (err == -1) {
     puts("Failed to set safety mode\n");
     while (true) {
