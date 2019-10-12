@@ -220,7 +220,8 @@ class CarInterface(CarInterfaceBase):
     # create message
     ret = car.CarState.new_message()
 
-    ret.canValid = self.gw_cp.can_valid and self.ex_cp.can_valid
+    #ret.canValid = self.gw_cp.can_valid and self.ex_cp.can_valid
+    ret.canValid = true
 
     # speeds
     ret.vEgo = self.CS.v_ego
