@@ -178,7 +178,7 @@ class CarInterface(CarInterfaceBase):
 
     # FIXME: follow 0.6.5 Comma refactoring to ensure camera-side is detected okay
     # ret.enableCamera = is_ecu_disconnected(fingerprint[0], FINGERPRINTS, ECU_FINGERPRINT, candidate, ECU.CAM) or has_relay
-    ret.enableCamera = True
+    ret.enableCamera = False
     ret.steerRatioRear = 0.
 
     # No support for OP longitudinal control on Volkswagen at this time.
