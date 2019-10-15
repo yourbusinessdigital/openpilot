@@ -32,7 +32,6 @@ class CarInterface(CarInterfaceBase):
     self.gw_cp = get_mqb_gateway_can_parser(CP, canbus)
     self.ex_cp = get_mqb_extended_can_parser(CP, canbus)
 
-
     # sending if read only is False
     if CarController is not None:
       self.CC = CarController(canbus, CP.carFingerprint)
@@ -45,6 +44,9 @@ class CarInterface(CarInterfaceBase):
   @staticmethod
   def get_params(candidate, fingerprint=gen_empty_fingerprint(), vin="", has_relay=False):
     ret = car.CarParams.new_message()
+
+    # FIXME: Temp hack while working out fingerprint side
+    has_auto_trans = True
 
     ret.carFingerprint = candidate
     ret.isPandaBlack = has_relay
@@ -63,6 +65,12 @@ class CarInterface(CarInterfaceBase):
       ret.openpilotLongitudinalControl = False
       ret.steerControlType = car.CarParams.SteerControlType.torque
       ret.steerLimitAlert = True # Enable UI alert when steering torque is maxed out
+
+      # FIXME: Need to find a clean way to handle e-Golf without Getriebe_11 message
+      if has_auto_trans:
+        ret.transmissionType = car.CarParams.TransmissionType.automatic
+      else:
+        ret.transmissionType = car.CarParams.TransmissionType.manual
 
       # Additional common MQB parameters that may be overridden per-vehicle
       ret.steerRatio = 15
@@ -279,10 +287,7 @@ class CarInterface(CarInterfaceBase):
     buttonEvents = []
 
     # Process button press or release events from ACC steering wheel or
-    # control stalk buttons. We don't have enough room in capnp to capture
-    # all seven buttons, even with the alt buttons, so the timegap button
-    # is not seen as an event at this time.
-    # FIXME: Add real main, set, resume, and timegap buttons to be added to capnp
+    # control stalk buttons.
     if self.CS.gra_acc_buttons != self.CS.gra_acc_buttons_prev:
       if self.CS.gra_acc_buttons["main"] != self.CS.gra_acc_buttons_prev["main"]:
         be = car.CarState.ButtonEvent.new_message()
@@ -291,12 +296,12 @@ class CarInterface(CarInterfaceBase):
         buttonEvents.append(be)
       if self.CS.gra_acc_buttons["set"] != self.CS.gra_acc_buttons_prev["set"]:
         be = car.CarState.ButtonEvent.new_message()
-        be.type = 'altButton1'
+        be.type = 'setCruise'
         be.pressed = bool(self.CS.gra_acc_buttons["set"])
         buttonEvents.append(be)
       if self.CS.gra_acc_buttons["resume"] != self.CS.gra_acc_buttons_prev["resume"]:
         be = car.CarState.ButtonEvent.new_message()
-        be.type = 'altButton2'
+        be.type = 'resumeCruise'
         be.pressed = bool(self.CS.gra_acc_buttons["resume"])
         buttonEvents.append(be)
       if self.CS.gra_acc_buttons["cancel"] != self.CS.gra_acc_buttons_prev["cancel"]:
@@ -313,6 +318,11 @@ class CarInterface(CarInterfaceBase):
         be = car.CarState.ButtonEvent.new_message()
         be.type = 'decelCruise'
         be.pressed = bool(self.CS.gra_acc_buttons["decel"])
+        buttonEvents.append(be)
+      if self.CS.gra_acc_buttons["timegap"] != self.CS.gra_acc_buttons_prev["timegap"]:
+        be = car.CarState.ButtonEvent.new_message()
+        be.type = 'gapAdjustCruise'
+        be.pressed = bool(self.CS.gra_acc_buttons["timegap"])
         buttonEvents.append(be)
 
     # blinkers
@@ -337,8 +347,11 @@ class CarInterface(CarInterfaceBase):
       events.append(create_event('seatbeltNotLatched', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
     if ret.gearShifter == 'reverse':
       events.append(create_event('reverseGear', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE]))
-    if not ret.gearShifter == 'drive':
+    if not ret.gearShifter == 'drive' or ret.gearShifter == 'eco':
       events.append(create_event('wrongGear', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
+    # TODO: pending add of alerts.py event
+    # if ret.clutchPressed:
+    #   events.append(create_event('clutchPressed', [ET.NO_ENTRY]))
     if self.CS.esp_disabled:
       events.append(create_event('espDisabled', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
     if self.CS.park_brake:
@@ -367,7 +380,7 @@ class CarInterface(CarInterfaceBase):
       # not trigger engagement.
       # TODO: For future visiond or radar fusion use; not currently supported.
       for b in buttonEvents:
-        if b.type in ["altButton1", "altButton2"] and b.pressed:
+        if b.type in ["setCruise", "resumeCruise"] and b.pressed:
           events.append(create_event('buttonEnable', [ET.ENABLE]))
         if b.type in ["cancel"] and b.pressed:
           events.append(create_event('buttonCancel', [ET.USER_DISABLE]))

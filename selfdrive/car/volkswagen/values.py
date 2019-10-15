@@ -70,9 +70,15 @@ LEGACY_FINGERPRINTS = {
 
 class ECU:
   CAM = 0
+  RADAR = 1
+  TRANS = 2
+  EV = 3
 
 ECU_FINGERPRINT = {
-  ECU.CAM: [294, 919],   # Heading Control Assist and Lane Departure Warning messages
+  ECU.CAM: [294, 919],                    # HCA_01 Heading Control Assist, LDW_02 Lane Departure Warning
+  ECU.RADAR: [780, 804, 290, 302, 279],   # ACC_02, ACC_04, ACC_06, ACC_07, ACC_10
+  ECU.TRANS: [173],                       # Getriebe_11 Automatic gearbox
+  ECU.EV: [],                             # Various unknown e-Golf messages
 }
 
 DBC = {

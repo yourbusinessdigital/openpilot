@@ -34,6 +34,7 @@ def get_mqb_gateway_can_parser(CP, canbus):
     ("ESP_Status_Bremsdruck", "ESP_05", 0),       # Brakes applied
     ("ESP_Bremsdruck", "ESP_05", 0),              # Brake pressure applied
     ("MO_Fahrpedalrohwert_01", "Motor_20", 0),    # Accelerator pedal value
+    ("MO_Kuppl_schalter", "Motor_14", 0),         # Clutch switch
     ("Driver_Strain", "EPS_01", 0),               # Absolute driver torque input
     ("Driver_Strain_VZ", "EPS_01", 0),            # Driver torque input sign
     ("HCA_Ready", "EPS_01", 0),                   # Steering rack HCA support configured
@@ -64,6 +65,7 @@ def get_mqb_gateway_can_parser(CP, canbus):
     ("GRA_ACC_01", 33),   # From J??? steering wheel control buttons
     ("Getriebe_11", 20),  # From J743 Auto transmission control module
     ("Gateway_72", 10),   # From J533 CAN gateway (aggregated data)
+    ("Motor_14", 10),     # From J623 Engine control module
     ("Airbag_02", 5),     # From J234 Airbag control module
     ("Kombi_01", 2),      # From J285 Instrument cluster
     ("Motor_16", 2),      # From J623 Engine control module
@@ -100,7 +102,7 @@ def parse_gear_shifter(gear,vals):
   # ECU directly, pre-computed to match the Charisma driving profile as applicable,
   # so Drive/Sport/Eco don't really figure in to ACC behavior.
   val_to_capnp = {'P': 'park', 'R': 'reverse', 'N': 'neutral',
-                  'D': 'drive', 'E': 'drive', 'S': 'sport', 'T': 'sport'}
+                  'D': 'drive', 'E': 'eco', 'S': 'sport', 'T': 'manumatic'}
   try:
     return val_to_capnp[vals[gear]]
   except KeyError:
@@ -125,11 +127,10 @@ class CarState():
     self.esp_disabled = 0
     self.yaw_rate = 0
     self.mass = 0
+    self.has_auto_trans = True
+    self.clutch_pressed = False
     self.is_metric, is_metric_prev = False, None
     self.acc_enabled, self.acc_active, self.acc_error = False, False, False
-
-    self.acc_but_main, self.acc_but_accel, self.acc_but_decel, self.acc_but_cancel, self.acc_but_set,\
-      self.acc_but_resume, self.acc_but_timegap = False, False, False, False, False, False, False
 
     # vEgo kalman filter
     dt = 0.01
@@ -168,6 +169,7 @@ class CarState():
 
     # Update turn signal stalk status. This is the user control, not the
     # external lamps.
+    # TODO: Bring in signals from Blinkmodi_01 to also have light status as well as switch status
     self.prev_left_blinker_on = self.left_blinker_on
     self.left_blinker_on = gw_cp.vl["Gateway_72"]['BH_Blinker_li']
     self.prev_right_blinker_on = self.right_blinker_on
@@ -207,8 +209,14 @@ class CarState():
     self.user_brake = gw_cp.vl["ESP_05"]['ESP_Bremsdruck'] # FIXME: this is pressure in Bar, not sure what OP expects
     self.park_brake = gw_cp.vl["Kombi_01"]['KBI_Handbremse'] # FIXME: need to include an EPB check as well
     self.esp_disabled = gw_cp.vl["ESP_21"]['ESP_Tastung_passiv']
-    can_gear_shifter = int(gw_cp.vl["Getriebe_11"]['GE_Fahrstufe'])
-    self.gear_shifter = parse_gear_shifter(can_gear_shifter, self.shifter_values)
+
+    # Update gear position data
+    # FIXME: need a real mechanism for detecting has_auto_trans
+    if self.has_auto_trans:
+      can_gear_shifter = int(gw_cp.vl["Getriebe_11"]['GE_Fahrstufe'])
+      self.gear_shifter = parse_gear_shifter(can_gear_shifter, self.shifter_values)
+    else:
+      self.clutch_pressed = not gw_cp.vl["Motor_14"]['MO_Kuppl_schalter']
 
     # Update ACC cruise control buttons
     self.gra_acc_buttons_prev = self.gra_acc_buttons.copy()
@@ -220,15 +228,14 @@ class CarState():
     self.gra_acc_buttons["resume"] = bool(gw_cp.vl["GRA_ACC_01"]['GRA_Tip_Wiederaufnahme'])
     self.gra_acc_buttons["timegap"] = bool(gw_cp.vl["GRA_ACC_01"]['GRA_Verstellung_Zeitluecke'])
 
-    # Read ACC button configuration info to pass through
+    # Read ACC hardware button type configuration info that has to pass thru
+    # to the radar. Ends up being different for steering wheel buttons vs
+    # third stalk type controls.
     self.gra_typ_hauptschalter = gw_cp.vl["GRA_ACC_01"]['GRA_Typ_Hauptschalter']
     self.gra_buttontypeinfo = gw_cp.vl["GRA_ACC_01"]['GRA_ButtonTypeInfo']
     self.gra_tip_stufe_2 = gw_cp.vl["GRA_ACC_01"]['GRA_Tip_Stufe_2']
 
-    #
     # Update ACC engagement details
-    #
-
     acc_control_status = ex_cp.vl["ACC_06"]['ACC_Status_ACC']
     if acc_control_status == 1:
       # ACC okay but disabled

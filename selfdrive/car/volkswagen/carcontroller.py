@@ -1,6 +1,6 @@
 from cereal import car
 from selfdrive.car import apply_std_steer_torque_limits
-from selfdrive.car.volkswagen import mqbcan
+from selfdrive.car.volkswagen import volkswagencan
 from selfdrive.car.volkswagen.values import DBC
 from selfdrive.can.packer import CANPacker
 
@@ -72,7 +72,7 @@ class CarController():
         self.apply_steer_last = 0
 
       idx = (frame / P.HCA_STEP_ACTIVE) % 16
-      can_sends.append(mqbcan.create_steering_control(self.packer_gw, canbus.gateway, apply_steer, idx, lkas_enabled))
+      can_sends.append(volkswagencan.create_mqb_steering_control(self.packer_gw, canbus.gateway, apply_steer, idx, lkas_enabled))
 
     #
     # Prepare LDW_02 HUD message with lane lines and confidence levels
@@ -93,7 +93,7 @@ class CarController():
       else:
         hud_alert = 0
 
-      can_sends.append(mqbcan.create_hud_control(self.packer_gw, canbus.gateway, lkas_enabled, hud_alert, leftLaneVisible, rightLaneVisible))
+      can_sends.append(volkswagencan.create_mqb_hud_control(self.packer_gw, canbus.gateway, lkas_enabled, hud_alert, leftLaneVisible, rightLaneVisible))
 
     #
     # Prepare GRA_ACC_01 message with ACC cruise control buttons
@@ -139,6 +139,6 @@ class CarController():
           self.acc_vbp_type = None
           self.acc_vbp_endframe = None
 
-      can_sends.append(mqbcan.create_acc_buttons_control(self.packer_gw, canbus.extended, gra_acc_buttons_tosend, CS.gra_typ_hauptschalter, CS.gra_buttontypeinfo, CS.gra_tip_stufe_2, idx))
+      can_sends.append(volkswagencan.create_mqb_acc_buttons_control(self.packer_gw, canbus.extended, gra_acc_buttons_tosend, CS.gra_typ_hauptschalter, CS.gra_buttontypeinfo, CS.gra_tip_stufe_2, idx))
 
     return can_sends

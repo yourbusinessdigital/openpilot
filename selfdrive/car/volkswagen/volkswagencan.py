@@ -1,9 +1,7 @@
-from selfdrive.car.volkswagen.values import CAR, DBC
-
 # CAN controls for MQB platform Volkswagen, Audi, Skoda and SEAT.
-# PQ35/PQ46/NMS, and any future MLB, will reside in another file.
+# PQ35/PQ46/NMS, and any future MLB, to come later.
 
-def create_steering_control(packer, bus, apply_steer, idx, lkas_enabled):
+def create_mqb_steering_control(packer, bus, apply_steer, idx, lkas_enabled):
   values = {
     "SET_ME_0X3": 0x3,
     "Assist_Torque": abs(apply_steer),
@@ -17,7 +15,7 @@ def create_steering_control(packer, bus, apply_steer, idx, lkas_enabled):
   }
   return packer.make_can_msg("HCA_01", bus, values, idx)
 
-def create_hud_control(packer, bus, lkas_enabled, hud_alert, leftLaneVisible, rightLaneVisible):
+def create_mqb_hud_control(packer, bus, lkas_enabled, hud_alert, leftLaneVisible, rightLaneVisible):
 
   if lkas_enabled:
     leftlanehud = 3 if leftLaneVisible else 1
@@ -36,7 +34,7 @@ def create_hud_control(packer, bus, lkas_enabled, hud_alert, leftLaneVisible, ri
   }
   return packer.make_can_msg("LDW_02", bus, values)
 
-def create_acc_buttons_control(packer, bus, gra_acc_buttons, gra_typ_hauptschalter, gra_buttontypeinfo, gra_tip_stufe_2, idx):
+def create_mqb_acc_buttons_control(packer, bus, gra_acc_buttons, gra_typ_hauptschalter, gra_buttontypeinfo, gra_tip_stufe_2, idx):
   values = {
     "GRA_Hauptschalter": gra_acc_buttons["main"],
     "GRA_Abbrechen": gra_acc_buttons["cancel"],
