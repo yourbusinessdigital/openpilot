@@ -18,7 +18,7 @@ class LEGACY_CAR:
   GOLF = "2018 VW Golf R"
   ATLAS_SELPREM = "2018 VW Atlas SEL Premium"
   ATLAS_SETECH = "2019 VW Atlas SE with Tech"
-  OCTAVIA = "Skoda Octavia"
+  OCTAVIA = "2017 Skoda Octavia"
   OCTAVIA_COMBI = "2019 Skoda Octavia Combi"
   E_GOLF = "2016 Volkswagen e-Golf"
 
