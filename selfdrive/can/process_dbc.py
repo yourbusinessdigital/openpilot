@@ -68,6 +68,7 @@ def main():
     for address, msg_name, msg_size, sigs in msgs:
       for sig in sigs:
 
+        print("validating message %s" % msg_name)
         if sig.name == b"CHECKSUM" and checksum_size is not None:
           if sig.size != checksum_size:
             sys.exit("CHECKSUM is not %d bits long %s" % (checksum_size, msg_name))
