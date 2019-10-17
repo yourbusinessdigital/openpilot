@@ -46,43 +46,57 @@ def main():
 
     if can_dbc.name.startswith("honda") or can_dbc.name.startswith("acura"):
       car_type = "honda"
+      car_is_little_endian = False
       checksum_size = 4
       counter_size = 2
     elif can_dbc.name.startswith("toyota") or can_dbc.name.startswith("lexus"):
       car_type = "toyota"
+      car_is_little_endian = False
       checksum_size = 8
       counter_size = None
     elif can_dbc.name.startswith("vw") or can_dbc.name.startswith("volkswagen") or can_dbc.name.startswith("audi") or can_dbc.name.startswith ("seat") or can_dbc.name.startswith("skoda"):
       car_type = "volkswagen"
+      car_is_little_endian = True
       checksum_size = 8
       counter_size = 4
     else:
       car_type = None
+      car_is_little_endian = None
       checksum_size = None
       counter_size = None
 
     for address, msg_name, msg_size, sigs in msgs:
       for sig in sigs:
-        if car_type is not None:
-          if sig.name == b"CHECKSUM":
-            if sig.size != checksum_size:
-              sys.exit("CHECKSUM is not %d bits long %s" % (checksum_size, msg_name))
-            if car_type == "honda" and sig.start_bit % 8 != 3:
-              sys.exit("CHECKSUM starts at wrong bit %s" % msg_name)
-            if car_type == "toyota" and sig.start_bit % 8 != 7:
-              sys.exit("CHECKSUM starts at wrong bit %s" % msg_name)
-            if sig.size != checksum_size:
-              sys.exit("CHECKSUM is not %d bits long %s" % (checksum_size, msg_name))
-            if car_type == "volkswagen" and sig.start_bit % 8 != 0:
-              sys.exit("CHECKSUM starts at wrong bit %s" % msg_name)
-          elif sig.name == b"COUNTER" and car_type in ["honda", "volkswagen"]:
-            if sig.size != counter_size:
-              sys.exit("COUNTER is not %d bits long %s" % (counter_size, msg_name))
-            if car_type == "honda" and sig.start_bit % 8 != 5:
+
+        if sig.name == b"CHECKSUM" and checksum_size is not None:
+          if sig.size != checksum_size:
+            sys.exit("CHECKSUM is not %d bits long %s" % (checksum_size, msg_name))
+          if car_is_little_endian:
+            if not sig.is_little_endian:
+              sys.exit("CHECKSUM is not little endian %s" % msg_name)
+            if sig.start_bit % sig.size != 0:
+              sys.exit("CHECKSUM start bit is misaligned %s" % msg_name)
+          else:
+            if sig.is_little_endian:
+              sys.exit("CHECKSUM is not big endian %s" % msg_name)
+            if (sig.start_bit - sig.size + 1) % sig.size != 0:
+              sys.exit("CHECKSUM start bit is misaligned %s" % msg_name)
+
+        elif sig.name == b"COUNTER" and counter_size is not None:
+          if sig.size != counter_size:
+            sys.exit("COUNTER is not %d bits long %s" % (counter_size, msg_name))
+          if car_is_little_endian:
+            if not sig.is_little_endian:
+              sys.exit("COUNTER is not little endian %s" % msg_name)
+            if sig.start_bit % sig.size != 0:
               sys.exit("COUNTER starts at wrong bit %s" % msg_name)
-            if car_type == "volkswagen" and sig.start_bit % 8 != 0:
-              sys.exit("COUNTER starts at wrong bit %s" % msg_name)
-        if address in [0x200, 0x201]:
+          else:
+            if sig.is_little_endian:
+              sys.exit("COUNTER is not big endian %s" % msg_name)
+            if (sig.start_bit - sig.size + 1) % sig.size != 0:
+              sys.exit("COUNTER start bit is misaligned %s" % msg_name)
+
+        elif address in [0x200, 0x201]:
           if sig.name == b"COUNTER_PEDAL" and sig.size != 4:
             sys.exit("PEDAL COUNTER is not 4 bits long %s" % msg_name)
           if sig.name == "CHECKSUM_PEDAL" and sig.size != 8:
