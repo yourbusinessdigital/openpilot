@@ -38,7 +38,7 @@ def main():
     if dbc_mtime < out_mtime and template_mtime < out_mtime and this_file_mtime < out_mtime:
       continue #skip output is newer than template and dbc
 
-    msgs = [(address, msg_name, msg_size, sorted(msg_sigs, key=lambda s: s.name not in (b"COUNTER", b"CHECKSUM"))) # process counter and checksums first
+    msgs = [(address, msg_name, msg_size, sorted(msg_sigs, key=lambda s: s.name not in ("COUNTER", "CHECKSUM"))) # process counter and checksums first
             for address, ((msg_name, msg_size), msg_sigs) in sorted(can_dbc.msgs.items()) if msg_sigs]
 
     def_vals = {a: set(b) for a,b in can_dbc.def_vals.items()} #remove duplicates
@@ -70,7 +70,7 @@ def main():
       for sig in sigs:
 
         print("validating signal %s" % sig.name)
-        if sig.name == b"CHECKSUM" and checksum_size is not None:
+        if sig.name == "CHECKSUM" and checksum_size is not None:
           if sig.size != checksum_size:
             sys.exit("CHECKSUM is not %d bits long %s" % (checksum_size, msg_name))
           if car_is_little_endian:
@@ -84,7 +84,7 @@ def main():
             if (sig.start_bit - sig.size + 1) % sig.size != 0:
               sys.exit("CHECKSUM start bit is misaligned %s" % msg_name)
 
-        elif sig.name == b"COUNTER" and counter_size is not None:
+        elif sig.name == "COUNTER" and counter_size is not None:
           if sig.size != counter_size:
             sys.exit("COUNTER is not %d bits long %s" % (counter_size, msg_name))
           if car_is_little_endian:
@@ -99,7 +99,7 @@ def main():
               sys.exit("COUNTER start bit is misaligned %s" % msg_name)
 
         elif address in [0x200, 0x201]:
-          if sig.name == b"COUNTER_PEDAL" and sig.size != 4:
+          if sig.name == "COUNTER_PEDAL" and sig.size != 4:
             sys.exit("PEDAL COUNTER is not 4 bits long %s" % msg_name)
           if sig.name == "CHECKSUM_PEDAL" and sig.size != 8:
             sys.exit("PEDAL CHECKSUM is not 8 bits long %s" % msg_name)
