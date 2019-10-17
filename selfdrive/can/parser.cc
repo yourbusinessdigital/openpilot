@@ -236,7 +236,7 @@ struct MessageState {
           INFO("0x%X CHECKSUM FAIL\n", address);
           return false;
         }
-      } else if (sig.type == SignalType::VOLKSWAGEN_CRC) {
+      } else if (sig.type == SignalType::VOLKSWAGEN_CHECKSUM) {
         if (volkswagen_crc(address, dat, size) != tmp) {
           INFO("0x%X CRC FAIL\n", address);
           return false;

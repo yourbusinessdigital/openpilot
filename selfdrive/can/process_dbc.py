@@ -38,7 +38,7 @@ def main():
     if dbc_mtime < out_mtime and template_mtime < out_mtime and this_file_mtime < out_mtime:
       continue #skip output is newer than template and dbc
 
-    msgs = [(address, msg_name, msg_size, sorted(msg_sigs, key=lambda s: s.name not in (b"COUNTER", b"CHECKSUM", b"CRC"))) # process counter and checksums first
+    msgs = [(address, msg_name, msg_size, sorted(msg_sigs, key=lambda s: s.name not in (b"COUNTER", b"CHECKSUM"))) # process counter and checksums first
             for address, ((msg_name, msg_size), msg_sigs) in sorted(can_dbc.msgs.items()) if msg_sigs]
 
     def_vals = {a: set(b) for a,b in can_dbc.def_vals.items()} #remove duplicates
@@ -71,11 +71,10 @@ def main():
               sys.exit("CHECKSUM starts at wrong bit %s" % msg_name)
             if car_type == "toyota" and sig.start_bit % 8 != 7:
               sys.exit("CHECKSUM starts at wrong bit %s" % msg_name)
-          elif sig.name == b"CRC":
             if sig.size != checksum_size:
-              sys.exit("CRC is not %d bits long %s" % (checksum_size, msg_name))
+              sys.exit("CHECKSUM is not %d bits long %s" % (checksum_size, msg_name))
             if car_type == "volkswagen" and sig.start_bit % 8 != 0:
-              sys.exit("CRC starts at wrong bit %s" % msg_name)
+              sys.exit("CHECKSUM starts at wrong bit %s" % msg_name)
           elif sig.name == b"COUNTER" and car_type in ["honda", "volkswagen"]:
             if sig.size != counter_size:
               sys.exit("COUNTER is not %d bits long %s" % (counter_size, msg_name))
