@@ -66,10 +66,8 @@ def main():
       counter_size = None
 
     for address, msg_name, msg_size, sigs in msgs:
-      print("validating message %s for car type %s" % (msg_name, car_type))
       for sig in sigs:
 
-        print("validating signal %s" % sig.name)
         if sig.name == "CHECKSUM" and checksum_size is not None:
           if sig.size != checksum_size:
             sys.exit("CHECKSUM is not %d bits long %s" % (checksum_size, msg_name))
