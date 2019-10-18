@@ -65,7 +65,7 @@ class CarInterface(CarInterfaceBase):
 
       # Additional common MQB parameters that may be overridden per-vehicle
       ret.steerRatio = 15.6
-      ret.steerRateCost = 0.7
+      ret.steerRateCost = 0.4
       ret.steerActuatorDelay = 0.05 # Hopefully all MQB racks are similar here
       ret.steerMaxBP = [0.]  # m/s
       ret.steerMaxV = [1.]
@@ -81,8 +81,8 @@ class CarInterface(CarInterfaceBase):
       ret.centerToFront = ret.wheelbase * 0.45
       ret.steerRatio = 15.6
       ret.lateralTuning.pid.kf = 0.00006
-      ret.lateralTuning.pid.kpBP, ret.lateralTuning.pid.kiBP  = [[0.], [0.]]
-      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.50], [0.20]]
+      ret.lateralTuning.pid.kpBP, ret.lateralTuning.pid.kiBP  = [[0., 50 * CV.KPH_TO_MS], [0., 50 * CV.KPH_TO_MS]]
+      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.30, 0.50], [0.20, 0.20]]
       tire_stiffness_factor = 0.6
 
     # FIXME: Need to find a clean way to handle e-Golf without Getriebe_11 message
@@ -254,7 +254,7 @@ class CarInterface(CarInterfaceBase):
       events.append(create_event('seatbeltNotLatched', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
     if ret.gearShifter == 'reverse':
       events.append(create_event('reverseGear', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE]))
-    if not ret.gearShifter == 'drive' or ret.gearShifter == 'eco':
+    if not ret.gearShifter == 'drive' and not ret.gearShifter == 'eco':
       events.append(create_event('wrongGear', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
     # TODO: pending add of alerts.py event
     # if ret.clutchPressed:
