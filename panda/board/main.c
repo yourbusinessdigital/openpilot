@@ -698,7 +698,7 @@ int main(void) {
   if (err == -1) {
     puts("Failed to set safety mode\n");
     while (true) {
-      if SAFETY_NOOUTPUT isn't succesfully set, we can't continue
+      // if SAFETY_NOOUTPUT isn't succesfully set, we can't continue
     }
   }
   can_silent = ALL_CAN_SILENT;
