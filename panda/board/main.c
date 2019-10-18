@@ -697,9 +697,11 @@ int main(void) {
   int err = safety_set_mode(SAFETY_VOLKSWAGEN, 0);
   if (err == -1) {
     puts("Failed to set safety mode\n");
-    while (true) {
+    // XXX temporarily disable the halt on failing to set safety mode, may create chicken/egg issue with
+    // Volkswagen safety mode lock hack.
+    //while (true) {
       // if SAFETY_NOOUTPUT isn't succesfully set, we can't continue
-    }
+    //}
   }
   can_silent = ALL_CAN_SILENT;
   can_init_all();
