@@ -1,12 +1,8 @@
-Version 0.6.5 + VW 0.8 (2019-10-19)
+Version 0.6.5 + VW 0.81 (2019-10-19)
 ========================
- * Synced with Comma upstreamed cereal, OpenDBC, and Panda components.
- * Automated reflash of Panda with final Volkswagen safety model!
- * Panda temporarily being locked to VW safety as soon as EON connects.
- * Simple/unified MQB tuning model, real vehicle auto-ID to return later.
- * Engagement (re)allowed while in Eco drive mode.
- * Latest Comma 0.6.5-devel commits as of 2019-10-17, tweaks lane probabilities. 
-
+ * IN PROGRESS
+ * Remove dead/far-future code in preparation for upstreaming.
+ 
 Version 0.6.5 (2019-10-07)
 ========================
  * NEOS update: upgrade to Python3 and new installer!
