@@ -119,7 +119,7 @@ class CarController():
       else:
         # Cancel ACC if it's already active, for the cases where OP disengages
         # before platform ACC does.
-        if CS.acc_active:
+        if CS.accEnabled:
           self.acc_vbp_type = "cancel"
           self.acc_vbp_endframe = frame + 20
 
