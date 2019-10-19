@@ -57,7 +57,7 @@ class CarController():
         lkas_enabled = 1
         apply_steer = int(round(actuators.steer * P.STEER_MAX))
 
-        apply_steer = apply_std_steer_torque_limits(apply_steer, self.apply_steer_last, CS.steer_torque_driver, P)
+        apply_steer = apply_std_steer_torque_limits(apply_steer, self.apply_steer_last, CS.steeringTorque, P)
         self.apply_steer_last = apply_steer
 
         # Ugly hack to reset EPS hardcoded 180 second limit for HCA intervention.
