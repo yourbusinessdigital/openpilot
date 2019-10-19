@@ -19,10 +19,9 @@ class CarInterface(CarInterfaceBase):
     self.CP = CP
 
     self.frame = 0
-    self.acc_active_prev = 0
+    self.acc_active_prev = False
     self.gas_pressed_prev = False
     self.brake_pressed_prev = False
-    self.engageable = False
     self.CC = None
 
     # *** init the major players ***
@@ -265,15 +264,10 @@ class CarInterface(CarInterfaceBase):
       events.append(create_event('reverseGear', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE]))
     if not ret.gearShifter == 'drive' and not ret.gearShifter == 'eco':
       events.append(create_event('wrongGear', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
-    # TODO: pending add of alerts.py event
-    # if ret.clutchPressed:
-    #   events.append(create_event('clutchPressed', [ET.NO_ENTRY]))
     if self.CS.esp_disabled:
       events.append(create_event('espDisabled', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
     if self.CS.park_brake:
       events.append(create_event('parkBrake', [ET.NO_ENTRY, ET.USER_DISABLE]))
-    if not self.CS.acc_enabled:
-      events.append(create_event('wrongCarMode', [ET.NO_ENTRY, ET.USER_DISABLE]))
 
     # Vehicle health safety checks and events
     if self.CS.acc_error:
@@ -289,38 +283,22 @@ class CarInterface(CarInterfaceBase):
     if ret.gasPressed:
       events.append(create_event('pedalPressed', [ET.PRE_ENABLE]))
 
-    if self.CS.CP.openpilotLongitudinalControl:
-      # Engagement and longitudinal control by openpilot, using vision or radar
-      # fusion. Send OP engagement events based on the user ACC set and resume
-      # buttons. The ACC gap adjustment increase and decrease buttons should
-      # not trigger engagement.
-      # TODO: For future visiond or radar fusion use; not currently supported.
-      for b in buttonEvents:
-        if b.type in ["setCruise", "resumeCruise"] and b.pressed:
-          events.append(create_event('buttonEnable', [ET.ENABLE]))
-        if b.type in ["cancel"] and b.pressed:
-          events.append(create_event('buttonCancel', [ET.USER_DISABLE]))
-    else:
-      # Engagement and longitudinal control using stock ACC. Observe the car's
-      # ACC engagement events and set OP engagement to match. If an OP safety
-      # issue would prevent OP engagement, we prevent stock ACC from engaging
-      # by filtering set/resume button presses later in CarController.
-      self.engageable = not bool(get_events(events, [ET.NO_ENTRY]))
-      if self.CS.acc_active and not self.acc_active_prev:
-        events.append(create_event('pcmEnable', [ET.ENABLE]))
-      # Make sure we disengage if stock ACC does, just in case stock ACC goes
-      # away for a reason not already handled by OP above.
-      if not self.CS.acc_active:
-        events.append(create_event('pcmDisable', [ET.USER_DISABLE]))
-      self.acc_active_prev = self.CS.acc_active
+    # Engagement and longitudinal control using stock ACC. Make sure OP is
+    # disengaged if stock ACC is disengaged.
+    if not self.CS.acc_active:
+      events.append(create_event('pcmDisable', [ET.USER_DISABLE]))
+    # Try OP engagement only on rising edge of stock ACC engagement.
+    elif not self.acc_active_prev:
+      events.append(create_event('pcmEnable', [ET.ENABLE]))
 
     ret.events = events
     ret.buttonEvents = buttonEvents
     ret.canMonoTimes = canMonoTimes
 
-    # update previous brake/gas pressed
+    # update previous car states
     self.gas_pressed_prev = ret.gasPressed
     self.brake_pressed_prev = ret.brakePressed
+    self.acc_active_prev = self.CS.acc_active
 
     # cast to reader so it can't be modified
     return ret.as_reader()
@@ -330,7 +308,6 @@ class CarInterface(CarInterfaceBase):
                    c.hudControl.visualAlert,
                    c.hudControl.audibleAlert,
                    c.hudControl.leftLaneVisible,
-                   c.hudControl.rightLaneVisible,
-                   self.engageable)
+                   c.hudControl.rightLaneVisible)
     self.frame += 1
     return can_sends
