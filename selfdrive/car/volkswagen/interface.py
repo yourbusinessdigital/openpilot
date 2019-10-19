@@ -3,7 +3,7 @@ from common.realtime import sec_since_boot
 from selfdrive.config import Conversions as CV
 from selfdrive.controls.lib.drive_helpers import create_event, get_events, EventTypes as ET
 from selfdrive.controls.lib.vehicle_model import VehicleModel
-from selfdrive.car.volkswagen.values import CAR, FINGERPRINTS, ECU_FINGERPRINT, ECU
+from selfdrive.car.volkswagen.values import CAR, FINGERPRINTS, ECU_FINGERPRINT, ECU, gra_acc_buttons_dict
 from selfdrive.car.volkswagen.carstate import CarState, get_mqb_gateway_can_parser, get_mqb_extended_can_parser
 from common.params import Params
 from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, gen_empty_fingerprint, is_ecu_disconnected
@@ -27,7 +27,7 @@ class CarInterface(CarInterfaceBase):
     self.leftBlinkerPrev = False
     self.cruiseStateEnabledPrev = False
     self.displayMetricUnitsPrev = None
-    self.gra_acc_buttons_prev = None
+    self.gra_acc_buttons_prev = gra_acc_buttons_dict.copy()
 
     # *** init the major players ***
     canbus = CanBus()

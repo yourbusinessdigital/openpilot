@@ -149,7 +149,7 @@ class CarState():
     self.accFault, self.accAvailable, self.accEnabled = False, False, False
     self.accSetSpeed = 0
 
-    self.gra_acc_buttons = gra_acc_buttons_dict
+    self.gra_acc_buttons = gra_acc_buttons_dict.copy()
     self.gra_typ_hauptschalter = None
     self.gra_buttontypeinfo = None
     self.gra_tip_stufe_2 = None
