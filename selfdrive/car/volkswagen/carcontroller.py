@@ -53,7 +53,7 @@ class CarController():
 
       # Don't send steering commands unless we've successfully enabled vehicle
       # ACC (prevent controls mismatch) and we're moving (prevent EPS fault).
-      if enabled and CS.acc_active and not CS.standstill:
+      if enabled and CS.accEnabled and not CS.standstill:
         lkas_enabled = 1
         apply_steer = int(round(actuators.steer * P.STEER_MAX))
 
