@@ -46,7 +46,7 @@ bool gas_interceptor_detected = 0;
 int gas_interceptor_prev = 0;
 
 // This is set based on EON heartbeat detection.
-bool eon_alive = False;
+bool eon_alive = false;
 
 
 // This is set by USB command 0xdf
