@@ -621,9 +621,9 @@ void TIM3_IRQHandler(void) {
     //  if(current_safety_mode != SAFETY_NOOUTPUT){
     //    set_safety_mode(SAFETY_NOOUTPUT, 0U);
     //  }
-        eon_alive = False;
+        eon_alive = false;
     } else {
-        eon_alive = True;
+        eon_alive = true;
     }
     #endif
 
