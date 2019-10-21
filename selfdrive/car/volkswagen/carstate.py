@@ -28,7 +28,7 @@ def get_mqb_gateway_can_parser(CP, canbus):
     ("BH_Blinker_li", "Gateway_72", 0),           # Left turn signal on
     ("BH_Blinker_re", "Gateway_72", 0),           # Right turn signal on
     ("GE_Fahrstufe", "Getriebe_11", 0),           # Auto trans gear selector position
-    {"EV_Gearshift", "GearPosition", 0},          # EV gear selector position
+    {"GearPosition", "EV_Gearshift", 0},          # EV gear selector position
     ("AB_Gurtschloss_FA", "Airbag_02", 0),        # Seatbelt status, driver
     ("AB_Gurtschloss_BF", "Airbag_02", 0),        # Seatbelt status, passenger
     ("ESP_Fahrer_bremst", "ESP_05", 0),           # Brake pedal pressed
