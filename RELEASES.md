@@ -1,4 +1,4 @@
-Version 0.6.5 + VW 0.82 (2019-10-20)
+Version 0.6.5 + VW 0.8.2 (2019-10-20)
 ========================
  * Community port only: Panda safety goes fully transparent/stock if EON/OP are offline.
  * Remove dead/far-future code in preparation for upstreaming.
