@@ -5,7 +5,7 @@ Version 0.6.5 + VW 0.8.2 (2019-10-20)
  * Refactor and move all type casting/scaling to carstate, state tracking to interface.
  * Correct longstanding bug with ABS wheel speed being reversed front to back.
 
-Version 0.6.5 + VW 0.8 (2019-10-19)
+Version 0.6.5 + VW 0.8.0 (2019-10-19)
 ========================
  * Synced with Comma upstreamed cereal, OpenDBC, and Panda components.
  * Automated reflash of Panda with final Volkswagen safety model!
