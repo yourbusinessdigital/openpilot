@@ -218,7 +218,7 @@ class CarState():
     # third stalk type controls.
     self.graHauptschalter = gw_cp.vl["GRA_ACC_01"]['GRA_Hauptschalter']
     self.graTypHauptschalter = gw_cp.vl["GRA_ACC_01"]['GRA_Typ_Hauptschalter']
-    self.graButtontypeinfo = gw_cp.vl["GRA_ACC_01"]['GRA_ButtonTypeInfo']
+    self.graButtonTypeInfo = gw_cp.vl["GRA_ACC_01"]['GRA_ButtonTypeInfo']
     self.graTipStufe2 = gw_cp.vl["GRA_ACC_01"]['GRA_Tip_Stufe_2']
 
     # Check to make sure the electric power steering rack is configured to
