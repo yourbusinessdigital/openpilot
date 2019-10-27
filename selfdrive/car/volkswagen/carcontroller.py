@@ -11,6 +11,7 @@ EMERGENCY_WARNINGS = [AudibleAlert.chimeWarningRepeat]
 
 class CarControllerParams:
   HCA_STEP_ACTIVE = 2            # HCA_01 message frequency 50Hz when applying torque
+  HCA_STEP_INACTIVE = 100        # HCA_01 message frequency 1Hz when not applying torque
   LDW_STEP = 10                  # LDW_02 message frequency 10Hz
   GRA_ACC_STEP = 3               # GRA_ACC_01 message frequency 33Hz
 
@@ -31,6 +32,7 @@ class CarController():
     self.acc_vbp_endframe = None
     self.same_torque_cnt = 0
     self.non_zero_cnt = 0
+    self.hca_counter = 0
 
     # Setup detection helper. Routes commands to
     # an appropriate CAN bus number.
@@ -49,11 +51,13 @@ class CarController():
     #
     # Prepare HCA_01 steering torque message
     #
-    if (frame % P.HCA_STEP_ACTIVE) == 0:
+    if enabled and frame % P.HCA_STEP_ACTIVE == 0:
+      # Send HCA_01 at full rate of 50Hz while OP is engaged, matching the
+      # factory camera behavior.
 
       # Don't send steering commands unless we've successfully enabled vehicle
       # ACC (prevent controls mismatch) and we're moving (prevent EPS fault).
-      if enabled and not CS.standstill and not CS.steeringFault:
+      if not CS.standstill and not CS.steeringFault:
         lkas_enabled = True
         apply_steer = int(round(actuators.steer * P.STEER_MAX))
 
@@ -64,39 +68,47 @@ class CarController():
         if apply_steer == 0:
           lkas_enabled = False
 
+        # torque can't be the same for 6 consecutive seconds or EPS will fault. Apply a unit adjustment
+        if apply_steer != 0 and self.apply_steer_last == apply_steer:
+          self.same_torque_cnt += 1
+        else:
+          self.same_torque_cnt = 0
+
+        if self.same_torque_cnt >= 550:  # 5.5s
+          apply_steer -= (1, -1)[apply_steer < 0]
+          self.same_torque_cnt = 0
+
+        # torque can't be non-zero for more than 3 consecutive minutes
+        if apply_steer != 0:
+          self.non_zero_cnt += 1
+        else:
+          self.non_zero_cnt = 0
+
+        if self.non_zero_cnt >=  170 * 100:  # 170s ~ 3 minutes
+          # TODO: do something (alert driver?, one step with lkas_enabled = False?)
+          self.non_zero_cnt = 0
+
       else:
         # Disable heading control assist
         lkas_enabled = False
         apply_steer = 0
 
-      # torque can't be the same for 6 consecutive seconds or EPS will fault. Apply a unit adjustment
-      if apply_steer != 0 and self.apply_steer_last == apply_steer:
-        self.same_torque_cnt += 1
-      else:
-        self.same_torque_cnt = 0
-
-      if self.same_torque_cnt >= 550:  # 5.5s
-        apply_steer -= (1, -1)[apply_steer < 0]
-        self.same_torque_cnt = 0
-
-      # torque can't be non-zero for more than 3 consecutive minutes
-      if apply_steer != 0:
-        self.non_zero_cnt += 1
-      else:
-        self.non_zero_cnt = 0
-
-      if self.non_zero_cnt >=  170 * 100:  # 170s ~ 3 minutes
-        # TODO: do something (alert driver?, one step with lkas_enabled = False?)
-        self.non_zero_cnt = 0
-
       self.apply_steer_last = apply_steer
-      idx = (frame / P.HCA_STEP_ACTIVE) % 16
-      can_sends.append(volkswagencan.create_mqb_steering_control(self.packer_gw, canbus.gateway, apply_steer, idx, lkas_enabled))
+
+      self.hca_counter = (self.hca_counter + 1) % 16
+      can_sends.append(volkswagencan.create_mqb_steering_control(self.packer_gw, canbus.gateway, apply_steer, self.hca_counter, lkas_enabled))
+
+    elif frame % P.HCA_STEP_INACTIVE == 0:
+      # Send HCA_01 at low rate of 1Hz while OP is disengaged, matching
+      # the factory camera behavior.
+
+      self.hca_counter = (self.hca_counter + 1) % 16
+      can_sends.append(volkswagencan.create_mqb_steering_control(self.packer_gw, canbus.gateway, 0, self.hca_counter, False))
 
     #
     # Prepare LDW_02 HUD message with lane lines and confidence levels
     #
-    if (frame % P.LDW_STEP) == 0:
+    if frame % P.LDW_STEP == 0:
       if enabled and not CS.standstill:
         lkas_enabled_hud = True
       else:
@@ -117,7 +129,7 @@ class CarController():
     #
     # Prepare GRA_ACC_01 message with ACC cruise control buttons
     #
-    if (frame % P.GRA_ACC_STEP) == 0:
+    if frame % P.GRA_ACC_STEP == 0:
 
       idx = (frame / P.GRA_ACC_STEP) % 16
 
