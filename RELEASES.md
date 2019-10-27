@@ -1,3 +1,8 @@
+Version 0.6.5 + VW 0.8.3-IN PROGRESS (2019-10-27)
+========================
+ * Code styling and refactoring in preparation for Comma AI upstream PR.
+ * Improvements and bug fixes to steering safety and fault handling.
+
 Version 0.6.5 + VW 0.8.2 (2019-10-20)
 ========================
  * Community port only: Panda safety goes fully transparent/stock if EON/OP are offline.
