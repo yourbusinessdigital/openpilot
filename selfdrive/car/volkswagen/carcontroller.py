@@ -11,7 +11,6 @@ EMERGENCY_WARNINGS = [AudibleAlert.chimeWarningRepeat]
 
 class CarControllerParams:
   HCA_STEP_ACTIVE = 2            # HCA_01 message frequency 50Hz when applying torque
-  HCA_STEP_INACTIVE = 10         # HCA_01 message frequency 10Hz when not applying torque
   LDW_STEP = 10                  # LDW_02 message frequency 10Hz
   GRA_ACC_STEP = 3               # GRA_ACC_01 message frequency 33Hz
 
@@ -30,11 +29,12 @@ class CarController():
     self.car_fingerprint = car_fingerprint
     self.acc_vbp_type = None
     self.acc_vbp_endframe = None
+    self.same_torque_cnt = 0
+    self.non_zero_cnt = 0
 
     # Setup detection helper. Routes commands to
     # an appropriate CAN bus number.
     self.canbus = canbus
-    print(DBC)
     self.packer_gw = CANPacker(DBC[car_fingerprint]['pt'])
 
   def update(self, enabled, CS, frame, actuators, visual_alert, audible_alert, leftLaneVisible, rightLaneVisible):
@@ -53,24 +53,43 @@ class CarController():
 
       # Don't send steering commands unless we've successfully enabled vehicle
       # ACC (prevent controls mismatch) and we're moving (prevent EPS fault).
-      if enabled and CS.accEnabled and not CS.standstill:
-        lkas_enabled = 1
+      if enabled and not CS.standstill and not CS.steeringFault:
+        lkas_enabled = True
         apply_steer = int(round(actuators.steer * P.STEER_MAX))
 
         apply_steer = apply_std_steer_torque_limits(apply_steer, self.apply_steer_last, CS.steeringTorque, P)
-        self.apply_steer_last = apply_steer
 
         # Ugly hack to reset EPS hardcoded 180 second limit for HCA intervention.
         # Deal with this by disengaging HCA anytime we have a zero-crossing.
         if apply_steer == 0:
-          lkas_enabled = 0
+          lkas_enabled = False
 
       else:
         # Disable heading control assist
-        lkas_enabled = 0
+        lkas_enabled = False
         apply_steer = 0
-        self.apply_steer_last = 0
 
+      # torque can't be the same for 6 consecutive seconds or EPS will fault. Apply a unit adjustment
+      if apply_steer != 0 and self.apply_steer_last == apply_steer:
+        self.same_torque_cnt += 1
+      else:
+        self.same_torque_cnt = 0
+
+      if self.same_torque_cnt >= 550:  # 5.5s
+        apply_steer -= (1, -1)[apply_steer < 0]
+        self.same_torque_cnt = 0
+
+      # torque can't be non-zero for more than 3 consecutive minutes
+      if apply_steer != 0:
+        self.non_zero_cnt += 1
+      else:
+        self.non_zero_cnt = 0
+
+      if self.non_zero_cnt >=  170 * 100:  # 170s ~ 3 minutes
+        # TODO: do something (alert driver?, one step with lkas_enabled = False?)
+        self.non_zero_cnt = 0
+
+      self.apply_steer_last = apply_steer
       idx = (frame / P.HCA_STEP_ACTIVE) % 16
       can_sends.append(volkswagencan.create_mqb_steering_control(self.packer_gw, canbus.gateway, apply_steer, idx, lkas_enabled))
 
@@ -79,9 +98,9 @@ class CarController():
     #
     if (frame % P.LDW_STEP) == 0:
       if enabled and not CS.standstill:
-        lkas_enabled = 1
+        lkas_enabled_hud = True
       else:
-        lkas_enabled = 0
+        lkas_enabled_hud = False
 
       if visual_alert == VisualAlert.steerRequired:
         if audible_alert in EMERGENCY_WARNINGS:
@@ -93,7 +112,7 @@ class CarController():
       else:
         hud_alert = 0
 
-      can_sends.append(volkswagencan.create_mqb_hud_control(self.packer_gw, canbus.gateway, lkas_enabled, hud_alert, leftLaneVisible, rightLaneVisible))
+      can_sends.append(volkswagencan.create_mqb_hud_control(self.packer_gw, canbus.gateway, lkas_enabled_hud, hud_alert, leftLaneVisible, rightLaneVisible))
 
     #
     # Prepare GRA_ACC_01 message with ACC cruise control buttons

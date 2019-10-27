@@ -1,18 +1,16 @@
-from cereal import car, log
-from common.realtime import sec_since_boot
+from cereal import car
 from selfdrive.config import Conversions as CV
-from selfdrive.controls.lib.drive_helpers import create_event, get_events, EventTypes as ET
+from selfdrive.controls.lib.drive_helpers import create_event, EventTypes as ET
 from selfdrive.controls.lib.vehicle_model import VehicleModel
-from selfdrive.car.volkswagen.values import CAR, FINGERPRINTS, ECU_FINGERPRINT, ECU, gra_acc_buttons_dict
+from selfdrive.car.volkswagen.values import CAR, gra_acc_buttons_dict
 from selfdrive.car.volkswagen.carstate import CarState, get_mqb_gateway_can_parser, get_mqb_extended_can_parser
 from common.params import Params
-from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, gen_empty_fingerprint, is_ecu_disconnected
+from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, gen_empty_fingerprint
 from selfdrive.car.interfaces import CarInterfaceBase
 
-class CanBus(object):
-  def __init__(self):
-    self.gateway = 0
-    self.extended = 2
+class CANBUS:
+  gateway = 0
+  extended = 2
 
 class CarInterface(CarInterfaceBase):
   def __init__(self, CP, CarController):
@@ -30,16 +28,14 @@ class CarInterface(CarInterfaceBase):
     self.gra_acc_buttons_prev = gra_acc_buttons_dict.copy()
 
     # *** init the major players ***
-    canbus = CanBus()
-    self.CS = CarState(CP, canbus)
+    self.CS = CarState(CP, CANBUS)
     self.VM = VehicleModel(CP)
-    self.gw_cp = get_mqb_gateway_can_parser(CP, canbus)
-    self.ex_cp = get_mqb_extended_can_parser(CP, canbus)
+    self.gw_cp = get_mqb_gateway_can_parser(CP, CANBUS)
+    self.ex_cp = get_mqb_extended_can_parser(CP, CANBUS)
 
     # sending if read only is False
     if CarController is not None:
-      self.CC = CarController(canbus, CP.carFingerprint)
-
+      self.CC = CarController(CANBUS, CP.carFingerprint)
 
   @staticmethod
   def compute_gb(accel, speed):
@@ -48,9 +44,6 @@ class CarInterface(CarInterfaceBase):
   @staticmethod
   def get_params(candidate, fingerprint=gen_empty_fingerprint(), vin="", has_relay=False):
     ret = car.CarParams.new_message()
-
-    # FIXME: Temp hack while working out fingerprint side
-    has_auto_trans = True
 
     ret.carFingerprint = candidate
     ret.isPandaBlack = has_relay
@@ -95,11 +88,7 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.pid.kiV = [0.20, 0.10, 0.10, 0.05, 0.05]
       tire_stiffness_factor = 0.6
 
-    # FIXME: Need to find a clean way to handle e-Golf without Getriebe_11 message
-    if has_auto_trans:
-      ret.transmissionType = car.CarParams.TransmissionType.automatic
-    else:
-      ret.transmissionType = car.CarParams.TransmissionType.manual
+    ret.transmissionType = car.CarParams.TransmissionType.automatic
 
     # FIXME: follow 0.6.5 Comma refactoring to ensure camera-side is detected okay
     # ret.enableCamera = is_ecu_disconnected(fingerprint[0], FINGERPRINTS, ECU_FINGERPRINT, candidate, ECU.CAM) or has_relay
@@ -108,17 +97,15 @@ class CarInterface(CarInterfaceBase):
 
     # No support for OP longitudinal control on Volkswagen at this time.
     ret.gasMaxBP = [0.]
-    ret.gasMaxV = [.5]
+    ret.gasMaxV = [0.]
     ret.brakeMaxBP = [0.]
-    ret.brakeMaxV = [1.]
+    ret.brakeMaxV = [0.]
     ret.longitudinalTuning.deadzoneBP = [0.]
     ret.longitudinalTuning.deadzoneV = [0.]
-    ret.longitudinalTuning.kpBP = [5., 35.]
-    ret.longitudinalTuning.kpV = [2.4, 1.5]
+    ret.longitudinalTuning.kpBP = [0.]
+    ret.longitudinalTuning.kpV = [0.]
     ret.longitudinalTuning.kiBP = [0.]
-    ret.longitudinalTuning.kiV = [0.36]
-    ret.stoppingControl = True
-    ret.startAccel = 0.8
+    ret.longitudinalTuning.kiV = [0.]
 
     # TODO: get actual value, for now starting with reasonable value for
     # civic and scaling by mass and wheelbase
@@ -253,9 +240,6 @@ class CarInterface(CarInterfaceBase):
       events.append(create_event('reverseGear', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE]))
     if not ret.gearShifter == 'drive' and not ret.gearShifter == 'eco':
       events.append(create_event('wrongGear', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
-    # FIXME: (ab)using wrongGear until we have a cereal event for clutchPressed
-    if ret.clutchPressed:
-      events.append(create_event('wrongGear', [ET.NO_ENTRY]))
     if self.CS.stabilityControlDisabled:
       events.append(create_event('espDisabled', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
     if self.CS.parkingBrakeSet:
@@ -265,7 +249,7 @@ class CarInterface(CarInterfaceBase):
     if self.CS.accFault:
       events.append(create_event('radarFault', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE]))
     if self.CS.steeringFault:
-      events.append(create_event('steerTempUnavailable', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE]))
+      events.append(create_event('steerTempUnavailable', [ET.NO_ENTRY, ET.WARNING]))
 
     # Per the Comma safety model, disable on pedals rising edge or when brake
     # is pressed and speed isn't zero.

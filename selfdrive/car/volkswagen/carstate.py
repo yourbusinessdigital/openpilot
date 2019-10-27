@@ -1,10 +1,13 @@
 import numpy as np
+from cereal import car
 from common.kalman.simple_kalman import KF1D
 from selfdrive.config import Conversions as CV
 from selfdrive.can.parser import CANParser
 from selfdrive.can.can_define import CANDefine
 from selfdrive.car.volkswagen.values import DBC, gra_acc_buttons_dict
 from selfdrive.car.volkswagen.carcontroller import CarControllerParams
+
+GEAR = car.CarState.GearShifter
 
 def get_mqb_gateway_can_parser(CP, canbus):
   # this function generates lists for signal, messages and initial values
@@ -91,7 +94,7 @@ def get_mqb_extended_can_parser(CP, canbus):
 
   return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, canbus.extended)
 
-def parse_gear_shifter(gear,vals):
+def parse_gear_shifter(gear, vals):
   # Return mapping of gearshift position to selected gear. Eco is not a gear
   # understood by OP at this time, so map it to Drive. For other ports, Sport is
   # detected by OP as a no entry/soft cancel condition, so be consistent there.
@@ -101,8 +104,8 @@ def parse_gear_shifter(gear,vals):
   # for longitudinal use, but VW Bosch ACC provides m/s acceleration requests to the
   # ECU directly, pre-computed to match the Charisma driving profile as applicable,
   # so Drive/Sport/Eco don't really figure in to ACC behavior.
-  val_to_capnp = {'P': 'park', 'R': 'reverse', 'N': 'neutral',
-                  'D': 'drive', 'E': 'eco', 'S': 'sport', 'T': 'manumatic'}
+  val_to_capnp = {'P': GEAR.park, 'R': GEAR.reverse, 'N': GEAR.neutral,
+                  'D': GEAR.drive, 'E': GEAR.eco, 'S': GEAR.sport, 'T': GEAR.manumatic}
   try:
     return val_to_capnp[vals[gear]]
   except KeyError:
@@ -115,46 +118,9 @@ class CarState():
     self.car_fingerprint = CP.carFingerprint
     self.can_define = CANDefine(DBC[CP.carFingerprint]['pt'])
 
-    self.wheelSpeedFL, self.wheelSpeedFR, self.wheelSpeedRL, self.wheelSpeedRR = 0, 0, 0, 0
-    self.vEgoRaw, self.vEgo, self.aEgo = 0, 0, 0
-    self.standstill = False
-
-    self.steeringAngle = 0
-    self.steeringRate = 0
-    self.steeringTorque = 0
-    self.steeringPressed = False
-    self.yawRate = 0
-
-    self.gas = 0
-    self.gasPressed = False
-    self.brake = 0
-    self.brakePressed = False
-    self.brakeLights = False
-
     self.shifter_values = self.can_define.dv["Getriebe_11"]['GE_Fahrstufe']
-    self.gearShifter = None
-
-    self.leftBlinker = False
-    self.rightBlinker = False
-
-    self.seatbeltUnlatched = False
-    self.doorOpen = False
-    self.parkingBrakeSet = False
-    self.stabilityControlDisabled = False
-    self.steeringFault = False
-    self.displayMetricUnits = False
-
-    self.clutchPressed = False
-
-    self.accFault, self.accAvailable, self.accEnabled = False, False, False
-    self.accSetSpeed = 0
 
     self.gra_acc_buttons = gra_acc_buttons_dict.copy()
-    self.gra_typ_hauptschalter = None
-    self.gra_buttontypeinfo = None
-    self.gra_tip_stufe_2 = None
-
-    self.has_auto_trans = True
 
     # vEgo kalman filter
     dt = 0.01
@@ -192,12 +158,8 @@ class CarState():
     self.brakeLights = bool(gw_cp.vl["ESP_05"]['ESP_Status_Bremsdruck'])
 
     # Update gear and/or clutch position data.
-    # FIXME: need a real mechanism for detecting has_auto_trans
-    if self.has_auto_trans:
-      can_gear_shifter = int(gw_cp.vl["Getriebe_11"]['GE_Fahrstufe'])
-      self.gearShifter = parse_gear_shifter(can_gear_shifter, self.shifter_values)
-    else:
-      self.clutchPressed = not gw_cp.vl["Motor_14"]['MO_Kuppl_schalter']
+    can_gear_shifter = int(gw_cp.vl["Getriebe_11"]['GE_Fahrstufe'])
+    self.gearShifter = parse_gear_shifter(can_gear_shifter, self.shifter_values)
 
     # Update door and trunk/hatch lid open status.
     self.doorOpen = any([gw_cp.vl["Gateway_72"]['ZV_FT_offen'],
