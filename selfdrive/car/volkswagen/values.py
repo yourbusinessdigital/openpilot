@@ -1,14 +1,14 @@
-from cereal import car
 from selfdrive.car import dbc_dict
 
-gra_acc_buttons_dict = {
-  "main": False,
-  "set": False,
-  "resume": False,
+BUTTON_STATES = {
+  "leftBlinker": False,
+  "rightBlinker": False,
+  "accelCruise": False,
+  "decelCruise": False,
   "cancel": False,
-  "accel": False,
-  "decel": False,
-  "timegap": False
+  "setCruise": False,
+  "resumeCruise": False,
+  "gapAdjustCruise": False
 }
 
 class CAR:
@@ -29,7 +29,6 @@ FINGERPRINTS = {
      },
   ],
 }
-
 
 class ECU:
   CAM = 0

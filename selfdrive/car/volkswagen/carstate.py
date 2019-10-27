@@ -4,7 +4,7 @@ from common.kalman.simple_kalman import KF1D
 from selfdrive.config import Conversions as CV
 from selfdrive.can.parser import CANParser
 from selfdrive.can.can_define import CANDefine
-from selfdrive.car.volkswagen.values import DBC, gra_acc_buttons_dict
+from selfdrive.car.volkswagen.values import DBC, BUTTON_STATES
 from selfdrive.car.volkswagen.carcontroller import CarControllerParams
 
 GEAR = car.CarState.GearShifter
@@ -119,9 +119,9 @@ class CarState():
 
     self.shifter_values = self.can_define.dv["Getriebe_11"]['GE_Fahrstufe']
 
-    self.gra_acc_buttons = gra_acc_buttons_dict.copy()
+    self.buttonStates = BUTTON_STATES.copy()
 
-    # vEgo kalman filter
+    # vEgo Kalman filter
     dt = 0.01
     self.v_ego_kf = KF1D(x0=[[0.], [0.]],
                          A=[[1., dt], [0., 1.]],
@@ -203,30 +203,27 @@ class CarState():
     self.accSetSpeed = ex_cp.vl["ACC_02"]['SetSpeed']
     if self.accSetSpeed > 90: self.accSetSpeed = 0
 
-    # Update ACC cruise control buttons
-    self.gra_acc_buttons["main"] = bool(gw_cp.vl["GRA_ACC_01"]['GRA_Hauptschalter'])
-    self.gra_acc_buttons["cancel"] = bool(gw_cp.vl["GRA_ACC_01"]['GRA_Abbrechen'])
-    self.gra_acc_buttons["set"] = bool(gw_cp.vl["GRA_ACC_01"]['GRA_Tip_Setzen'])
-    self.gra_acc_buttons["accel"] = bool(gw_cp.vl["GRA_ACC_01"]['GRA_Tip_Hoch'])
-    self.gra_acc_buttons["decel"] = bool(gw_cp.vl["GRA_ACC_01"]['GRA_Tip_Runter'])
-    self.gra_acc_buttons["resume"] = bool(gw_cp.vl["GRA_ACC_01"]['GRA_Tip_Wiederaufnahme'])
-    self.gra_acc_buttons["timegap"] = bool(gw_cp.vl["GRA_ACC_01"]['GRA_Verstellung_Zeitluecke'])
+    # Update control button states for turn signals and ACC controls.
+    self.buttonStates["leftBlinker"] = bool(gw_cp.vl["Gateway_72"]['BH_Blinker_li'])
+    self.buttonStates["leftBlinker"] = bool(gw_cp.vl["Gateway_72"]['BH_Blinker_re'])
+    self.buttonStates["accelCruise"] = bool(gw_cp.vl["GRA_ACC_01"]['GRA_Tip_Hoch'])
+    self.buttonStates["decelCruise"] = bool(gw_cp.vl["GRA_ACC_01"]['GRA_Tip_Runter'])
+    self.buttonStates["cancel"] = bool(gw_cp.vl["GRA_ACC_01"]['GRA_Abbrechen'])
+    self.buttonStates["setCruise"] = bool(gw_cp.vl["GRA_ACC_01"]['GRA_Tip_Setzen'])
+    self.buttonStates["resumeCruise"] = bool(gw_cp.vl["GRA_ACC_01"]['GRA_Tip_Wiederaufnahme'])
+    self.buttonStates["gapAdjustCruise"] = bool(gw_cp.vl["GRA_ACC_01"]['GRA_Verstellung_Zeitluecke'])
 
     # Read ACC hardware button type configuration info that has to pass thru
     # to the radar. Ends up being different for steering wheel buttons vs
     # third stalk type controls.
-    self.gra_typ_hauptschalter = gw_cp.vl["GRA_ACC_01"]['GRA_Typ_Hauptschalter']
-    self.gra_buttontypeinfo = gw_cp.vl["GRA_ACC_01"]['GRA_ButtonTypeInfo']
-    self.gra_tip_stufe_2 = gw_cp.vl["GRA_ACC_01"]['GRA_Tip_Stufe_2']
+    self.graHauptschalter = gw_cp.vl["GRA_ACC_01"]['GRA_Hauptschalter']
+    self.graTypHauptschalter = gw_cp.vl["GRA_ACC_01"]['GRA_Typ_Hauptschalter']
+    self.graButtontypeinfo = gw_cp.vl["GRA_ACC_01"]['GRA_ButtonTypeInfo']
+    self.graTipStufe2 = gw_cp.vl["GRA_ACC_01"]['GRA_Tip_Stufe_2']
 
     # Check to make sure the electric power steering rack is configured to
     # accept and respond to HCA_01 messages and has not encountered a fault.
     self.steeringFault = not gw_cp.vl["EPS_01"]["HCA_Ready"]
-
-    # Update turn signal stalk status. This is the driver switch, not the
-    # external lamps.
-    self.leftBlinker = bool(gw_cp.vl["Gateway_72"]['BH_Blinker_li'])
-    self.rightBlinker = bool(gw_cp.vl["Gateway_72"]['BH_Blinker_re'])
 
     # Additional safety checks performed in CarInterface.
     self.parkingBrakeSet = bool(gw_cp.vl["Kombi_01"]['KBI_Handbremse']) # FIXME: need to include an EPB check as well

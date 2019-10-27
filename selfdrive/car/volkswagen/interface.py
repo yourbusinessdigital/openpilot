@@ -2,7 +2,7 @@ from cereal import car
 from selfdrive.config import Conversions as CV
 from selfdrive.controls.lib.drive_helpers import create_event, EventTypes as ET
 from selfdrive.controls.lib.vehicle_model import VehicleModel
-from selfdrive.car.volkswagen.values import CAR, gra_acc_buttons_dict
+from selfdrive.car.volkswagen.values import CAR, BUTTON_STATES
 from selfdrive.car.volkswagen.carstate import CarState, get_mqb_gateway_can_parser, get_mqb_extended_can_parser
 from common.params import Params
 from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, gen_empty_fingerprint
@@ -21,11 +21,9 @@ class CarInterface(CarInterfaceBase):
 
     self.gasPressedPrev = False
     self.brakePressedPrev = False
-    self.rightBlinkerPrev = False
-    self.leftBlinkerPrev = False
     self.cruiseStateEnabledPrev = False
     self.displayMetricUnitsPrev = None
-    self.gra_acc_buttons_prev = gra_acc_buttons_dict.copy()
+    self.buttonStatesPrev = BUTTON_STATES.copy()
 
     # *** init the major players ***
     self.CS = CarState(CP, CANBUS)
@@ -172,63 +170,21 @@ class CarInterface(CarInterfaceBase):
       params.put("IsMetric", "1" if self.CS.displayMetricUnits else "0")
 
     # Blinker switch updates
-    ret.leftBlinker = self.CS.leftBlinker
-    ret.rightBlinker = self.CS.rightBlinker
-
-    if ret.leftBlinker != self.leftBlinkerPrev:
-      be = car.CarState.ButtonEvent.new_message()
-      be.type = 'leftBlinker'
-      be.pressed = ret.leftBlinker
-      buttonEvents.append(be)
-
-    if ret.rightBlinker != self.rightBlinkerPrev:
-      be = car.CarState.ButtonEvent.new_message()
-      be.type = 'rightBlinker'
-      be.pressed = ret.rightBlinker
-      buttonEvents.append(be)
+    ret.leftBlinker = self.CS.buttonStates["leftBlinker"]
+    ret.rightBlinker = self.CS.buttonStates["rightBlinker"]
 
     # ACC cruise state
     ret.cruiseState.available = self.CS.accAvailable
     ret.cruiseState.enabled = self.CS.accEnabled
     ret.cruiseState.speed = self.CS.accSetSpeed
 
-    # Process button press or release events from ACC steering wheel or
-    # control stalk buttons.
-    if self.CS.gra_acc_buttons != self.gra_acc_buttons_prev:
-      if self.CS.gra_acc_buttons["main"] != self.gra_acc_buttons_prev["main"]:
+    # Check for and process state-change events (button press or release) from
+    # the turn stalk switch or ACC steering wheel/control stalk buttons.
+    for button in self.CS.buttonStates:
+      if self.CS.buttonStates[button] != self.buttonStatesPrev[button]:
         be = car.CarState.ButtonEvent.new_message()
-        be.type = 'altButton3'
-        be.pressed = bool(self.CS.gra_acc_buttons["main"])
-        buttonEvents.append(be)
-      if self.CS.gra_acc_buttons["set"] != self.gra_acc_buttons_prev["set"]:
-        be = car.CarState.ButtonEvent.new_message()
-        be.type = 'setCruise'
-        be.pressed = bool(self.CS.gra_acc_buttons["set"])
-        buttonEvents.append(be)
-      if self.CS.gra_acc_buttons["resume"] != self.gra_acc_buttons_prev["resume"]:
-        be = car.CarState.ButtonEvent.new_message()
-        be.type = 'resumeCruise'
-        be.pressed = bool(self.CS.gra_acc_buttons["resume"])
-        buttonEvents.append(be)
-      if self.CS.gra_acc_buttons["cancel"] != self.gra_acc_buttons_prev["cancel"]:
-        be = car.CarState.ButtonEvent.new_message()
-        be.type = 'cancel'
-        be.pressed = bool(self.CS.gra_acc_buttons["cancel"])
-        buttonEvents.append(be)
-      if self.CS.gra_acc_buttons["accel"] != self.gra_acc_buttons_prev["accel"]:
-        be = car.CarState.ButtonEvent.new_message()
-        be.type = 'accelCruise'
-        be.pressed = bool(self.CS.gra_acc_buttons["accel"])
-        buttonEvents.append(be)
-      if self.CS.gra_acc_buttons["decel"] != self.gra_acc_buttons_prev["decel"]:
-        be = car.CarState.ButtonEvent.new_message()
-        be.type = 'decelCruise'
-        be.pressed = bool(self.CS.gra_acc_buttons["decel"])
-        buttonEvents.append(be)
-      if self.CS.gra_acc_buttons["timegap"] != self.gra_acc_buttons_prev["timegap"]:
-        be = car.CarState.ButtonEvent.new_message()
-        be.type = 'gapAdjustCruise'
-        be.pressed = bool(self.CS.gra_acc_buttons["timegap"])
+        be.type = button
+        be.pressed = self.CS.buttonStates[button]
         buttonEvents.append(be)
 
     # Vehicle operation safety checks and events
@@ -274,11 +230,9 @@ class CarInterface(CarInterfaceBase):
     # update previous car states
     self.gasPressedPrev = ret.gasPressed
     self.brakePressedPrev = ret.brakePressed
-    self.leftBlinkerPrev = ret.leftBlinker
-    self.rightBlinkerPrev = ret.rightBlinker
     self.cruiseStateEnabledPrev = ret.cruiseState.enabled
     self.displayMetricUnitsPrev = self.CS.displayMetricUnits
-    self.gra_acc_buttons_prev = self.CS.gra_acc_buttons.copy()
+    self.buttonStatesPrev = self.CS.buttonStates.copy()
 
     # cast to reader so it can't be modified
     return ret.as_reader()

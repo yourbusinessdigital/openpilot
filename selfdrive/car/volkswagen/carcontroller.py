@@ -126,13 +126,14 @@ class CarController():
       # to comma's more-strict safety model, and to support resume-from-stop.
       # NOTE: Later, could potentially add virtual button presses to tweak the
       # ACC speed setpoint for "longitudinal lite" control by OP.
-      gra_acc_buttons_tosend = CS.gra_acc_buttons.copy()
+      buttonStatesToSend = CS.buttonStates.copy()
 
       if enabled:
         if CS.standstill and frame % (P.GRA_ACC_STEP * 33) == 0:
           # Blip the Resume button ~1x/second if we're engaged at standstill
-          # TODO: This is a naive implementation, improve with visiond or radar input
-          self.acc_vbp_type = "resume"
+          # FIXME: This is a naive implementation, improve with visiond or radar input
+          # A subset of MQBs like to "creep" too aggressively with this implementation.
+          self.acc_vbp_type = "resumeCruise"
           self.acc_vbp_endframe = frame + 20
 
       else:
@@ -146,11 +147,11 @@ class CarController():
       # conform with safety requirements or to update the ACC speed setpoint.
       if self.acc_vbp_type is not None:
         if frame < self.acc_vbp_endframe:
-          gra_acc_buttons_tosend[self.acc_vbp_type] = True
+          buttonStatesToSend[self.acc_vbp_type] = True
         else:
           self.acc_vbp_type = None
           self.acc_vbp_endframe = None
 
-      can_sends.append(volkswagencan.create_mqb_acc_buttons_control(self.packer_gw, canbus.extended, gra_acc_buttons_tosend, CS.gra_typ_hauptschalter, CS.gra_buttontypeinfo, CS.gra_tip_stufe_2, idx))
+      can_sends.append(volkswagencan.create_mqb_acc_buttons_control(self.packer_gw, canbus.extended, buttonStatesToSend, CS, idx))
 
     return can_sends
