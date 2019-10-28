@@ -10,8 +10,7 @@ AUDIBLE_WARNINGS = [AudibleAlert.chimeWarning1, AudibleAlert.chimeWarning2]
 EMERGENCY_WARNINGS = [AudibleAlert.chimeWarningRepeat]
 
 class CarControllerParams:
-  HCA_STEP_ACTIVE = 2            # HCA_01 message frequency 50Hz when applying torque
-  HCA_STEP_INACTIVE = 100        # HCA_01 message frequency 1Hz when not applying torque
+  HCA_STEP = 2                   # HCA_01 message frequency 50Hz
   LDW_STEP = 10                  # LDW_02 message frequency 10Hz
   GRA_ACC_STEP = 3               # GRA_ACC_01 message frequency 33Hz
 
@@ -31,8 +30,8 @@ class CarController():
     self.acc_vbp_type = None
     self.acc_vbp_endframe = None
     self.same_torque_cnt = 0
-    self.non_zero_cnt = 0
-    self.hca_counter = 0
+    self.hca_enabled_cnt = 0
+    self.hca_msg_counter = 0
 
     # Setup detection helper. Routes commands to
     # an appropriate CAN bus number.
@@ -51,68 +50,76 @@ class CarController():
     #
     # Prepare HCA_01 steering torque message
     #
-    if enabled and frame % P.HCA_STEP_ACTIVE == 0:
-      # Send HCA_01 at full rate of 50Hz while OP is engaged, matching the
-      # factory camera behavior.
+    if frame % P.HCA_STEP == 0:
+      # Send HCA_01 at full rate of 50Hz. The factory camera sends at 50Hz
+      # while steering and 1Hz when not. Rate-switching creates some confusion
+      # in Cabana and doesn't seem to add value, so we send at 50Hz all the
+      # time. The rack does accept HCA at 100Hz if we want to control at finer
+      # resolution in the future.
 
-      # Don't send steering commands unless we've successfully enabled vehicle
-      # ACC (prevent controls mismatch) and we're moving (prevent EPS fault).
-      if not CS.standstill and not CS.steeringFault:
-        lkas_enabled = True
-        apply_steer = int(round(actuators.steer * P.STEER_MAX))
-
-        apply_steer = apply_std_steer_torque_limits(apply_steer, self.apply_steer_last, CS.steeringTorque, P)
-
-        # Ugly hack to reset EPS hardcoded 180 second limit for HCA intervention.
-        # Deal with this by disengaging HCA anytime we have a zero-crossing.
-        if apply_steer == 0:
-          lkas_enabled = False
-
-        # torque can't be the same for 6 consecutive seconds or EPS will fault. Apply a unit adjustment
-        if apply_steer != 0 and self.apply_steer_last == apply_steer:
-          self.same_torque_cnt += 1
-        else:
-          self.same_torque_cnt = 0
-
-        if self.same_torque_cnt >= 550:  # 5.5s
-          apply_steer -= (1, -1)[apply_steer < 0]
-          self.same_torque_cnt = 0
-
-        # torque can't be non-zero for more than 3 consecutive minutes
-        if apply_steer != 0:
-          self.non_zero_cnt += 1
-        else:
-          self.non_zero_cnt = 0
-
-        if self.non_zero_cnt >=  170 * 100:  # 170s ~ 3 minutes
-          # TODO: do something (alert driver?, one step with lkas_enabled = False?)
-          self.non_zero_cnt = 0
+      # FAULT CONDITION: HCA may not be enabled at standstill. Also stop
+      # commanding HCA if there's a fault, so the steering rack recovers.
+      if CS.standstill or CS.steeringFault:
+        # Disable Heading Control Assist
+        hca_enabled = False
+        apply_steer = 0
 
       else:
-        # Disable heading control assist
-        lkas_enabled = False
-        apply_steer = 0
+        # FAULT CONDITION: Requested HCA torque may not exceeds 3.0nm. This is
+        # inherently handled by scaling to STEER_MAX. The rack doesn't seem
+        # to care about up/down rate, but we have some evidence it may do its
+        # own rate limiting, and matching OP helps for accurate tuning.
+        apply_steer = int(round(actuators.steer * P.STEER_MAX))
+        apply_steer = apply_std_steer_torque_limits(apply_steer, self.apply_steer_last, CS.steeringTorque, P)
+
+        # FAULT CONDITION: HCA may not be enabled for > 360 seconds. Sending
+        # the HCA disabled flag for one frame is sufficient to work around it.
+        if apply_steer == 0:
+          # We can do this very frequently by disabling HCA when apply_steer
+          # happens to be exactly zero, which naturally happens quite often
+          # during direction changes. This could be expanded with a small
+          # dead-zone to capture more zero crossings, but not seeing a need.
+          hca_enabled = False
+          self.hca_enabled_cnt = 0
+        else:
+          self.hca_enabled_cnt += 1
+          if self.hca_enabled_cnt >=  118 * 100:  # 118s ~ about 2 minutes
+            # The Kansas Crosswind Problem: what happens if we need to steer
+            # left for six minutes? We have to disable HCA for a frame anyway.
+            # Do so three times within that six minutes to make certain the
+            # timer is reset even if a couple messages are lost.
+            hca_enabled = False
+            self.hca_enabled_cnt = 0
+          else:
+            hca_enabled = True
+            # FAULT CONDITION: HCA torque may not be static for > 6 seconds.
+            # This is intended to detect the sending camera being stuck or
+            # frozen. OP can trip this on a curve when it wants => STEER_MAX.
+            # Avoid this by reducing torque 0.01nm for one frame if it's been
+            # level for more than 1.9 seconds. That makes sure we've sent at
+            # least three trimmed messages within the 6 second span, resetting
+            # the rack timer even if a couple messages are lost.
+            if apply_steer != 0 and self.apply_steer_last == apply_steer:
+              self.same_torque_cnt += 1
+              if self.same_torque_cnt > 190:  # 1.9s
+                apply_steer -= (1, -1)[apply_steer < 0]
+                self.same_torque_cnt = 0
+            else:
+              self.same_torque_cnt = 0
 
       self.apply_steer_last = apply_steer
 
-      self.hca_counter = (self.hca_counter + 1) % 16
-      can_sends.append(volkswagencan.create_mqb_steering_control(self.packer_gw, canbus.gateway, apply_steer, self.hca_counter, lkas_enabled))
-
-    elif frame % P.HCA_STEP_INACTIVE == 0:
-      # Send HCA_01 at low rate of 1Hz while OP is disengaged, matching
-      # the factory camera behavior.
-
-      self.hca_counter = (self.hca_counter + 1) % 16
-      can_sends.append(volkswagencan.create_mqb_steering_control(self.packer_gw, canbus.gateway, 0, self.hca_counter, False))
+      self.hca_msg_counter = (self.hca_msg_counter + 1) % 16
+      can_sends.append(volkswagencan.create_mqb_steering_control(self.packer_gw, canbus.gateway, apply_steer, self.hca_msg_counter, hca_enabled))
 
     #
     # Prepare LDW_02 HUD message with lane lines and confidence levels
     #
     if frame % P.LDW_STEP == 0:
       if enabled and not CS.standstill:
-        lkas_enabled_hud = True
+        hca_enabled_hud = True
       else:
-        lkas_enabled_hud = False
+        hca_enabled_hud = False
 
       if visual_alert == VisualAlert.steerRequired:
         if audible_alert in EMERGENCY_WARNINGS:
@@ -124,7 +131,7 @@ class CarController():
       else:
         hud_alert = 0
 
-      can_sends.append(volkswagencan.create_mqb_hud_control(self.packer_gw, canbus.gateway, lkas_enabled_hud, hud_alert, leftLaneVisible, rightLaneVisible))
+      can_sends.append(volkswagencan.create_mqb_hud_control(self.packer_gw, canbus.gateway, hca_enabled_hud, hud_alert, leftLaneVisible, rightLaneVisible))
 
     #
     # Prepare GRA_ACC_01 message with ACC cruise control buttons
