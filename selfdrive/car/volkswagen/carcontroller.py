@@ -153,7 +153,7 @@ class CarController():
         # A subset of MQBs like to "creep" too aggressively with this implementation.
         self.acc_vbp_type = "resumeCruise"
 
-      elif CS.accEnabled:
+      elif not enabled and CS.accEnabled:
         # Cancel ACC if it's engaged with OP disengaged.
         self.acc_vbp_type = "cancel"
 
