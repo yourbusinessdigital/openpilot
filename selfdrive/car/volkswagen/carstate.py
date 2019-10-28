@@ -55,6 +55,7 @@ def get_mqb_gateway_can_parser(CP, canbus):
     ("GRA_Typ_Hauptschalter", "GRA_ACC_01", 0),   # ACC main button type
     ("GRA_Tip_Stufe_2", "GRA_ACC_01", 0),         # unknown related to stalk type
     ("GRA_ButtonTypeInfo", "GRA_ACC_01", 0),      # unknown related to stalk type
+    {"COUNTER", "GRA_ACC_01", 0},                 # GRA_ACC_01 CAN message counter
   ]
 
   checks = [
@@ -220,6 +221,9 @@ class CarState():
     self.graTypHauptschalter = gw_cp.vl["GRA_ACC_01"]['GRA_Typ_Hauptschalter']
     self.graButtonTypeInfo = gw_cp.vl["GRA_ACC_01"]['GRA_ButtonTypeInfo']
     self.graTipStufe2 = gw_cp.vl["GRA_ACC_01"]['GRA_Tip_Stufe_2']
+    # Pick up the GRA_ACC_01 CAN message counter so we can sync to it for
+    # later cruise-control button spamming.
+    self.graCounter = gw_cp.vl["GRA_ACC_01"]['COUNTER']
 
     # Check to make sure the electric power steering rack is configured to
     # accept and respond to HCA_01 messages and has not encountered a fault.

@@ -122,13 +122,8 @@ static int volkswagen_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
 
   switch(bus_num) {
     case 0:
-      if(eon_alive && (addr == MSG_GRA_ACC_01)) {
-        // OP intercepts, filters, and updates the cruise-control button messages before they reach the ACC radar.
-        bus_fwd = -1;
-      } else {
-        // Forward all remaining traffic from J533 gateway to Extended CAN devices.
-        bus_fwd = 2;
-      }
+      // Forward all traffic from J533 gateway to Extended CAN devices.
+      bus_fwd = 2;
       break;
     case 2:
       if(eon_alive && ((addr == MSG_HCA_01) || (addr == MSG_LDW_02))) {
