@@ -28,8 +28,8 @@ class CarController():
     self.apply_steer_last = 0
     self.car_fingerprint = car_fingerprint
     self.acc_vbp_type = None
-    self.gra_acc_msgctr_last = None
-    self.gra_acc_resume_last = None
+    self.gra_acc_msgctr_last = 0
+    self.gra_acc_resume_last = 0
     self.same_torque_cnt = 0
     self.hca_enabled_cnt = 0
     self.hca_msg_counter = 0
@@ -171,6 +171,7 @@ class CarController():
           idx = (CS.graCounter + spamidx + 1) % 16
           can_sends.append(volkswagencan.create_mqb_acc_buttons_control(self.packer_gw, canbus.extended,
                                                                     buttonStatesToSend, CS, idx))
+        self.acc_vbp_type = None
 
       self.gra_acc_msgctr_last = CS.graCounter
 
