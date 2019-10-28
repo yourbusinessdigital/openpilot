@@ -1,6 +1,7 @@
-Version 0.6.5 + VW 0.8.2.1 (2019-10-24)
+Version 0.6.5 + VW 0.8.3-IN PROGRESS (2019-10-27)
 ========================
- * Add e-Golf startup-time messages to generic fingerprint.
+ * Code styling and refactoring in preparation for Comma AI upstream PR.
+ * Improvements and bug fixes to steering safety and fault handling.
 
 Version 0.6.5 + VW 0.8.2 (2019-10-20)
 ========================
