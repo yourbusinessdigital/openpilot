@@ -11,6 +11,13 @@ BUTTON_STATES = {
   "gapAdjustCruise": False
 }
 
+MQB_LDW_MESSAGES = {
+  "none": 0,                          # Nothing to display
+  "emergencyAssistAudible": 6,        # "Emergency Assist: Please Take Over Steering", with beep
+  "laneAssistAudible": 7,             # "Lane Assist: Please Take Over Steering", with beep
+  "laneAssistSilent": 8,              # "Lane Assist: Please Take Over Steering", silent
+}
+
 class CAR:
   GENERICMQB = "Generic Volkswagen MQB Platform Vehicle"
 

@@ -1,7 +1,7 @@
 from cereal import car
 from selfdrive.car import apply_std_steer_torque_limits
 from selfdrive.car.volkswagen import volkswagencan
-from selfdrive.car.volkswagen.values import DBC
+from selfdrive.car.volkswagen.values import DBC, MQB_LDW_MESSAGES
 from selfdrive.can.packer import CANPacker
 
 VisualAlert = car.CarControl.HUDControl.VisualAlert
@@ -51,7 +51,7 @@ class CarController():
     # Prepare HCA_01 steering torque message
     #
     if frame % P.HCA_STEP == 0:
-      # Send HCA_01 at full rate of 50Hz. The factory camera sends at 50Hz
+      # We send HCA_01 at full rate of 50Hz. The factory camera sends at 50Hz
       # while steering and 1Hz when not. Rate-switching creates some confusion
       # in Cabana and doesn't seem to add value, so we send at 50Hz all the
       # time. The rack does accept HCA at 100Hz if we want to control at finer
@@ -59,7 +59,7 @@ class CarController():
 
       # FAULT CONDITION: HCA may not be enabled at standstill. Also stop
       # commanding HCA if there's a fault, so the steering rack recovers.
-      if CS.standstill or CS.steeringFault:
+      if not enabled or (CS.standstill or CS.steeringFault):
         # Disable Heading Control Assist
         hca_enabled = False
         apply_steer = 0
@@ -99,7 +99,7 @@ class CarController():
             # level for more than 1.9 seconds. That makes sure we've sent at
             # least three trimmed messages within the 6 second span, resetting
             # the rack timer even if a couple messages are lost.
-            if apply_steer != 0 and self.apply_steer_last == apply_steer:
+            if self.apply_steer_last == apply_steer:
               self.same_torque_cnt += 1
               if self.same_torque_cnt > 190:  # 1.9s
                 apply_steer -= (1, -1)[apply_steer < 0]
@@ -110,28 +110,31 @@ class CarController():
       self.apply_steer_last = apply_steer
 
       self.hca_msg_counter = (self.hca_msg_counter + 1) % 16
-      can_sends.append(volkswagencan.create_mqb_steering_control(self.packer_gw, canbus.gateway, apply_steer, self.hca_msg_counter, hca_enabled))
+      can_sends.append(volkswagencan.create_mqb_steering_control(self.packer_gw, canbus.gateway, apply_steer,
+                                                                 self.hca_msg_counter, hca_enabled))
 
     #
     # Prepare LDW_02 HUD message with lane lines and confidence levels
     #
     if frame % P.LDW_STEP == 0:
       if enabled and not CS.standstill:
-        hca_enabled_hud = True
+        hca_enabled = True
       else:
-        hca_enabled_hud = False
+        hca_enabled = False
 
       if visual_alert == VisualAlert.steerRequired:
         if audible_alert in EMERGENCY_WARNINGS:
-          hud_alert = 6 # "Emergency Assist: Please Take Over Steering", with beep
+          hud_alert = MQB_LDW_MESSAGES["emergencyAssistAudible"]
         elif audible_alert in AUDIBLE_WARNINGS:
-          hud_alert = 7 # "Lane Assist: Please Take Over Steering", with beep
+          hud_alert = MQB_LDW_MESSAGES["laneAssistAudible"]
         else:
-          hud_alert = 8 # "Lane Assist: Please Take Over Steering", silent
+          hud_alert = MQB_LDW_MESSAGES["laneAssistSilent"]
       else:
-        hud_alert = 0
+        hud_alert = MQB_LDW_MESSAGES["none"]
 
-      can_sends.append(volkswagencan.create_mqb_hud_control(self.packer_gw, canbus.gateway, hca_enabled_hud, hud_alert, leftLaneVisible, rightLaneVisible))
+      can_sends.append(volkswagencan.create_mqb_hud_control(self.packer_gw, canbus.gateway, hca_enabled,
+                                                            CS.steeringPressed, hud_alert, leftLaneVisible,
+                                                            rightLaneVisible))
 
     #
     # Prepare GRA_ACC_01 message with ACC cruise control buttons
@@ -171,6 +174,7 @@ class CarController():
           self.acc_vbp_type = None
           self.acc_vbp_endframe = None
 
-      can_sends.append(volkswagencan.create_mqb_acc_buttons_control(self.packer_gw, canbus.extended, buttonStatesToSend, CS, idx))
+      can_sends.append(volkswagencan.create_mqb_acc_buttons_control(self.packer_gw, canbus.extended,
+                                                                    buttonStatesToSend, CS, idx))
 
     return can_sends
