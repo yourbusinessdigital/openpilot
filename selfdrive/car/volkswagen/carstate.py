@@ -55,7 +55,7 @@ def get_mqb_gateway_can_parser(CP, canbus):
     ("GRA_Typ_Hauptschalter", "GRA_ACC_01", 0),   # ACC main button type
     ("GRA_Tip_Stufe_2", "GRA_ACC_01", 0),         # unknown related to stalk type
     ("GRA_ButtonTypeInfo", "GRA_ACC_01", 0),      # unknown related to stalk type
-    {"COUNTER", "GRA_ACC_01", 0},                 # GRA_ACC_01 CAN message counter
+    ("COUNTER", "GRA_ACC_01", 0),                 # GRA_ACC_01 CAN message counter
   ]
 
   checks = [
