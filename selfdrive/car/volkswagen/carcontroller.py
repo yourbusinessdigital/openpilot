@@ -36,6 +36,7 @@ class CarController():
     self.gra_acc_ondemand_trigger = False
     self.gra_acc_ondemand_sending = False
     self.gra_acc_ondemand_sent = 0
+    self.buttonStatesToSend = BUTTON_STATES.copy()
 
     # Setup detection helper. Routes commands to
     # an appropriate CAN bus number.
@@ -46,7 +47,6 @@ class CarController():
     """ Controls thread """
 
     P = CarControllerParams
-    buttonStatesToSend = BUTTON_STATES.copy()
 
     # Send CAN commands.
     can_sends = []
@@ -147,14 +147,14 @@ class CarController():
     if not enabled and CS.accEnabled and frame > (self.gra_acc_button_last + 100):
       # Cancel ACC if it's engaged with OP disengaged.
       self.gra_acc_ondemand_trigger = True
-      buttonStatesToSend["cancel"] = True
+      self.buttonStatesToSend["cancel"] = True
 
     elif enabled and CS.standstill and frame > (self.gra_acc_button_last + 100):
       # Blip the Resume button ~1x/second if we're engaged at standstill
       # FIXME: This is a naive implementation, improve with visiond or radar input.
       # A subset of MQBs like to "creep" too aggressively with this implementation.
       self.gra_acc_ondemand_trigger = True
-      buttonStatesToSend["resumeCruise"] = True
+      self.buttonStatesToSend["resumeCruise"] = True
 
     # In order to support integration at the camera, we can't depend on Panda
     # to filter the car's message and insert our own. Instead, we wait for the
@@ -173,10 +173,11 @@ class CarController():
       if self.gra_acc_ondemand_sending:
         # Sequence the spam frames out on the bus, +1 from the car's own.
         idx = (CS.graCounter + 1) % 16
-        can_sends.append(volkswagencan.create_mqb_acc_buttons_control(self.packer_gw, canbus.extended, buttonStatesToSend, CS, idx))
+        can_sends.append(volkswagencan.create_mqb_acc_buttons_control(self.packer_gw, canbus.extended, self.buttonStatesToSend, CS, idx))
         self.gra_acc_ondemand_sent += 1
         if self.gra_acc_ondemand_sent >= 16:
           self.gra_acc_ondemand_sending = False
+          self.buttonStatesToSend = BUTTON_STATES.copy()
 
       self.gra_acc_msgctr_last = CS.graCounter
 
