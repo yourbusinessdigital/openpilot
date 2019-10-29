@@ -1,8 +1,8 @@
-const int VW_MAX_STEER = 250;               // 2.5 nm (EPS side fault-creating max of 3.0nm)
+const int VW_MAX_STEER = 250;               // 2.5 nm (EPS side max of 3.0nm with fault if violated)
 const int VW_MAX_RT_DELTA = 75;             // 4 max rate up * 50Hz send rate * 250000 RT interval / 1000000 = 50 ; * 1.5 for safety pad = 75
 const uint32_t VW_RT_INTERVAL = 250000;     // 250ms between real time checks
-const int VW_MAX_RATE_UP = 4;               // 4.0 nm/s rate of change (EPS side non-faulting delta-limit of 5.0nm/s)
-const int VW_MAX_RATE_DOWN = 5;             // 5.0 nm/s rate of change (EPS side non-faulting delta-limit of 5.0nm/s)
+const int VW_MAX_RATE_UP = 4;               // 2.0 nm/s rate of change (EPS side delta-limit of 5.0nm/s)
+const int VW_MAX_RATE_DOWN = 10;            // 5.0 nm/s rate of change (EPS side delta-limit of 5.0nm/s)
 const int VW_DRIVER_TORQUE_ALLOWANCE = 80;
 const int VW_DRIVER_TORQUE_FACTOR = 3;
 
@@ -114,7 +114,7 @@ static int volkswagen_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
 
   // FORCE CANCEL: ensuring that only the cancel button press is sent when controls are off.
   // This avoids unintended engagements while still allowing resume spam.
-  if ((addr == MSG_GRA_ACC_01) && !controls_allowed && (bus == 0)) {
+  if ((addr == MSG_GRA_ACC_01) && !controls_allowed && (bus == 2)) {
     // disallow resume and set: bits 16 and 19
     if ((GET_BYTE(to_send, 2) & 0x9) != 0) {
       tx = 0;

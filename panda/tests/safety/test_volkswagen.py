@@ -5,7 +5,7 @@ import libpandasafety_py
 from panda import Panda
 
 MAX_RATE_UP = 4
-MAX_RATE_DOWN = 5
+MAX_RATE_DOWN = 10
 MAX_STEER = 250
 
 MAX_RT_DELTA = 75
