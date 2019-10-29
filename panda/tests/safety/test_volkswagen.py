@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import unittest
 import numpy as np
-import libpandasafety_py
+import libpandasafety_py  # pylint: disable=import-error
 from panda import Panda
 
 MAX_RATE_UP = 4
@@ -58,11 +58,25 @@ class TestVolkswagenSafety(unittest.TestCase):
       to_send[0].RDLR |= 0x1 << 31
     return to_send
 
+  def _gas_msg(self, gas):
+    to_send = libpandasafety_py.ffi.new('CAN_FIFOMailBox_TypeDef *')
+    to_send[0].RIR = 0x121 << 21
+    to_send[0].RDLR = (gas & 0xFF) << 12
+
+    return to_send
+
   def _button_msg(self, bit):
     to_send = libpandasafety_py.ffi.new('CAN_FIFOMailBox_TypeDef *')
     to_send[0].RIR = 0x12B << 21
     to_send[0].RDLR = 1 << bit
+    to_send[0].RDTR = 2 << 4
+
     return to_send
+
+  def test_prev_gas(self):
+    for g in range(0, 256):
+      self.safety.safety_rx_hook(self._gas_msg(g))
+      self.assertEqual(g, self.safety.get_volkswagen_gas_prev())
 
   def test_default_controls_not_allowed(self):
     self.assertFalse(self.safety.get_controls_allowed())
@@ -83,6 +97,27 @@ class TestVolkswagenSafety(unittest.TestCase):
     self.safety.set_controls_allowed(1)
     self.safety.safety_rx_hook(to_push)
     self.assertFalse(self.safety.get_controls_allowed())
+
+  def test_disengage_on_gas(self):
+    for long_controls_allowed in [0, 1]:
+      self.safety.set_long_controls_allowed(long_controls_allowed)
+      self.safety.safety_rx_hook(self._gas_msg(0))
+      self.safety.set_controls_allowed(True)
+      self.safety.safety_rx_hook(self._gas_msg(1))
+      if long_controls_allowed:
+        self.assertFalse(self.safety.get_controls_allowed())
+      else:
+        self.assertTrue(self.safety.get_controls_allowed())
+    self.safety.set_long_controls_allowed(True)
+
+  def test_allow_engage_with_gas_pressed(self):
+    self.safety.safety_rx_hook(self._gas_msg(1))
+    self.safety.set_controls_allowed(True)
+    self.safety.safety_rx_hook(self._gas_msg(1))
+    self.assertTrue(self.safety.get_controls_allowed())
+    self.safety.safety_rx_hook(self._gas_msg(1))
+    self.assertTrue(self.safety.get_controls_allowed())
+
 
   def test_steer_safety_check(self):
     for enabled in [0, 1]:
@@ -166,6 +201,7 @@ class TestVolkswagenSafety(unittest.TestCase):
       self.safety.set_volkswagen_torque_driver(-MAX_STEER * sign, -MAX_STEER * sign)
       self.assertFalse(self.safety.safety_tx_hook(self._torque_msg((MAX_STEER - MAX_RATE_DOWN + 1) * sign)))
 
+
   def test_realtime_limits(self):
     self.safety.set_controls_allowed(True)
 
@@ -187,6 +223,7 @@ class TestVolkswagenSafety(unittest.TestCase):
       self.safety.set_timer(RT_INTERVAL + 1)
       self.assertTrue(self.safety.safety_tx_hook(self._torque_msg(sign * (MAX_RT_DELTA - 1))))
       self.assertTrue(self.safety.safety_tx_hook(self._torque_msg(sign * (MAX_RT_DELTA + 1))))
+
 
   def test_fwd_hook(self):
     buss = list(range(0x0, 0x2))

@@ -151,7 +151,7 @@ class CarController():
 
     #--------------------------------------------------------------------------
     #                                                                         #
-    # Prepare GRA_ACC_01 ACC control button message with button press events. #
+    # Prepare GRA_ACC_01 ACC control messages with button press events.       #
     #                                                                         #
     #--------------------------------------------------------------------------
 
