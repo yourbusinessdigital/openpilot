@@ -58,7 +58,7 @@ static void volkswagen_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
 
 static int volkswagen_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
   int addr = GET_ADDR(to_send);
-  int addr = GET_BUS(to_send);
+  int bus = GET_BUS(to_send);
   int tx = 1;
 
   // Safety check for HCA_01 Heading Control Assist torque.
