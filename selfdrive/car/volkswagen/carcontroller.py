@@ -29,20 +29,19 @@ class CarControllerParams:
 
 class CarController():
   def __init__(self, canbus, car_fingerprint):
-    self.counter = 0
     self.apply_steer_last = 0
     self.car_fingerprint = car_fingerprint
-    self.same_torque_cnt = 0
-    self.hca_enabled_cnt = 0
+
+    # Setup detection helper. Routes commands to an appropriate CAN bus number.
+    self.canbus = canbus
+    self.packer_gw = CANPacker(DBC[car_fingerprint]['pt'])
+
+    self.hcaSameTorqueCount = 0
+    self.hcaEnabledFrameCount = 0
+    self.graButtonStatesToSend = None
     self.graMsgSentCount = 0
     self.graMsgStartFramePrev = 0
     self.graMsgBusCounterPrev = 0
-
-
-    # Setup detection helper. Routes commands to
-    # an appropriate CAN bus number.
-    self.canbus = canbus
-    self.packer_gw = CANPacker(DBC[car_fingerprint]['pt'])
 
   def update(self, enabled, CS, frame, actuators, visual_alert, audible_alert, leftLaneVisible, rightLaneVisible):
     """ Controls thread """
@@ -54,9 +53,9 @@ class CarController():
     canbus = self.canbus
 
     #--------------------------------------------------------------------------
-    #
-    # Prepare HCA_01 Heading Control Assist messages with steering torque.
-    #
+    #                                                                         #
+    # Prepare HCA_01 Heading Control Assist messages with steering torque.    #
+    #                                                                         #
     #--------------------------------------------------------------------------
 
     # The factory camera sends at 50Hz while steering and 1Hz when not. When
@@ -85,59 +84,56 @@ class CarController():
           # during many changes of direction. This could be expanded with a
           # small dead-zone to capture all zero crossings, but not seeing a
           # major need at this time.
-          hca_enabled = False
-          self.hca_enabled_cnt = 0
+          hcaEnabled = False
+          self.hcaEnabledFrameCount = 0
         else:
-          self.hca_enabled_cnt += 1
-          if self.hca_enabled_cnt >=  118 * (100 / P.HCA_STEP):  # 118s
+          self.hcaEnabledFrameCount += 1
+          if self.hcaEnabledFrameCount >=  118 * (100 / P.HCA_STEP):  # 118s
             # The Kansas I-70 Crosswind Problem: if we truly do need to steer
             # in one direction for > 360 seconds, we have to disable HCA for a
             # frame while actively steering. Testing shows we can just set the
             # disabled flag, and keep sending non-zero torque, which keeps the
             # Panda torque rate limiting safety happy. Do so 3x within the 360
             # second window for safety and redundancy.
-            hca_enabled = False
-            self.hca_enabled_cnt = 0
+            hcaEnabled = False
+            self.hcaEnabledFrameCount = 0
           else:
-            hca_enabled = True
+            hcaEnabled = True
             # FAULT AVOIDANCE: HCA torque must not be static for > 6 seconds.
             # This is to detect the sending camera being stuck or frozen. OP
             # can trip this on a curve if steering is saturated. Avoid this by
             # reducing torque 0.01nm for one frame. Do so 3x within the 6
             # second period for safety and redundancy.
             if self.apply_steer_last == apply_steer:
-              self.same_torque_cnt += 1
-              if self.same_torque_cnt > 1.9 * (100 / P.HCA_STEP):  # 1.9s
+              self.hcaSameTorqueCount += 1
+              if self.hcaSameTorqueCount > 1.9 * (100 / P.HCA_STEP):  # 1.9s
                 apply_steer -= (1, -1)[apply_steer < 0]
-                self.same_torque_cnt = 0
+                self.hcaSameTorqueCount = 0
             else:
-              self.same_torque_cnt = 0
+              self.hcaSameTorqueCount = 0
 
       else:
         # Continue sending HCA_01 messages, with the enable flags turned off.
-        hca_enabled = False
+        hcaEnabled = False
         apply_steer = 0
 
-
       self.apply_steer_last = apply_steer
-
       idx = (frame / P.HCA_STEP) % 16
       can_sends.append(volkswagencan.create_mqb_steering_control(self.packer_gw, canbus.gateway, apply_steer,
-                                                                 idx, hca_enabled))
+                                                                 idx, hcaEnabled))
 
-    #
-    # Prepare LDW_02 HUD messages with lane borders, confidence levels, and
-    # the LKAS status LED.
-    #
+    #--------------------------------------------------------------------------
+    #                                                                         #
+    # Prepare LDW_02 HUD messages with lane borders, confidence levels, and   #
+    # the LKAS status LED.                                                    #
+    #                                                                         #
+    #--------------------------------------------------------------------------
+
     # The factory camera emits this message at 10Hz. When OP is active, Panda
     # filters LDW_02 from the factory camera and OP emits LDW_02 at 10Hz.
-    #
 
     if frame % P.LDW_STEP == 0:
-      if enabled and not CS.standstill:
-        hca_enabled = True
-      else:
-        hca_enabled = False
+      hcaEnabled = True if enabled and not CS.standstill else False
 
       if visual_alert == VisualAlert.steerRequired:
         if audible_alert in EMERGENCY_WARNINGS:
@@ -149,28 +145,33 @@ class CarController():
       else:
         hud_alert = MQB_LDW_MESSAGES["none"]
 
-      can_sends.append(volkswagencan.create_mqb_hud_control(self.packer_gw, canbus.gateway, hca_enabled,
+      can_sends.append(volkswagencan.create_mqb_hud_control(self.packer_gw, canbus.gateway, hcaEnabled,
                                                             CS.steeringPressed, hud_alert, leftLaneVisible,
                                                             rightLaneVisible))
 
-    #
-    # Prepare GRA_ACC_01 cruise control button message. The car sends this
-    # message at 33hz. OP sends it on-demand only for virtual button presses.
-    #
+    #--------------------------------------------------------------------------
+    #                                                                         #
+    # Prepare GRA_ACC_01 ACC control button message with button press events. #
+    #                                                                         #
+    #--------------------------------------------------------------------------
 
-    # First create any virtual button press needed by openpilot controls, to
-    # sync stock ACC with OP disengagement, or to auto-resume from stop.
+    # The car sends this message at 33hz. OP sends it on-demand only for
+    # virtual button presses.
+    #
+    # First create any virtual button press event needed by openpilot, to sync
+    # stock ACC with OP disengagement, or to auto-resume from stop.
+
     if frame > self.graMsgStartFramePrev + P.GRA_VBP_STEP:
       if not enabled and CS.accEnabled:
         # Cancel ACC if it's engaged with OP disengaged.
-        self.buttonStatesToSend = BUTTON_STATES.copy()
-        self.buttonStatesToSend["cancel"] = True
+        self.graButtonStatesToSend = BUTTON_STATES.copy()
+        self.graButtonStatesToSend["cancel"] = True
       elif enabled and CS.standstill:
         # Blip the Resume button if we're engaged at standstill.
         # FIXME: This is a naive implementation, improve with visiond or radar input.
         # A subset of MQBs like to "creep" too aggressively with this implementation.
-        self.buttonStatesToSend = BUTTON_STATES.copy()
-        self.buttonStatesToSend["resumeCruise"] = True
+        self.graButtonStatesToSend = BUTTON_STATES.copy()
+        self.graButtonStatesToSend["resumeCruise"] = True
 
     # OP/Panda can see this message but can't filter it when integrated at the
     # R242 LKAS camera. It could do so if integrated at the J533 gateway, but
@@ -199,13 +200,14 @@ class CarController():
 
     if CS.graMsgBusCounter != self.graMsgBusCounterPrev:
       self.graMsgBusCounterPrev = CS.graMsgBusCounter
-      if self.buttonStatesToSend is not None:
+      if self.graButtonStatesToSend is not None:
         if self.graMsgSentCount == 0:
           self.graMsgStartFramePrev = frame
-        can_sends.append(volkswagencan.create_mqb_acc_buttons_control(self.packer_gw, canbus.extended, self.buttonStatesToSend, CS, (CS.graMsgBusCounter + 1) % 16))
+        idx = (CS.graMsgBusCounter + 1) % 16
+        can_sends.append(volkswagencan.create_mqb_acc_buttons_control(self.packer_gw, canbus.extended, self.graButtonStatesToSend, CS, idx))
         self.graMsgSentCount += 1
         if self.graMsgSentCount >= 16:
-          self.buttonStatesToSend = None
+          self.graButtonStatesToSend = None
           self.graMsgSentCount = 0
 
     return can_sends
