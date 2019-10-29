@@ -96,14 +96,8 @@ def get_mqb_extended_can_parser(CP, canbus):
   return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, canbus.extended)
 
 def parse_gear_shifter(gear, vals):
-  # Return mapping of gearshift position to selected gear. For other ports,
-  # Sport is detected by OP as a no entry/soft cancel condition, so treat it
-  # the same here along with Manumatic. Eco is permitted and just like Drive.
-  #
-  # Intention for the other ports was probably to provide consistent gas pedal
-  # behavior for longitudinal use, but VW Bosch ACC provides m/s acceleration
-  # requests to the ECU directly, pre-computed to match the Charisma driving
-  # profile as applicable, so Drive/Sport/Eco don't really matter to ACC.
+  # Return mapping of gearshift position to selected gear.
+
   val_to_capnp = {'P': GEAR.park, 'R': GEAR.reverse, 'N': GEAR.neutral,
                   'D': GEAR.drive, 'E': GEAR.eco, 'S': GEAR.sport, 'T': GEAR.manumatic}
   try:
@@ -223,7 +217,7 @@ class CarState():
     self.graTipStufe2 = gw_cp.vl["GRA_ACC_01"]['GRA_Tip_Stufe_2']
     # Pick up the GRA_ACC_01 CAN message counter so we can sync to it for
     # later cruise-control button spamming.
-    self.graCounter = gw_cp.vl["GRA_ACC_01"]['COUNTER']
+    self.graMsgBusCounter = gw_cp.vl["GRA_ACC_01"]['COUNTER']
 
     # Check to make sure the electric power steering rack is configured to
     # accept and respond to HCA_01 messages and has not encountered a fault.

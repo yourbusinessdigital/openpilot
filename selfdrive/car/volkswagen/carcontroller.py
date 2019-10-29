@@ -14,12 +14,17 @@ class CarControllerParams:
   LDW_STEP = 10                  # LDW_02 message frequency 10Hz
   GRA_ACC_STEP = 3               # GRA_ACC_01 message frequency 33Hz
 
-  # Observe documented MQB limits: 3.00nm max, rate of change 5.00nm/sec
-  STEER_MAX = 300                # Max heading control assist torque 3.00nm
-  STEER_DELTA_UP = 10            # Max HCA reached in 0.600s (STEER_MAX / (50Hz * 0.600))
-  STEER_DELTA_DOWN = 10          # Min HCA reached in 0.600s (STEER_MAX / (50Hz * 0.600))
-  STEER_DRIVER_ALLOWANCE = 100
-  STEER_DRIVER_MULTIPLIER = 4    # weight driver torque heavily
+  GRA_VBP_STEP = 100             # Send ACC virtual button presses once a second
+  GRA_VBP_COUNT = 16             # Send VBP messages for ~0.5s (GRA_ACC_STEP * 16)
+
+  # Observed documented MQB limits: 3.00nm max, rate of change 5.00nm/sec.
+  # Limiting both torque and rate-of-change based on real-world testing and
+  # Comma's safety requirements for minimum time to lane departure.
+  STEER_MAX = 250                # Max heading control assist torque 2.50nm
+  STEER_DELTA_UP = 4             # Max HCA reached in 1.25s (STEER_MAX / (50Hz * 1.25))
+  STEER_DELTA_DOWN = 10          # Min HCA reached in 0.60s (STEER_MAX / (50Hz * 0.60))
+  STEER_DRIVER_ALLOWANCE = 80
+  STEER_DRIVER_MULTIPLIER = 3    # weight driver torque heavily
   STEER_DRIVER_FACTOR = 1        # from dbc
 
 class CarController():
@@ -29,14 +34,10 @@ class CarController():
     self.car_fingerprint = car_fingerprint
     self.same_torque_cnt = 0
     self.hca_enabled_cnt = 0
-    self.hca_msg_counter = 0
-    self.acc_vbp_type = None
-    self.gra_acc_msgctr_last = 0
-    self.gra_acc_button_last = 0
-    self.gra_acc_ondemand_trigger = False
-    self.gra_acc_ondemand_sending = False
-    self.gra_acc_ondemand_sent = 0
-    self.buttonStatesToSend = BUTTON_STATES.copy()
+    self.graMsgSentCount = 0
+    self.graMsgStartFramePrev = 0
+    self.graMsgBusCounterPrev = 0
+
 
     # Setup detection helper. Routes commands to
     # an appropriate CAN bus number.
@@ -52,19 +53,20 @@ class CarController():
     can_sends = []
     canbus = self.canbus
 
+    #--------------------------------------------------------------------------
     #
     # Prepare HCA_01 Heading Control Assist messages with steering torque.
     #
+    #--------------------------------------------------------------------------
+
     # The factory camera sends at 50Hz while steering and 1Hz when not. When
     # OP is active, Panda filters HCA_01 from the factory camera and OP emits
     # HCA_01 at 50Hz. Rate switching creates some confusion in Cabana and
     # doesn't seem to add value at this time. The rack will accept HCA_01 at
     # 100Hz if we want to control at finer resolution in the future.
-    #
-
     if frame % P.HCA_STEP == 0:
 
-      # FAULT AVOIDANCE: HCA may not be enabled at standstill. Also stop
+      # FAULT AVOIDANCE: HCA must not be enabled at standstill. Also stop
       # commanding HCA if there's a fault, so the steering rack recovers.
       if enabled and not (CS.standstill or CS.steeringFault):
 
@@ -75,13 +77,14 @@ class CarController():
         apply_steer = int(round(actuators.steer * P.STEER_MAX))
         apply_steer = apply_std_steer_torque_limits(apply_steer, self.apply_steer_last, CS.steeringTorque, P)
 
+        # FAULT AVOIDANCE: HCA must not be enabled for >360 seconds. Sending
+        # a single frame with HCA disabled is an effective workaround.
         if apply_steer == 0:
-          # FAULT AVOIDANCE: HCA may not be enabled for > 360 seconds. Setting
-          # the HCA disabled flag for one frame is an effective workaround.
-          # We can do this very frequently by disabling HCA when apply_steer
-          # happens to be exactly zero, which happens naturally during a
-          # subset of direction changes. This could be expanded with a small
-          # dead-zone to capture all zero crossings, but not seeing a need.
+          # Quite often we can reset the timer "for free" just by disabling
+          # HCA when apply_steer is exactly zero, which happens by chance
+          # during many changes of direction. This could be expanded with a
+          # small dead-zone to capture all zero crossings, but not seeing a
+          # major need at this time.
           hca_enabled = False
           self.hca_enabled_cnt = 0
         else:
@@ -90,18 +93,18 @@ class CarController():
             # The Kansas I-70 Crosswind Problem: if we truly do need to steer
             # in one direction for > 360 seconds, we have to disable HCA for a
             # frame while actively steering. Testing shows we can just set the
-            # disabled flag, and keep sending a torque value, which keeps the
+            # disabled flag, and keep sending non-zero torque, which keeps the
             # Panda torque rate limiting safety happy. Do so 3x within the 360
-            # second window for safety.
+            # second window for safety and redundancy.
             hca_enabled = False
             self.hca_enabled_cnt = 0
           else:
             hca_enabled = True
-            # FAULT AVOIDANCE: HCA torque may not be static for > 6 seconds.
-            # This is intended to detect the sending camera being stuck or
-            # frozen. OP can trip this on a curve if steering is saturated.
-            # Avoid this by reducing torque 0.01nm for one frame. Do so 3x
-            # within the 6 second period for safety.
+            # FAULT AVOIDANCE: HCA torque must not be static for > 6 seconds.
+            # This is to detect the sending camera being stuck or frozen. OP
+            # can trip this on a curve if steering is saturated. Avoid this by
+            # reducing torque 0.01nm for one frame. Do so 3x within the 6
+            # second period for safety and redundancy.
             if self.apply_steer_last == apply_steer:
               self.same_torque_cnt += 1
               if self.same_torque_cnt > 1.9 * (100 / P.HCA_STEP):  # 1.9s
@@ -150,62 +153,59 @@ class CarController():
                                                             CS.steeringPressed, hud_alert, leftLaneVisible,
                                                             rightLaneVisible))
 
-    # Create any virtual button press generated by openpilot controls, to
-    # conform with safety requirements or to update the ACC speed setpoint.
-
-    if not enabled and CS.accEnabled and frame > (self.gra_acc_button_last + 100):
-      # Cancel ACC if it's engaged with OP disengaged.
-      self.gra_acc_ondemand_trigger = True
-      self.buttonStatesToSend["cancel"] = True
-
-    elif enabled and CS.standstill and frame > (self.gra_acc_button_last + 100):
-      # Blip the Resume button ~1x/second if we're engaged at standstill
-      # FIXME: This is a naive implementation, improve with visiond or radar input.
-      # A subset of MQBs like to "creep" too aggressively with this implementation.
-      self.gra_acc_ondemand_trigger = True
-      self.buttonStatesToSend["resumeCruise"] = True
-
+    #
     # Prepare GRA_ACC_01 cruise control button message. The car sends this
     # message at 33hz. OP sends it on-demand only for virtual button presses.
     #
+
+    # First create any virtual button press needed by openpilot controls, to
+    # sync stock ACC with OP disengagement, or to auto-resume from stop.
+    if frame > self.graMsgStartFramePrev + P.GRA_VBP_STEP:
+      if not enabled and CS.accEnabled:
+        # Cancel ACC if it's engaged with OP disengaged.
+        self.buttonStatesToSend = BUTTON_STATES.copy()
+        self.buttonStatesToSend["cancel"] = True
+      elif enabled and CS.standstill:
+        # Blip the Resume button if we're engaged at standstill.
+        # FIXME: This is a naive implementation, improve with visiond or radar input.
+        # A subset of MQBs like to "creep" too aggressively with this implementation.
+        self.buttonStatesToSend = BUTTON_STATES.copy()
+        self.buttonStatesToSend["resumeCruise"] = True
+
     # OP/Panda can see this message but can't filter it when integrated at the
-    # J242 LKAS camera. It could so so if integrated at the J533 gateway, but
-    # we need a generalized solution that works for either.
+    # R242 LKAS camera. It could do so if integrated at the J533 gateway, but
+    # we need a generalized solution that works for either. The message is
+    # counter-protected, so we need to time our transmissions very precisely
+    # to achieve fast and fault-free switching between message flows accepted
+    # at the J428 ACC radar.
     #
-    # The message is counter protected, so we need to time our transmissions
-    # very precisely to achieve fast and fault-free switching between the set
-    # of messages the R242 ACC radar is willing to listen to.
+    # Example message flow on the bus, frequency of 33Hz (GRA_ACC_STEP):
     #
-    # CAR @ 33Hz: 0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F  0  1  2  3  4  5  6 ...
-    # EON @ 33Hz:           4  5  6  7  8  9  A  B  C  D  E  F  0  1  2  3  GG
+    # CAR: 0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F  0  1  2  3  4  5  6
+    # EON:        3  4  5  6  7  8  9  A  B  C  D  E  F  0  1  2  GG^
     #
     # If OP needs to send a button press, it waits to see a GRA_ACC_01 message
     # counter change, and then immediately follows up with the next increment.
-    # It plays out another 16 (an arbitrary number, about half a second) in
-    # lockstep with each new message from the car. Because the OP's message
-    # counter is synced to the car, R242 pays attention to us immediately. The
-    # messages from the car get discarded as duplicates. When OP stops, the
-    # gap to the next car message is less than 2 * GRA_ACC_STEP and R242 seems
-    # to tolerate this just fine.
+    # The OP message will be sent within about 1ms of the car's message, which
+    # is about 2ms before the car's next message is expected. OP sends for an
+    # arbitrary duration of 16 messages / ~0.5 sec, in lockstep with each new
+    # message from the car.
+    #
+    # Because OP's counter is synced to the car, J428 immediately accepts the
+    # OP messages as valid. Further messages from the car get discarded as
+    # duplicates without a fault. When OP stops sending, the extra time gap
+    # (GG) to the next valid car message is less than 1 * GRA_ACC_STEP. J428
+    # tolerates the gap just fine and control returns to the car immediately.
 
-    # FIXME: This is ugly and I almost hope it doesn't work.
-
-    if CS.graCounter != self.gra_acc_msgctr_last:
-      if self.gra_acc_ondemand_trigger:
-        # We're ready to begin sending the spam frames.
-        self.gra_acc_button_last = frame
-        self.gra_acc_ondemand_trigger = False
-        self.gra_acc_ondemand_sending = True
-        self.gra_acc_ondemand_sent = 0
-      if self.gra_acc_ondemand_sending:
-        # Sequence the spam frames out on the bus, +1 from the car's own.
-        idx = (CS.graCounter + 1) % 16
-        can_sends.append(volkswagencan.create_mqb_acc_buttons_control(self.packer_gw, canbus.extended, self.buttonStatesToSend, CS, idx))
-        self.gra_acc_ondemand_sent += 1
-        if self.gra_acc_ondemand_sent >= 16:
-          self.gra_acc_ondemand_sending = False
-          self.buttonStatesToSend = BUTTON_STATES.copy()
-
-      self.gra_acc_msgctr_last = CS.graCounter
+    if CS.graMsgBusCounter != self.graMsgBusCounterPrev:
+      self.graMsgBusCounterPrev = CS.graMsgBusCounter
+      if self.buttonStatesToSend is not None:
+        if self.graMsgSentCount == 0:
+          self.graMsgStartFramePrev = frame
+        can_sends.append(volkswagencan.create_mqb_acc_buttons_control(self.packer_gw, canbus.extended, self.buttonStatesToSend, CS, (CS.graMsgBusCounter + 1) % 16))
+        self.graMsgSentCount += 1
+        if self.graMsgSentCount >= 16:
+          self.buttonStatesToSend = None
+          self.graMsgSentCount = 0
 
     return can_sends
