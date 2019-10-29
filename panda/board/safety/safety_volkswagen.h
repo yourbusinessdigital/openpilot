@@ -1,10 +1,10 @@
-const int VW_MAX_STEER = 300;               // 3.0 nm
-const int VW_MAX_RT_DELTA = 188;            // 10 max rate * 50Hz send rate * 250000 RT interval / 1000000 = 125 ; 125 * 1.5 for safety pad = 187.5
+const int VW_MAX_STEER = 250;               // 2.5 nm (EPS side fault-creating max of 3.0nm)
+const int VW_MAX_RT_DELTA = 75;             // 4 max rate up * 50Hz send rate * 250000 RT interval / 1000000 = 50 ; * 1.5 for safety pad = 75
 const uint32_t VW_RT_INTERVAL = 250000;     // 250ms between real time checks
-const int VW_MAX_RATE_UP = 10;              // 5.0 nm/s available rate of change from the steering rack
-const int VW_MAX_RATE_DOWN = 10;            // 5.0 nm/s available rate of change from the steering rack
-const int VW_DRIVER_TORQUE_ALLOWANCE = 100;
-const int VW_DRIVER_TORQUE_FACTOR = 4;
+const int VW_MAX_RATE_UP = 4;               // 4.0 nm/s rate of change (EPS side non-faulting delta-limit of 5.0nm/s)
+const int VW_MAX_RATE_DOWN = 5;             // 5.0 nm/s rate of change (EPS side non-faulting delta-limit of 5.0nm/s)
+const int VW_DRIVER_TORQUE_ALLOWANCE = 80;
+const int VW_DRIVER_TORQUE_FACTOR = 3;
 
 int vw_ignition_started = 0;
 struct sample_t vw_torque_driver;           // last few driver torques measured
@@ -25,6 +25,7 @@ static void volkswagen_init(int16_t param) {
   controls_allowed = 0;
   vw_ignition_started = 0;
 }
+
 static void volkswagen_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
   int bus = GET_BUS(to_push);
   int addr = GET_ADDR(to_push);
@@ -50,13 +51,14 @@ static void volkswagen_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
   // allowed state is directly driven by stock ACC engagement. Permit the ACC message to come from either bus, in
   // order to accommodate future camera-side integrations if needed.
   if (addr == MSG_ACC_06) {
-    int acc_status = (GET_BYTE(to_push,7) & 0x70) >> 4;
+    int acc_status = (GET_BYTE(to_push, 7) & 0x70) >> 4;
     controls_allowed = ((acc_status == 3) || (acc_status == 4) || (acc_status == 5)) ? 1 : 0;
   }
 }
 
 static int volkswagen_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
   int addr = GET_ADDR(to_send);
+  int addr = GET_BUS(to_send);
   int tx = 1;
 
   // Safety check for HCA_01 Heading Control Assist torque.
@@ -106,6 +108,15 @@ static int volkswagen_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
     }
 
     if (violation) {
+      tx = 0;
+    }
+  }
+
+  // FORCE CANCEL: ensuring that only the cancel button press is sent when controls are off.
+  // This avoids unintended engagements while still allowing resume spam.
+  if ((addr == MSG_GRA_ACC_01) && !controls_allowed && (bus == 0)) {
+    // disallow resume and set: bits 16 and 19
+    if ((GET_BYTE(to_send, 2) & 0x9) != 0) {
       tx = 0;
     }
   }
