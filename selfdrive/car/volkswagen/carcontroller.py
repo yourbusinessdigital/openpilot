@@ -86,7 +86,7 @@ class CarController():
           self.hca_enabled_cnt = 0
         else:
           self.hca_enabled_cnt += 1
-          if self.hca_enabled_cnt >=  118 * (100 / HCA_STEP):  # 118s
+          if self.hca_enabled_cnt >=  118 * (100 / P.HCA_STEP):  # 118s
             # The Kansas I-70 Crosswind Problem: if we truly do need to steer
             # in one direction for > 360 seconds, we have to disable HCA for a
             # frame while actively steering. Testing shows we can just set the
@@ -104,7 +104,7 @@ class CarController():
             # within the 6 second period for safety.
             if self.apply_steer_last == apply_steer:
               self.same_torque_cnt += 1
-              if self.same_torque_cnt > 1.9 * (100 / HCA_STEP):  # 1.9s
+              if self.same_torque_cnt > 1.9 * (100 / P.HCA_STEP):  # 1.9s
                 apply_steer -= (1, -1)[apply_steer < 0]
                 self.same_torque_cnt = 0
             else:
