@@ -1,5 +1,7 @@
-Version 0.6.5 + VW 0.8.3-IN PROGRESS (2019-10-27)
+Version 0.6.5 + VW 0.8.3-IN PROGRESS (2019-10-29)
 ========================
+ * Virtual ACC button press code updated for compatibility with integration at LKAS camera.
+ * Finalized Panda safety code with updated limits and GRA_ACC_01 filtering removed.
  * Code styling and refactoring in preparation for Comma AI upstream PR.
  * Improvements and bug fixes to steering safety and fault handling.
 
