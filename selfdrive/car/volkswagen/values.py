@@ -12,10 +12,15 @@ BUTTON_STATES = {
 }
 
 MQB_LDW_MESSAGES = {
-  "none": 0,                          # Nothing to display
-  "emergencyAssistAudible": 6,        # "Emergency Assist: Please Take Over Steering", with beep
-  "laneAssistAudible": 7,             # "Lane Assist: Please Take Over Steering", with beep
-  "laneAssistSilent": 8,              # "Lane Assist: Please Take Over Steering", silent
+  "none": 0,                            # Nothing to display
+  "laneAssistUnavailChime": 1,          # "Lane Assist currently not available." with chime
+  "laneAssistUnavailNoSensorChime": 3,  # "Lane Assist not available. No sensor view." with chime
+  "laneAssistTakeOverUrgent": 4,        # "Lane Assist: Please Take Over Steering" with urgent beep
+  "emergencyAssistUrgent": 6,           # "Emergency Assist: Please Take Over Steering" with urgent beep
+  "laneAssistTakeOverChime": 7,         # "Lane Assist: Please Take Over Steering" with chime
+  "laneAssistTakeOverSilent": 8,        # "Lane Assist: Please Take Over Steering" silent
+  "emergencyAssistChangingLanes": 9,    # "Emergency Assist: Changing lanes..." with urgent beep
+  "laneAssistDeactivated": 10,          # "Lane Assist deactivated." silent with persistent icon afterward
 }
 
 class CAR:

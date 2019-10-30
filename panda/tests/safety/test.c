@@ -237,6 +237,10 @@ void set_volkswagen_desired_torque_last(int t){
   volkswagen_desired_torque_last = t;
 }
 
+int get_volkswagen_gas_prev(void){
+  return volkswagen_gas_prev;
+}
+
 bool get_honda_moving(void){
   return honda_moving;
 }

@@ -5,9 +5,6 @@ from selfdrive.car.volkswagen.values import DBC, MQB_LDW_MESSAGES, BUTTON_STATES
 from selfdrive.can.packer import CANPacker
 
 VisualAlert = car.CarControl.HUDControl.VisualAlert
-AudibleAlert = car.CarControl.HUDControl.AudibleAlert
-AUDIBLE_WARNINGS = [AudibleAlert.chimeWarning1, AudibleAlert.chimeWarning2]
-EMERGENCY_WARNINGS = [AudibleAlert.chimeWarningRepeat]
 
 class CarControllerParams:
   HCA_STEP = 2                   # HCA_01 message frequency 50Hz
@@ -136,12 +133,7 @@ class CarController():
       hcaEnabled = True if enabled and not CS.standstill else False
 
       if visual_alert == VisualAlert.steerRequired:
-        if audible_alert in EMERGENCY_WARNINGS:
-          hud_alert = MQB_LDW_MESSAGES["emergencyAssistAudible"]
-        elif audible_alert in AUDIBLE_WARNINGS:
-          hud_alert = MQB_LDW_MESSAGES["laneAssistAudible"]
-        else:
-          hud_alert = MQB_LDW_MESSAGES["laneAssistSilent"]
+        hud_alert = MQB_LDW_MESSAGES["laneAssistTakeOverSilent"]
       else:
         hud_alert = MQB_LDW_MESSAGES["none"]
 
