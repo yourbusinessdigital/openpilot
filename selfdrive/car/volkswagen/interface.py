@@ -135,7 +135,7 @@ class CarInterface(CarInterfaceBase):
     # Process the most recent CAN message traffic, and check for validity
     self.gw_cp.update_strings(can_strings)
     self.ex_cp.update_strings(can_strings)
-    self.CS.update(self.gw_cp, self.ex_cp, self.CP.TransmissionType)
+    self.CS.update(self.gw_cp, self.ex_cp, self.CP.transmissionType)
     ret.canValid = self.gw_cp.can_valid and self.ex_cp.can_valid
 
     # Wheel and vehicle speed, yaw rate
