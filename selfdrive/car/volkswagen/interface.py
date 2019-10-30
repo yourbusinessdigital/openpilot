@@ -2,7 +2,7 @@ from cereal import car
 from selfdrive.config import Conversions as CV
 from selfdrive.controls.lib.drive_helpers import create_event, EventTypes as ET
 from selfdrive.controls.lib.vehicle_model import VehicleModel
-from selfdrive.car.volkswagen.values import CAR, BUTTON_STATES, ECU, ECU_FINGERPRINT, FINGERPRINTS
+from selfdrive.car.volkswagen.values import CAR, BUTTON_STATES, ECU, ECU_FINGERPRINT, FINGERPRINTS, TRANS
 from selfdrive.car.volkswagen.carstate import CarState, get_mqb_gateway_can_parser, get_mqb_extended_can_parser
 from common.params import Params
 from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, gen_empty_fingerprint, is_ecu_disconnected
