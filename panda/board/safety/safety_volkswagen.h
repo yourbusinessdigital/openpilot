@@ -160,6 +160,7 @@ static int volkswagen_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
 
 const safety_hooks volkswagen_hooks = {
   .init = volkswagen_init,
+  .ignition = default_ign_hook,
   .rx = volkswagen_rx_hook,
   .tx = volkswagen_tx_hook,
   .tx_lin = nooutput_tx_lin_hook,
