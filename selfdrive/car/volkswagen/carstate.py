@@ -161,7 +161,7 @@ class CarState():
     elif transType == TRANS.manual:
       self.clutchPressed = not gw_cp.vl["Motor_14"]['MO_Kuppl_schalter']
       self.reverseLight = gw_cp.vl["Gateway_72"]['BCM1_Rueckfahrlicht_Schalter']
-      self.handBrakeSet = gw_cp.vl["Kombi_01"]['KBI_Handbremse']
+      self.handBrakeSet = gw_cp.vl["Kombi_01"]['KBI_Handbremse'] # FIXME: do an EPB check here too
       if self.reverseLight:
         detectedGear = "R"
       elif self.standstill and self.handBrakeSet:
