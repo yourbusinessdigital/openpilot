@@ -86,11 +86,8 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.pid.kiV = [0.20, 0.10, 0.10, 0.05, 0.05]
       tire_stiffness_factor = 0.6
 
+    ret.enableCamera = True # Stock camera detection doesn't apply to VW
     ret.transmissionType = car.CarParams.TransmissionType.automatic
-
-    # FIXME: follow 0.6.5 Comma refactoring to ensure camera-side is detected okay
-    # ret.enableCamera = is_ecu_disconnected(fingerprint[0], FINGERPRINTS, ECU_FINGERPRINT, candidate, ECU.CAM) or has_relay
-    ret.enableCamera = True
     ret.steerRatioRear = 0.
 
     # No support for OP longitudinal control on Volkswagen at this time.
