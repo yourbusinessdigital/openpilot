@@ -44,7 +44,7 @@ FINGERPRINTS = {
 }
 
 GEAR = car.CarState.GearShifter
-TRANS = car.CarParams.transmissionType
+TRANS = car.CarParams.TransmissionType
 
 class ECU:
   CAM = 0
