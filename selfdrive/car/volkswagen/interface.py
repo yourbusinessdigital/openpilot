@@ -64,7 +64,7 @@ class CarInterface(CarInterfaceBase):
       ret.steerMaxV = [1.]
 
       hasGasAutoTrans = not is_ecu_disconnected(fingerprint[CANBUS.gateway], FINGERPRINTS, ECU_FINGERPRINT, candidate, ECU.AUTO_TRANS)
-      hasEVAutoTrans = not is_ecu_disconnected(fingerprint[CANBUS.gateway], FINGERPRINTS, ECU_FINGERPRINT, candidate, ECU.AUTO_TRANS)
+      hasEVAutoTrans = not is_ecu_disconnected(fingerprint[CANBUS.gateway], FINGERPRINTS, ECU_FINGERPRINT, candidate, ECU.EV_TRANS)
       if hasGasAutoTrans:
         ret.transmissionType = TRANS.automatic
       elif hasEVAutoTrans:
