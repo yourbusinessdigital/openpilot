@@ -50,8 +50,8 @@ def update_panda():
       cloudlog.info("Flashing signed firmware")
       panda.flash(fn=signed_fn)
     else:
-    cloudlog.info("Building and flashing unsigned firmware")
-    panda.flash()
+      cloudlog.info("Building and flashing unsigned firmware")
+      panda.flash()
 
     cloudlog.info("Done flashing")
 
