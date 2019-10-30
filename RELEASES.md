@@ -2,6 +2,7 @@ Version 0.6.5 + VW 0.9.0 (2019-10-30)
 ========================
  * First cut at transmission type detection, for manual trans and e-Golf support.
  * Improved response time from HCA steering inputs.
+ * The LKAS light now goes off while disengaged and yellow during steering overrides.
 
 Version 0.6.5 + VW 0.8.3 (2019-10-29)
 ========================
