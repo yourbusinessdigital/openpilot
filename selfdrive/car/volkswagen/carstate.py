@@ -4,11 +4,8 @@ from common.kalman.simple_kalman import KF1D
 from selfdrive.config import Conversions as CV
 from selfdrive.can.parser import CANParser
 from selfdrive.can.can_define import CANDefine
-from selfdrive.car.volkswagen.values import DBC, BUTTON_STATES
+from selfdrive.car.volkswagen.values import DBC, GEAR, TRANS, BUTTON_STATES
 from selfdrive.car.volkswagen.carcontroller import CarControllerParams
-
-GEAR = car.CarState.GearShifter
-TRANS = car.CarParams.TransmissionType
 
 def get_mqb_gateway_can_parser(CP, canbus):
   # this function generates lists for signal, messages and initial values
@@ -33,6 +30,7 @@ def get_mqb_gateway_can_parser(CP, canbus):
     ("BH_Blinker_re", "Gateway_72", 0),           # Right turn signal on
     ("BCM1_Rueckfahrlicht_Schalter", "Gateway_72", 0), # Reverse light switch
     ("GE_Fahrstufe", "Getriebe_11", 0),           # Auto trans gear selector position
+    ("GearPosition","EV_Gearshift", 0),           # EV gear selector position
     ("AB_Gurtschloss_FA", "Airbag_02", 0),        # Seatbelt status, driver
     ("AB_Gurtschloss_BF", "Airbag_02", 0),        # Seatbelt status, passenger
     ("ESP_Fahrer_bremst", "ESP_05", 0),           # Brake pedal pressed
