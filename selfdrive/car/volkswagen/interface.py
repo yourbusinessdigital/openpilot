@@ -122,18 +122,13 @@ class CarInterface(CarInterfaceBase):
     events = []
     buttonEvents = []
     params = Params()
-
-    self.gw_cp.update_strings(can_strings)
-    self.ex_cp.update_strings(can_strings)
-
-    self.CS.update(self.gw_cp, self.ex_cp)
-
-    # create message
     ret = car.CarState.new_message()
 
-    # FIXME: this can probably be restored, need to test.
-    #ret.canValid = self.gw_cp.can_valid and self.ex_cp.can_valid
-    ret.canValid = True
+    # Process the most recent CAN message traffic, and check for validity
+    self.gw_cp.update_strings(can_strings)
+    self.ex_cp.update_strings(can_strings)
+    self.CS.update(self.gw_cp, self.ex_cp)
+    ret.canValid = self.gw_cp.can_valid and self.ex_cp.can_valid
 
     # Wheel and vehicle speed, yaw rate
     ret.wheelSpeeds.fl = self.CS.wheelSpeedFL

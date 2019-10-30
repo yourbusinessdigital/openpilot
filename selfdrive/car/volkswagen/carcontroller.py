@@ -66,7 +66,7 @@ class CarController():
       # commanding HCA if there's a fault, so the steering rack recovers.
       if enabled and not (CS.standstill or CS.steeringFault):
 
-        # FAULT AVOIDANCE: Requested HCA torque may not exceed 3.0nm. This is
+        # FAULT AVOIDANCE: Requested HCA torque must not exceed 3.0nm. This is
         # inherently handled by scaling to STEER_MAX. The rack doesn't seem
         # to care about up/down rate, but we have some evidence it may do its
         # own rate limiting, and matching OP helps for accurate tuning.
@@ -76,10 +76,10 @@ class CarController():
         # FAULT AVOIDANCE: HCA must not be enabled for >360 seconds. Sending
         # a single frame with HCA disabled is an effective workaround.
         if apply_steer == 0:
-          # Quite often we can reset the timer "for free" just by disabling
-          # HCA when apply_steer is exactly zero, which happens by chance
-          # during many changes of direction. This could be expanded with a
-          # small dead-zone to capture all zero crossings, but not seeing a
+          # We can usually reset the timer for free, just by disabling HCA
+          # when apply_steer is exactly zero, which happens by chance during
+          # many steer torque direction changes. This could be expanded with
+          # a small dead-zone to capture all zero crossings, but not seeing a
           # major need at this time.
           hcaEnabled = False
           self.hcaEnabledFrameCount = 0
