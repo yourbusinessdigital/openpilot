@@ -57,7 +57,7 @@ class CarInterface(CarInterfaceBase):
       ret.steerLimitAlert = True # Enable UI alert when steering torque is maxed out
 
       # Additional common MQB parameters that may be overridden per-vehicle
-      ret.steerRateCost = 0.5
+      ret.steerRateCost = 0.6
       ret.steerActuatorDelay = 0.05 # Hopefully all MQB racks are similar here
       ret.steerMaxBP = [0.]  # m/s
       ret.steerMaxV = [1.]
@@ -82,7 +82,7 @@ class CarInterface(CarInterfaceBase):
       ret.centerToFront = ret.wheelbase * 0.45
       ret.steerRatio = 15.6
       ret.lateralTuning.pid.kf = 0.00006
-      ret.lateralTuning.pid.kpV = [0.05, 0.10, 0.50, 0.50, 0.50]
+      ret.lateralTuning.pid.kpV = [0.10, 0.30, 0.50, 0.50, 0.50]
       ret.lateralTuning.pid.kiV = [0.20, 0.10, 0.10, 0.05, 0.05]
       tire_stiffness_factor = 0.6
 
