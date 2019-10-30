@@ -17,9 +17,9 @@ class CarControllerParams:
   # Observed documented MQB limits: 3.00nm max, rate of change 5.00nm/sec.
   # Limiting both torque and rate-of-change based on real-world testing and
   # Comma's safety requirements for minimum time to lane departure.
-  STEER_MAX = 250                # Max heading control assist torque 2.50nm
-  STEER_DELTA_UP = 4             # Max HCA reached in 1.25s (STEER_MAX / (50Hz * 1.25))
-  STEER_DELTA_DOWN = 10          # Min HCA reached in 0.60s (STEER_MAX / (50Hz * 0.60))
+  STEER_MAX = 300                # Max heading control assist torque 3.00nm
+  STEER_DELTA_UP = 10            # Max HCA reached in 0.60s @ 5.0 Nm/s (STEER_MAX / (50Hz * 0.60))
+  STEER_DELTA_DOWN = 300         # Permit torque reduction at any rate
   STEER_DRIVER_ALLOWANCE = 80
   STEER_DRIVER_MULTIPLIER = 3    # weight driver torque heavily
   STEER_DRIVER_FACTOR = 1        # from dbc
