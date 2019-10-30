@@ -14,10 +14,10 @@ class CarControllerParams:
   GRA_VBP_STEP = 100             # Send ACC virtual button presses once a second
   GRA_VBP_COUNT = 16             # Send VBP messages for ~0.5s (GRA_ACC_STEP * 16)
 
-  # Observed documented MQB limits: 3.00nm max, rate of change 5.00nm/sec.
+  # Observed documented MQB limits: 3.00 Nm max, rate of change 5.00 Nm/sec.
   # Limiting both torque and rate-of-change based on real-world testing and
   # Comma's safety requirements for minimum time to lane departure.
-  STEER_MAX = 300                # Max heading control assist torque 3.00nm
+  STEER_MAX = 300                # Max heading control assist torque 3.00 Nm
   STEER_DELTA_UP = 10            # Max HCA reached in 0.60s @ 5.0 Nm/s (STEER_MAX / (50Hz * 0.60))
   STEER_DELTA_DOWN = 300         # Permit torque reduction at any rate
   STEER_DRIVER_ALLOWANCE = 80
@@ -66,8 +66,8 @@ class CarController():
       # commanding HCA if there's a fault, so the steering rack recovers.
       if enabled and not (CS.standstill or CS.steeringFault):
 
-        # FAULT AVOIDANCE: Requested HCA torque must not exceed 3.0nm. This is
-        # inherently handled by scaling to STEER_MAX. The rack doesn't seem
+        # FAULT AVOIDANCE: Requested HCA torque must not exceed 3.0 Nm. This
+        # is inherently handled by scaling to STEER_MAX. The rack doesn't seem
         # to care about up/down rate, but we have some evidence it may do its
         # own rate limiting, and matching OP helps for accurate tuning.
         apply_steer = int(round(actuators.steer * P.STEER_MAX))
@@ -99,7 +99,7 @@ class CarController():
             # FAULT AVOIDANCE: HCA torque must not be static for > 6 seconds.
             # This is to detect the sending camera being stuck or frozen. OP
             # can trip this on a curve if steering is saturated. Avoid this by
-            # reducing torque 0.01nm for one frame. Do so 3x within the 6
+            # reducing torque 0.01 Nm for one frame. Do so 3x within the 6
             # second period for safety and redundancy.
             if self.apply_steer_last == apply_steer:
               self.hcaSameTorqueCount += 1
