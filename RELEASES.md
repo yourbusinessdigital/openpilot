@@ -1,4 +1,9 @@
-Version 0.6.5 + VW 0.8.3-IN PROGRESS (2019-10-29)
+Version 0.6.5 + VW 0.9.0 (2019-10-30)
+========================
+ * First cut at transmission type detection, for manual trans and e-Golf support.
+ * Improved response time from HCA steering inputs.
+
+Version 0.6.5 + VW 0.8.3 (2019-10-29)
 ========================
  * Virtual ACC button press code updated for compatibility with integration at LKAS camera.
  * Finalized Panda safety code with updated limits and GRA_ACC_01 filtering removed.

@@ -1,4 +1,5 @@
 from cereal import car
+from selfdrive.swaglog import cloudlog
 from selfdrive.config import Conversions as CV
 from selfdrive.controls.lib.drive_helpers import create_event, EventTypes as ET
 from selfdrive.controls.lib.vehicle_model import VehicleModel
@@ -124,7 +125,7 @@ class CarInterface(CarInterfaceBase):
     # Process the most recent CAN message traffic, and check for validity
     self.gw_cp.update_strings(can_strings)
     self.ex_cp.update_strings(can_strings)
-    self.CS.update(self.gw_cp, self.ex_cp)
+    self.CS.update(self.gw_cp, self.ex_cp, self.CP.TransmissionType)
     ret.canValid = self.gw_cp.can_valid and self.ex_cp.can_valid
 
     # Wheel and vehicle speed, yaw rate
@@ -151,6 +152,7 @@ class CarInterface(CarInterfaceBase):
     ret.brakePressed = self.CS.brakePressed
     ret.brakeLights = self.CS.brakeLights
     ret.gearShifter = self.CS.gearShifter
+    ret.clutchPressed = self.CS.clutchPressed
 
     # Doors open, seatbelt unfastened
     ret.doorOpen = self.CS.doorOpen
@@ -187,7 +189,10 @@ class CarInterface(CarInterfaceBase):
     if ret.gearShifter == 'reverse':
       events.append(create_event('reverseGear', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE]))
     if not ret.gearShifter == 'drive' and not ret.gearShifter == 'eco':
-      events.append(create_event('wrongGear', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
+      if ret.clutchPressed:
+        events.append(create_event('wrongGear', [ET.NO_ENTRY]))
+      else:
+        events.append(create_event('wrongGear', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
     if self.CS.stabilityControlDisabled:
       events.append(create_event('espDisabled', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
     if self.CS.parkingBrakeSet:
