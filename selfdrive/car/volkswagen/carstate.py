@@ -153,8 +153,10 @@ class CarState():
 
     # Update gear and/or clutch position data based on transmission type.
     if transType == TRANS.automatic:
+      self.clutchPressed = False
       detectedGear = gw_cp.vl["Getriebe_11"]['GE_Fahrstufe']
     elif transType == TRANS.unknown: # FIXME: abusing trans type unknown for EV because it's the only way to get info from get_params w/o refactoring
+      self.clutchPressed = False
       detectedGear = gw_cp.vl["EV_Gearshift"]['GearPosition']
     elif transType == TRANS.manual:
       self.clutchPressed = not gw_cp.vl["Motor_14"]['MO_Kuppl_schalter']
