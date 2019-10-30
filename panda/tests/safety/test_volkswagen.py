@@ -4,15 +4,15 @@ import numpy as np
 import libpandasafety_py  # pylint: disable=import-error
 from panda import Panda
 
-MAX_RATE_UP = 4
-MAX_RATE_DOWN = 10
-MAX_STEER = 250
+MAX_RATE_UP = 10
+MAX_RATE_DOWN = 300
+MAX_STEER = 300
 
-MAX_RT_DELTA = 75
+MAX_RT_DELTA = 188
 RT_INTERVAL = 250000
 
 DRIVER_TORQUE_ALLOWANCE = 80
-DRIVER_TORQUE_FACTOR = 3
+DRIVER_TORQUE_FACTOR = 1
 
 def sign(a):
   if a > 0:
