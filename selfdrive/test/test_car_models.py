@@ -22,6 +22,7 @@ from selfdrive.car.ford.values import CAR as FORD
 from selfdrive.car.hyundai.values import CAR as HYUNDAI
 from selfdrive.car.chrysler.values import CAR as CHRYSLER
 from selfdrive.car.subaru.values import CAR as SUBARU
+from selfdrive.car.volkswagen.values import CAR as VOLKSWAGEN
 from selfdrive.car.mock.values import CAR as MOCK
 
 
