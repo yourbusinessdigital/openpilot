@@ -1,5 +1,6 @@
 Version 0.6.5 + VW 0.9.0 (2019-10-30)
 ========================
+ * Baseline Golf tune from @rbiasini.
  * First cut at transmission type detection, for manual trans and e-Golf support.
  * Improved response time from HCA steering inputs.
  * The LKAS light now goes off while disengaged and yellow during steering overrides.
