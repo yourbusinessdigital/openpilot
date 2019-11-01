@@ -94,6 +94,75 @@ def get_mqb_extended_can_parser(CP, canbus):
 
   return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, canbus.extended)
 
+def get_pq_gateway_can_parser(CP, canbus):
+  # this function generates lists for signal, messages and initial values
+  signals = [
+    # sig_name, sig_address, default
+    ("Lenkradwinkel", "Lenkradwinkel_1", 0),                  # Absolute steering angle
+    ("Lenkradwinkel_Sign", "Lenkradwinkel_1", 0),             # Steering angle sign
+    ("Lenkradwinkel_Geschwindigkeit", "Lenkradwinkel_1", 0),  # Absolute steering rate
+    ("Lenkradwinkel_Geschwindigkeit_S", "Lenkradwinkel_1", 0),# Steering rate sign
+    ("Radgeschw__VL_4_1", "Bremse_3", 0),                     # ABS wheel speed, front left
+    ("Radgeschw__VR_4_1", "Bremse_3", 0),                     # ABS wheel speed, front right
+    ("Radgeschw__HL_4_1", "Bremse_3", 0),                     # ABS wheel speed, rear left
+    ("Radgeschw__HR_4_1", "Bremse_3", 0),                     # ABS wheel speed, rear right
+    ("Giergeschwindigkeit", "Bremse_5", 0),                   # Absolute yaw rate
+    ("Vorzeichen_der_Giergeschwindigk", "Bremse_5", 0),       # Yaw rate sign
+    #("ZV_FT_offen", "Gateway_72", 0),                        # Door open, driver
+    #("ZV_BT_offen", "Gateway_72", 0),                        # Door open, passenger
+    #("ZV_HFS_offen", "Gateway_72", 0),                       # Door open, rear left
+    #("ZV_HBFS_offen", "Gateway_72", 0),                      # Door open, rear right
+    #("ZV_HD_offen", "Gateway_72", 0),                        # Trunk or hatch open
+    ("Blinker_links_4_1", "Kombi_1", 0),                      # Left turn signal on
+    ("Blinker_rechts_4_1", "Kombi_1", 0),                     # Right turn signal on
+    ("Waehlhebelposition__Getriebe_1_", "Getriebe_1", 0),     # Transmission gear selector position
+    ("Gurtschalter_Fahrer", "Airbag_1", 0),                   # Seatbelt status, driver
+    ("Gurtschalter_Beifahrer", "Airbag_1", 0),                # Seatbelt status, passenger
+    ("Bremstestschalter", "Motor_2", 0),                      # Brake pedal pressed (brake light test switch)
+    ("Bremslichtschalter", "Motor_2", 0),                     # Brakes applied (brake light switch)
+    ("Bremsdruck", "Bremse_5", 0),                            # Brake pressure applied
+    ("Vorzeichen_Bremsdruck", "Bremse_5", 0),                 # Brake pressure applied sign (???)
+    ("Fahrpedalwert_oder_Drosselklapp", "Motor_1", 0),        # Accelerator pedal value
+    ("Driver_Torque", "EPS_1", 0),                            # Absolute driver torque input
+    ("Driver_Torque_Sign", "EPS_1", 0),                       # Driver torque input sign
+    #("HCA_Ready", "EPS_01", 0),                              # Steering rack HCA support configured
+    ("ESP_Passiv_getastet", "Bremse_1", 0),                   # Stability control disabled
+    #("KBI_MFA_v_Einheit_02", "Einheiten_01", 0),             # MPH vs KMH speed display
+    #("KBI_Handbremse", "Kombi_01", 0),                       # Manual handbrake applied
+    #("TSK_Fahrzeugmasse_02", "Motor_16", 0),                 # Estimated vehicle mass from drivetrain coordinator
+    ("Soll_Geschwindigkeit_bei_GRA_Be", "Motor_2", 0),        # ACC speed setpoint from ECU??? check this
+    ("Hauptschalter", "GRA_neu", 0),                          # ACC button, on/off
+    ("Abbrechen", "GRA_neu", 0),                              # ACC button, cancel
+    ("Setzen", "GRA_neu", 0),                                 # ACC button, set
+    ("Lang_Tip_up", "GRA_neu", 0),                            # ACC button, increase or accel, long press
+    ("Lang_Tip_down", "GRA_neu", 0),                          # ACC button, decrease or decel, long press
+    ("Kurz_Tip_up", "GRA_neu", 0),                            # ACC button, increase or accel, short press
+    ("Kurz_Tip_down", "GRA_neu", 0),                          # ACC button, decrease or decel, short press
+    ("Wiederaufnahme", "GRA_neu", 0),                         # ACC button, resume
+    ("Zeitlueckenverstellung", "GRA_neu", 0),                 # ACC button, time gap adj
+    ("Rechtslenker", "Systeminfo_1", 0),                      # RHD vs LHD vehicle construction
+  ]
+
+  return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, canbus.gateway)
+
+def get_pq_extended_can_parser(CP, canbus):
+
+  signals = [
+    # sig_name, sig_address, default
+    ("ACC_Status_ACC", "ACC_06", 0),  # ACC engagement status
+    ("ACC_Typ", "ACC_06", 0),  # ACC type (follow to stop, stop&go)
+    ("SetSpeed", "ACC_02", 0),  # ACC set speed
+  ]
+
+  checks = [
+    # sig_address, frequency
+    ("ACC_06", 50),  # From J428 ACC radar control module
+    ("ACC_02", 17),  # From J428 ACC radar control module
+  ]
+
+  return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, canbus.extended)
+
+
 def parse_gear_shifter(gear, vals):
   # Return mapping of gearshift position to selected gear.
 
