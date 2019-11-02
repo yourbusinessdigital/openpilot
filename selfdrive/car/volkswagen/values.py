@@ -24,8 +24,13 @@ MQB_LDW_MESSAGES = {
   "laneAssistDeactivated": 10,          # "Lane Assist deactivated." silent with persistent icon afterward
 }
 
+class NETWORK_MODEL:
+  MQB = 0
+  PQ = 1
+
 class CAR:
   GENERICMQB = "Generic Volkswagen MQB Platform Vehicle"
+  GENERICPQ = "Generic Volkswagen PQ35/PQ46/NMS Platform Vehicle"
 
 # Mega-fingerprint used to identify any and all MQB platform vehicles. Specific
 # make and model characteristics are looked up from the VIN later.
@@ -41,6 +46,12 @@ FINGERPRINTS = {
      1438:8, 1461:8, 391:8, 1511: 8, 1516: 8, 568:8, 569:8, 826:8, 827:8, 1156:8, 1157:8, 1158:8, 1471:8, 1635:8
      },
   ],
+  CAR.GENERICPQ: [
+    {80: 4, 194: 8, 208: 6, 210: 5, 294: 8, 416: 8, 428: 8, 640: 8, 648: 8, 800: 8, 835: 3, 870: 8, 872: 8, 878: 8,
+     896: 8, 906: 4, 912: 8, 914: 8, 919: 8, 928: 8, 978: 7, 1056: 8, 1088: 8, 1152: 8, 1175: 8, 1184: 8, 1192: 8,
+     1312: 8, 1386: 8, 1392: 5, 1394: 1, 1408: 8, 1440: 8, 1463: 8, 1470: 5, 1472: 8, 1488: 8, 1490: 8, 1500: 8,
+     1550: 2, 1651: 3, 1652: 8, 1654: 3, 1658: 4, 1691: 3, 1736: 7, 1757: 8, 1824: 7, 1845: 7, 2000: 8},
+  ]
 }
 
 GEAR = car.CarState.GearShifter
@@ -61,4 +72,5 @@ ECU_FINGERPRINT = {
 
 DBC = {
   CAR.GENERICMQB: dbc_dict('vw_mqb_2010', None),
+  CAR.GENERICPQ: dbc_dict('vw_golf_mk4', None),
 }

@@ -3,8 +3,8 @@ from selfdrive.swaglog import cloudlog
 from selfdrive.config import Conversions as CV
 from selfdrive.controls.lib.drive_helpers import create_event, EventTypes as ET
 from selfdrive.controls.lib.vehicle_model import VehicleModel
-from selfdrive.car.volkswagen.values import CAR, BUTTON_STATES, ECU, ECU_FINGERPRINT, FINGERPRINTS, TRANS
-from selfdrive.car.volkswagen.carstate import CarState, get_mqb_gateway_can_parser, get_mqb_extended_can_parser
+from selfdrive.car.volkswagen.values import CAR, BUTTON_STATES, ECU, ECU_FINGERPRINT, FINGERPRINTS, TRANS, NETWORK_MODEL
+from selfdrive.car.volkswagen.carstate import CarState, get_gateway_can_parser, get_extended_can_parser
 from common.params import Params
 from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, gen_empty_fingerprint, is_ecu_disconnected
 from selfdrive.car.interfaces import CarInterfaceBase
@@ -25,16 +25,22 @@ class CarInterface(CarInterfaceBase):
     self.cruiseStateEnabledPrev = False
     self.displayMetricUnitsPrev = None
     self.buttonStatesPrev = BUTTON_STATES.copy()
+    self.networkModel = None
+
+    if CP.carFingerprint == CAR.GENERICMQB:
+      self.networkModel = NETWORK_MODEL.MQB
+    elif CP.carFingerprint == CAR.GENERICPQ:
+      self.networkModel = NETWORK_MODEL.PQ
 
     # *** init the major players ***
-    self.CS = CarState(CP, CANBUS)
+    self.CS = CarState(CP, CANBUS, self.networkModel)
     self.VM = VehicleModel(CP)
-    self.gw_cp = get_mqb_gateway_can_parser(CP, CANBUS)
-    self.ex_cp = get_mqb_extended_can_parser(CP, CANBUS)
+    self.gw_cp = get_gateway_can_parser(CP, CANBUS, self.networkModel)
+    self.ex_cp = get_extended_can_parser(CP, CANBUS, self.networkModel)
 
     # sending if read only is False
     if CarController is not None:
-      self.CC = CarController(CANBUS, CP.carFingerprint)
+      self.CC = CarController(CANBUS, CP.carFingerprint, self.networkModel)
 
   @staticmethod
   def compute_gb(accel, speed):
@@ -72,6 +78,48 @@ class CarInterface(CarInterfaceBase):
       else:
         ret.transmissionType = TRANS.manual
       cloudlog.warning("VW MQB: detected %s transmission", ret.transmissionType)
+
+      # As a starting point for speed-adjusted lateral tuning, use the example
+      # map speed breakpoints from a VW Tiguan (SSP 399 page 9). It's unclear
+      # whether the driver assist map breakpoints have any direct bearing on
+      # HCA assist torque, but if they're good breakpoints for the driver,
+      # they're probably good breakpoints for HCA as well. OP won't be driving
+      # 250kph/155mph but it provides interpolation scaling above 100kmh/62mph.
+      ret.lateralTuning.pid.kpBP = [0., 15 * CV.KPH_TO_MS, 50 * CV.KPH_TO_MS]
+      ret.lateralTuning.pid.kiBP = [0., 15 * CV.KPH_TO_MS, 50 * CV.KPH_TO_MS]
+
+      # FIXME: Per-vehicle parameters need to be reintegrated.
+      # For the time being, per-vehicle stuff is being archived since we
+      # can't auto-detect very well yet. Now that tuning is figured out,
+      # averaged params should work reasonably on a range of cars. Owners
+      # can tweak here, as needed, until we have car type auto-detection.
+
+      ret.mass = 1700 + STD_CARGO_KG
+      ret.wheelbase = 2.75
+      ret.centerToFront = ret.wheelbase * 0.45
+      ret.steerRatio = 15.6
+      ret.lateralTuning.pid.kf = 0.00006
+      ret.lateralTuning.pid.kpV = [0.15, 0.25, 0.60]
+      ret.lateralTuning.pid.kiV = [0.05, 0.05, 0.05]
+      tire_stiffness_factor = 0.6
+
+    elif candidate == CAR.GENERICPQ:
+      # Set common PQ35/PQ46/NMS parameters that will apply globally
+      ret.carName = "volkswagen"
+      ret.safetyModel = car.CarParams.SafetyModel.volkswagen
+      ret.enableCruise = True # Stock ACC still controls acceleration and braking
+      ret.openpilotLongitudinalControl = False
+      ret.steerControlType = car.CarParams.SteerControlType.torque
+      ret.steerLimitAlert = True # Enable UI alert when steering torque is maxed out
+
+      # Additional common PQ35/PQ46/NMS parameters that may be overridden per-vehicle
+      ret.steerRateCost = 0.6
+      ret.steerActuatorDelay = 0.05
+      ret.steerMaxBP = [0.]  # m/s
+      ret.steerMaxV = [1.]
+
+      ret.transmissionType = TRANS.automatic # FIXME: figure out a detect mechanism for PQ
+      cloudlog.warning("VW PQ: detected %s transmission", ret.transmissionType)
 
       # As a starting point for speed-adjusted lateral tuning, use the example
       # map speed breakpoints from a VW Tiguan (SSP 399 page 9). It's unclear

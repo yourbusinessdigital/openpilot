@@ -1,7 +1,7 @@
 from cereal import car
 from selfdrive.car import apply_std_steer_torque_limits
 from selfdrive.car.volkswagen import volkswagencan
-from selfdrive.car.volkswagen.values import DBC, MQB_LDW_MESSAGES, BUTTON_STATES
+from selfdrive.car.volkswagen.values import DBC, MQB_LDW_MESSAGES, BUTTON_STATES, NETWORK_MODEL
 from selfdrive.can.packer import CANPacker
 
 VisualAlert = car.CarControl.HUDControl.VisualAlert
@@ -25,12 +25,17 @@ class CarControllerParams:
   STEER_DRIVER_FACTOR = 1        # from dbc
 
 class CarController():
-  def __init__(self, canbus, car_fingerprint):
+  def __init__(self, canbus, car_fingerprint, networkModel):
     self.apply_steer_last = 0
     self.car_fingerprint = car_fingerprint
 
     # Setup detection helper. Routes commands to an appropriate CAN bus number.
     self.canbus = canbus
+
+    if networkModel == NETWORK_MODEL.MQB:
+      self.update = self.update_mqb
+    elif networkModel == NETWORK_MODEL.PQ:
+      self.update = self.update_pq
     self.packer_gw = CANPacker(DBC[car_fingerprint]['pt'])
 
     self.hcaSameTorqueCount = 0
@@ -40,7 +45,7 @@ class CarController():
     self.graMsgStartFramePrev = 0
     self.graMsgBusCounterPrev = 0
 
-  def update(self, enabled, CS, frame, actuators, visual_alert, audible_alert, leftLaneVisible, rightLaneVisible):
+  def update_mqb(self, enabled, CS, frame, actuators, visual_alert, audible_alert, leftLaneVisible, rightLaneVisible):
     """ Controls thread """
 
     P = CarControllerParams
@@ -201,5 +206,10 @@ class CarController():
         if self.graMsgSentCount >= 16:
           self.graButtonStatesToSend = None
           self.graMsgSentCount = 0
+
+    return can_sends
+
+  def update_pq(self, enabled, CS, frame, actuators, visual_alert, audible_alert, leftLaneVisible, rightLaneVisible):
+    can_sends = []
 
     return can_sends
