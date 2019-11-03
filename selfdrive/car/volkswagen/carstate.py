@@ -80,10 +80,10 @@ def get_gateway_can_parser(CP, canbus, networkModel):
     # this function generates lists for signal, messages and initial values
     signals = [
       # sig_name, sig_address, default
-      ("Lenkradwinkel", "Lenkradwinkel_1", 0),          # Absolute steering angle
-      ("Lenkradwinkel_Sign", "Lenkradwinkel_1", 0),     # Steering angle sign
-      ("Lenkradwinkel_Geschwindigkeit", "Lenkradwinkel_1", 0), # Absolute steering rate
-      ("Lenkradwinkel_Geschwindigkeit_S", "Lenkradwinkel_1", 0), # Steering rate sign
+      ("Lenkradwinkel", "Lenkwinkel_1", 0),          # Absolute steering angle
+      ("Lenkradwinkel_Sign", "Lenkwinkel_1", 0),     # Steering angle sign
+      ("Lenkradwinkel_Geschwindigkeit", "Lenkwinkel_1", 0), # Absolute steering rate
+      ("Lenkradwinkel_Geschwindigkeit_S", "Lenkwinkel_1", 0), # Steering rate sign
       ("Radgeschw__VL_4_1", "Bremse_3", 0),             # ABS wheel speed, front left
       ("Radgeschw__VR_4_1", "Bremse_3", 0),             # ABS wheel speed, front right
       ("Radgeschw__HL_4_1", "Bremse_3", 0),             # ABS wheel speed, rear left
@@ -105,12 +105,12 @@ def get_gateway_can_parser(CP, canbus, networkModel):
       ("Bremsdruck", "Bremse_5", 0),                    # Brake pressure applied
       ("Vorzeichen_Bremsdruck", "Bremse_5", 0),         # Brake pressure applied sign (???)
       ("Fahrpedalwert_oder_Drosselklapp", "Motor_1", 0), # Accelerator pedal value
-      ("Driver_Torque", "EPS_1", 0),                    # Absolute driver torque input
-      ("Driver_Torque_Sign", "EPS_1", 0),               # Driver torque input sign
+      #("Driver_Torque", "EPS_1", 0),                    # Absolute driver torque input
+      #("Driver_Torque_Sign", "EPS_1", 0),               # Driver torque input sign
       # ("HCA_Ready", "EPS_01", 0),                     # Steering rack HCA support configured
       ("ESP_Passiv_getastet", "Bremse_1", 0),           # Stability control disabled
       # ("KBI_MFA_v_Einheit_02", "Einheiten_01", 0),    # MPH vs KMH speed display
-      ("Bremsinfo", "Kombi_11", 0),                     # Manual handbrake applied
+      ("Bremsinfo", "Kombi_1", 0),                     # Manual handbrake applied
       # ("TSK_Fahrzeugmasse_02", "Motor_16", 0),        # Estimated vehicle mass from drivetrain coordinator
       ("Soll_Geschwindigkeit_bei_GRA_Be", "Motor_2", 0), # ACC speed setpoint from ECU??? check this
       ("Hauptschalter", "GRA_neu", 0),                  # ACC button, on/off
@@ -128,7 +128,7 @@ def get_gateway_can_parser(CP, canbus, networkModel):
     checks = [
       # sig_address, frequency
       # FIXME: need to look up and update all message frequencies
-      ("Lenkradwinkel_1", 1),   # From J500 Steering Assist with integrated sensors
+      ("Lenkwinkel_1", 1),   # From J500 Steering Assist with integrated sensors
       ("Bremse_3", 1),          # From J104 ABS/ESP controller
       ("Bremse_5", 1),          # From J104 ABS/ESP controller
       ("Kombi_1", 1),           # From J285 Instrument cluster
@@ -345,9 +345,10 @@ class CarState():
 
     # Update steering angle, rate, yaw rate, and driver input torque. VW send
     # the sign/direction in a separate signal so they must be recombined.
-    self.steeringAngle = gw_cp.vl["Lenkradwinkel_1"]['Lenkradwinkel'] * (1,-1)[int(gw_cp.vl["Lenkradwinkel_1"]['Lenkradwinkel_Sign'])]
-    self.steeringRate = gw_cp.vl["Lenkradwinkel_1"]['Lenkradwinkel_Geschwindigkeit'] * (1,-1)[int(gw_cp.vl["Lenkradwinkel_1"]['Lenkradwinkel_Geschwindigkeit_S'])]
-    self.steeringTorque = gw_cp.vl["EPS_1"]['Driver_Torque'] * (1,-1)[int(gw_cp.vl["EPS_1"]['Driver_Torque_Sign'])]
+    self.steeringAngle = gw_cp.vl["Lenkwinkel_1"]['Lenkradwinkel'] * (1,-1)[int(gw_cp.vl["Lenkwinkel_1"]['Lenkradwinkel_Sign'])]
+    self.steeringRate = gw_cp.vl["Lenkwinkel_1"]['Lenkradwinkel_Geschwindigkeit'] * (1,-1)[int(gw_cp.vl["Lenkwinkel_1"]['Lenkradwinkel_Geschwindigkeit_S'])]
+    #self.steeringTorque = gw_cp.vl["EPS_1"]['Driver_Torque'] * (1,-1)[int(gw_cp.vl["EPS_1"]['Driver_Torque_Sign'])]
+    self.steeringTorque = 0
     self.steeringPressed = abs(self.steeringTorque) > CarControllerParams.STEER_DRIVER_ALLOWANCE
     self.yawRate = gw_cp.vl["Bremse_5"]['Giergeschwindigkeit'] * (1,-1)[int(gw_cp.vl["Bremse_5"]['Vorzeichen_der_Giergeschwindigk'])] * CV.DEG_TO_RAD
 
