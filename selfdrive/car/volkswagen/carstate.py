@@ -192,10 +192,11 @@ class CarState():
     self.can_define = CANDefine(DBC[CP.carFingerprint]['pt'])
 
     if networkModel == NETWORK_MODEL.MQB:
+      self.shifter_values = self.can_define.dv["Getriebe_11"]['GE_Fahrstufe']
       self.update = self.update_mqb
     elif networkModel == NETWORK_MODEL.PQ:
+      self.shifter_values = self.can_define.dv["Getriebe_1"]['Waehlhebelposition__Getriebe_1_']
       self.update = self.update_pq
-    self.shifter_values = self.can_define.dv["Getriebe_11"]['GE_Fahrstufe']
 
     self.buttonStates = BUTTON_STATES.copy()
 
