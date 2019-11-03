@@ -313,11 +313,11 @@ void can_health(void *s) {
     assert((result == 0) || (result == ERR_NO_VALUE));
 
     // diagnostic only is the default, needed for VIN query
-    if (!safety_model_locked) {
-      pthread_mutex_lock(&usb_lock);
-      libusb_control_transfer(dev_handle, 0x40, 0xdc, (uint16_t)(cereal::CarParams::SafetyModel::ELM327), 0, NULL, 0, TIMEOUT);
-      pthread_mutex_unlock(&usb_lock);
-    }
+    //if (!safety_model_locked) {
+    //  pthread_mutex_lock(&usb_lock);
+    //  libusb_control_transfer(dev_handle, 0x40, 0xdc, (uint16_t)(cereal::CarParams::SafetyModel::ELM327), 0, NULL, 0, TIMEOUT);
+    //  pthread_mutex_unlock(&usb_lock);
+    //}
     if (safety_setter_thread_handle == -1) {
       err = pthread_create(&safety_setter_thread_handle, NULL, safety_setter_thread, NULL);
       assert(err == 0);
