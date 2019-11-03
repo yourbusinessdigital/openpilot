@@ -195,7 +195,7 @@ class CarState():
       self.shifter_values = self.can_define.dv["Getriebe_11"]['GE_Fahrstufe']
       self.update = self.update_mqb
     elif networkModel == NETWORK_MODEL.PQ:
-      self.shifter_values = self.can_define.dv["Getriebe_1"]['Waehlhebelposition__Getriebe_1_']
+      #self.shifter_values = self.can_define.dv["Getriebe_1"]['Waehlhebelposition__Getriebe_1_']
       self.update = self.update_pq
 
     self.buttonStates = BUTTON_STATES.copy()
@@ -361,7 +361,8 @@ class CarState():
     # Update gear and/or clutch position data based on transmission type.
     if transType == TRANS.automatic:
       self.clutchPressed = False
-      detectedGear = gw_cp.vl["Getriebe_1"]['Waehlhebelposition__Getriebe_1_']
+      detectedGear = "D"
+      #detectedGear = gw_cp.vl["Getriebe_1"]['Waehlhebelposition__Getriebe_1_']
     # FIXME: Need to find some more signals to do manual trans on PQ
     else:
       detectedGear = None
