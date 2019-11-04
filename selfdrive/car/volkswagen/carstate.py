@@ -256,7 +256,8 @@ class CarState():
         detectedGear = "D"
     else:
       detectedGear = None
-    self.gearShifter = parse_gear_shifter(detectedGear, self.shifter_values)
+    #self.gearShifter = parse_gear_shifter(detectedGear, self.shifter_values)
+    self.gearShifter = GEAR.drive
 
     # Update door and trunk/hatch lid open status.
     self.doorOpen = any([gw_cp.vl["Gateway_72"]['ZV_FT_offen'],
