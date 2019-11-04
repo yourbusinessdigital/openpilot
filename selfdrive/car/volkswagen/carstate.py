@@ -442,5 +442,5 @@ class CarState():
     self.steeringFault = False
 
     # Additional safety checks performed in CarInterface.
-    self.parkingBrakeSet = bool(gw_cp.vl["Kombi_11"]['Bremsinfo']) # FIXME: need to include an EPB check as well
+    self.parkingBrakeSet = bool(gw_cp.vl["Kombi_1"]['Bremsinfo']) # FIXME: need to include an EPB check as well
     self.stabilityControlDisabled = gw_cp.vl["Bremse_1"]['ESP_Passiv_getastet']
