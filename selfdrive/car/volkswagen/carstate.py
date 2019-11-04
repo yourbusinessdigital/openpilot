@@ -409,7 +409,7 @@ class CarState():
 
     # Update ACC setpoint. When the setpoint is zero or there's an error, the
     # radar sends a set-speed of ~90.69 m/s / 203mph.
-    self.accSetSpeed = ex_cp.vl["Motor_2"]['Soll_Geschwindigkeit_bei_GRA_Be']
+    self.accSetSpeed = gw_cp.vl["Motor_2"]['Soll_Geschwindigkeit_bei_GRA_Be']
     # TODO: See if this condition is needed on PQ
     if self.accSetSpeed > 90: self.accSetSpeed = 0
 
