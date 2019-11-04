@@ -135,7 +135,7 @@ def get_gateway_can_parser(CP, canbus, networkModel):
       ("Getriebe_1", 1),        # From J743 Auto transmission control module
       ("Airbag_1", 1),          # From J234 Airbag control module
       ("Motor_2", 1),           # From J623 Engine control module
-      ("EPS_1", 1),             # From J500 Steering Assist with integrated sensors
+      #("EPS_1", 1),             # From J500 Steering Assist with integrated sensors
       ("GRA_neu", 1),           # From J??? steering wheel control buttons
       ("Systeminfo_1", 1),      # From J??? not known if gateway, cluster, or BCM
 
