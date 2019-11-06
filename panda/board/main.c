@@ -123,7 +123,6 @@ void set_safety_mode(uint16_t mode, int16_t param) {
     while (true) {
       // Halt
     }
-  }
   } else {
     switch (mode) {
         case SAFETY_NOOUTPUT:
