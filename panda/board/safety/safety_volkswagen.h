@@ -4,7 +4,7 @@ const uint32_t VOLKSWAGEN_RT_INTERVAL = 250000;     // 250ms between real time c
 const int VOLKSWAGEN_MAX_RATE_UP = 10;              // 5.0 Nm/s available rate of change from the steering rack (EPS side delta-limit of 5.0 Nm/s)
 const int VOLKSWAGEN_MAX_RATE_DOWN = 300;           // Arbitrary rate of change available on reduction
 const int VOLKSWAGEN_DRIVER_TORQUE_ALLOWANCE = 80;
-const int VOLKSWAGEN_DRIVER_TORQUE_FACTOR = 1;
+const int VOLKSWAGEN_DRIVER_TORQUE_FACTOR = 3;
 
 struct sample_t volkswagen_torque_driver;           // last few driver torques measured
 int volkswagen_rt_torque_last = 0;
@@ -141,7 +141,7 @@ static int volkswagen_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
       bus_fwd = 2;
       break;
     case 2:
-      if ((addr == MSG_HCA_01) || (addr == MSG_LDW_02)) {
+      if (eon_alive && ((addr == MSG_HCA_01) || (addr == MSG_LDW_02))) {
         // OP takes control of the Heading Control Assist and Lane Departure Warning messages from the camera.
         bus_fwd = -1;
       } else {
@@ -160,7 +160,6 @@ static int volkswagen_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
 
 const safety_hooks volkswagen_hooks = {
   .init = volkswagen_init,
-  .ignition = default_ign_hook,
   .rx = volkswagen_rx_hook,
   .tx = volkswagen_tx_hook,
   .tx_lin = nooutput_tx_lin_hook,

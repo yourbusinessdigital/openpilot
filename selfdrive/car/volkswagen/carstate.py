@@ -1,10 +1,13 @@
 import numpy as np
+from cereal import car
 from common.kalman.simple_kalman import KF1D
 from selfdrive.config import Conversions as CV
 from selfdrive.can.parser import CANParser
 from selfdrive.can.can_define import CANDefine
-from selfdrive.car.volkswagen.values import DBC, GEAR, TRANS, BUTTON_STATES
+from selfdrive.car.volkswagen.values import DBC, BUTTON_STATES
 from selfdrive.car.volkswagen.carcontroller import CarControllerParams
+
+GEAR = car.CarState.GearShifter
 
 def get_mqb_gateway_can_parser(CP, canbus):
   # this function generates lists for signal, messages and initial values
@@ -27,9 +30,7 @@ def get_mqb_gateway_can_parser(CP, canbus):
     ("ZV_HD_offen", "Gateway_72", 0),             # Trunk or hatch open
     ("BH_Blinker_li", "Gateway_72", 0),           # Left turn signal on
     ("BH_Blinker_re", "Gateway_72", 0),           # Right turn signal on
-    ("BCM1_Rueckfahrlicht_Schalter", "Gateway_72", 0), # Reverse light switch
     ("GE_Fahrstufe", "Getriebe_11", 0),           # Auto trans gear selector position
-    ("GearPosition","EV_Gearshift", 0),           # EV gear selector position
     ("AB_Gurtschloss_FA", "Airbag_02", 0),        # Seatbelt status, driver
     ("AB_Gurtschloss_BF", "Airbag_02", 0),        # Seatbelt status, passenger
     ("ESP_Fahrer_bremst", "ESP_05", 0),           # Brake pedal pressed
@@ -122,7 +123,7 @@ class CarState():
                          C=[1., 0.],
                          K=[[0.12287673], [0.29666309]])
 
-  def update(self, gw_cp, ex_cp, transType):
+  def update(self, gw_cp, ex_cp):
     # Update vehicle speed and acceleration from ABS wheel speeds.
     self.wheelSpeedFL = gw_cp.vl["ESP_19"]['ESP_VL_Radgeschw_02'] * CV.KPH_TO_MS
     self.wheelSpeedFR = gw_cp.vl["ESP_19"]['ESP_VR_Radgeschw_02'] * CV.KPH_TO_MS
@@ -150,28 +151,9 @@ class CarState():
     self.brakePressed = bool(gw_cp.vl["ESP_05"]['ESP_Fahrer_bremst'])
     self.brakeLights = bool(gw_cp.vl["ESP_05"]['ESP_Status_Bremsdruck'])
 
-    # Update gear and/or clutch position data based on transmission type.
-    if transType == TRANS.automatic:
-      self.clutchPressed = False
-      detectedGear = gw_cp.vl["Getriebe_11"]['GE_Fahrstufe']
-    elif transType == TRANS.unknown: # FIXME: abusing trans type unknown for EV because it's the only way to get info from get_params w/o refactoring
-      self.clutchPressed = False
-      detectedGear = gw_cp.vl["EV_Gearshift"]['GearPosition']
-    elif transType == TRANS.manual:
-      self.clutchPressed = not gw_cp.vl["Motor_14"]['MO_Kuppl_schalter']
-      self.reverseLight = gw_cp.vl["Gateway_72"]['BCM1_Rueckfahrlicht_Schalter']
-      self.handBrakeSet = gw_cp.vl["Kombi_01"]['KBI_Handbremse'] # FIXME: do an EPB check here too
-      if self.reverseLight:
-        detectedGear = "R"
-      elif self.standstill and self.handBrakeSet:
-        detectedGear = "P"
-      elif self.clutchPressed:
-        detectedGear = "N"
-      else:
-        detectedGear = "D"
-    else:
-      detectedGear = None
-    self.gearShifter = parse_gear_shifter(detectedGear, self.shifter_values)
+    # Update gear and/or clutch position data.
+    can_gear_shifter = int(gw_cp.vl["Getriebe_11"]['GE_Fahrstufe'])
+    self.gearShifter = parse_gear_shifter(can_gear_shifter, self.shifter_values)
 
     # Update door and trunk/hatch lid open status.
     self.doorOpen = any([gw_cp.vl["Gateway_72"]['ZV_FT_offen'],

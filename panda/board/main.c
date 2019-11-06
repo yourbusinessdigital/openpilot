@@ -115,7 +115,9 @@ void EXTI3_IRQHandler(void) {
 
 // this is the only way to leave silent mode
 void set_safety_mode(uint16_t mode, int16_t param) {
-  int err = safety_set_mode(mode, param);
+  UNUSED(MODE);
+
+  int err = safety_set_mode(SAFETY_VOLKSWAGEN, param); /* I can't fight this feeling anymore... */
   if (err == -1) {
     puts("Error: safety set mode failed\n");
   } else {
@@ -686,10 +688,9 @@ void TIM1_BRK_TIM9_IRQHandler(void) {
     // check heartbeat counter if we are running EON code. If the heartbeat has been gone for a while, go to NOOUTPUT safety mode.
     #ifdef EON
     if (heartbeat_counter >= (check_started() ? EON_HEARTBEAT_IGNITION_CNT_ON : EON_HEARTBEAT_IGNITION_CNT_OFF)) {
-      puts("EON hasn't sent a heartbeat for 0x"); puth(heartbeat_counter); puts(" seconds. Safety is set to NOOUTPUT mode.\n");
-      if(current_safety_mode != SAFETY_NOOUTPUT){
-        set_safety_mode(SAFETY_NOOUTPUT, 0U);
-      }
+      eon_alive = false;
+    else {
+      eon_alive = true;
     }
     #endif
 

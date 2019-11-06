@@ -2,10 +2,10 @@ from cereal import car
 from selfdrive.config import Conversions as CV
 from selfdrive.controls.lib.drive_helpers import create_event, EventTypes as ET
 from selfdrive.controls.lib.vehicle_model import VehicleModel
-from selfdrive.car.volkswagen.values import CAR, BUTTON_STATES, ECU, ECU_FINGERPRINT, FINGERPRINTS, TRANS
+from selfdrive.car.volkswagen.values import CAR, BUTTON_STATES
 from selfdrive.car.volkswagen.carstate import CarState, get_mqb_gateway_can_parser, get_mqb_extended_can_parser
 from common.params import Params
-from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, gen_empty_fingerprint, is_ecu_disconnected
+from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, gen_empty_fingerprint
 from selfdrive.car.interfaces import CarInterfaceBase
 
 GEAR = car.CarState.GearShifter
@@ -64,16 +64,6 @@ class CarInterface(CarInterfaceBase):
       ret.steerActuatorDelay = 0.05 # Hopefully all MQB racks are similar here
       ret.steerMaxBP = [0.]  # m/s
       ret.steerMaxV = [1.]
-
-      hasGasAutoTrans = not is_ecu_disconnected(fingerprint[CANBUS.gateway], FINGERPRINTS, ECU_FINGERPRINT, candidate, ECU.AUTO_TRANS)
-      hasEVAutoTrans = not is_ecu_disconnected(fingerprint[CANBUS.gateway], FINGERPRINTS, ECU_FINGERPRINT, candidate, ECU.EV_TRANS)
-      if hasGasAutoTrans:
-        ret.transmissionType = TRANS.automatic
-      elif hasEVAutoTrans:
-        ret.transmissionType = TRANS.unknown # FIXME: abusing trans type unknown for EV because it's the only way to get info from get_params w/o refactoring
-      else:
-        ret.transmissionType = TRANS.manual
-      cloudlog.warning("VW MQB: detected %s transmission", ret.transmissionType)
 
       # As a starting point for speed-adjusted lateral tuning, use the example
       # map speed breakpoints from a VW Tiguan (SSP 399 page 9). It's unclear
