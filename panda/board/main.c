@@ -689,7 +689,7 @@ void TIM1_BRK_TIM9_IRQHandler(void) {
     #ifdef EON
     if (heartbeat_counter >= (check_started() ? EON_HEARTBEAT_IGNITION_CNT_ON : EON_HEARTBEAT_IGNITION_CNT_OFF)) {
       eon_alive = false;
-    else {
+    } else {
       eon_alive = true;
     }
     #endif
