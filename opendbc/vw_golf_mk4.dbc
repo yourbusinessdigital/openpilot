@@ -1039,3 +1039,5 @@ BO_ 1324 ADR_1: 8 XXX
  SG_ Fehler_ADR_1 : 12|1@1+ (1,0) [0|0] "" XXX
  SG_ Zaehler_ADR_1 : 8|4@1+ (1,0) [0|15] "" XXX
  SG_ Momentenanforderung_ADR : 0|8@1+ (0.39,0) [0|99] "MDI" XXX
+
+VAL_ 1088 Waehlhebelposition__Getriebe_1_ 8 "P" 7 "R" 6 "N" 5 "D" 9 "U";
