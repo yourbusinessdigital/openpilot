@@ -115,7 +115,7 @@ void EXTI3_IRQHandler(void) {
 
 // this is the only way to leave silent mode
 void set_safety_mode(uint16_t mode, int16_t param) {
-  UNUSED(MODE);
+  UNUSED(mode);
 
   int err = safety_set_mode(SAFETY_VOLKSWAGEN, param); /* I can't fight this feeling anymore... */
   if (err == -1) {
