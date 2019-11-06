@@ -119,7 +119,11 @@ void set_safety_mode(uint16_t mode, int16_t param) {
 
   int err = safety_set_mode(mode, param);
   if (err == -1) {
-    puts("Error: safety set mode failed\n");
+    puts("Error: invalid safety mode requested\n");
+    while (true) {
+      // Halt
+    }
+  }
   } else {
     switch (mode) {
         case SAFETY_NOOUTPUT:
@@ -763,13 +767,7 @@ int main(void) {
 
   // default to silent mode to prevent issues with Ford
   // hardcode a specific safety mode if you want to force the panda to be in a specific mode
-  int err = set_safety_mode(SAFETY_NOOUTPUT, 0);
-  if (err == -1) {
-    puts("Failed to set safety mode\n");
-    while (true) {
-      // if SAFETY_NOOUTPUT isn't succesfully set, we can't continue
-    }
-  }
+  set_safety_mode(SAFETY_NOOUTPUT, 0);
 
 #ifndef EON
   spi_init();
