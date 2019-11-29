@@ -113,7 +113,7 @@ class CarController():
     # filters LDW_02 from the factory camera and OP emits LDW_02 at 10Hz.
 
     if frame % P.LDW_STEP == 0:
-      hcaEnabled = True if enabled and not CS.standstill else False
+      hcaEnabled = bool(enabled and not CS.standstill)
 
       if visual_alert == VisualAlert.steerRequired:
         hud_alert = MQB_LDW_MESSAGES["laneAssistTakeOverSilent"]
