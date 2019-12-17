@@ -49,7 +49,7 @@ class CarInterface(CarInterfaceBase):
     ret.isPandaBlack = has_relay
     ret.carVin = vin
 
-    if candidate == CAR.GOLF:
+    if candidate == CAR.GENERICMQB:
       # Set common MQB parameters that will apply globally
       ret.carName = "volkswagen"
       ret.safetyModel = car.CarParams.SafetyModel.volkswagen
@@ -70,8 +70,8 @@ class CarInterface(CarInterfaceBase):
       # HCA assist torque, but if they're good breakpoints for the driver,
       # they're probably good breakpoints for HCA as well. OP won't be driving
       # 250kph/155mph but it provides interpolation scaling above 100kmh/62mph.
-      ret.lateralTuning.pid.kpBP = [0., 15 * CV.KPH_TO_MS, 50 * CV.KPH_TO_MS]
-      ret.lateralTuning.pid.kiBP = [0., 15 * CV.KPH_TO_MS, 50 * CV.KPH_TO_MS]
+      ret.lateralTuning.pid.kpBP = [0., 15 * CV.KPH_TO_MS, 50 * CV.KPH_TO_MS, 100 * CV.KPH_TO_MS, 250 * CV.KPH_TO_MS]
+      ret.lateralTuning.pid.kiBP = [0., 15 * CV.KPH_TO_MS, 50 * CV.KPH_TO_MS, 100 * CV.KPH_TO_MS, 250 * CV.KPH_TO_MS]
 
       # FIXME: Per-vehicle parameters need to be reintegrated.
       # For the time being, per-vehicle stuff is being archived since we
@@ -79,14 +79,14 @@ class CarInterface(CarInterfaceBase):
       # averaged params should work reasonably on a range of cars. Owners
       # can tweak here, as needed, until we have car type auto-detection.
 
-      ret.mass = 1700 + STD_CARGO_KG
-      ret.wheelbase = 2.75
+      ret.mass = 1450 + STD_CARGO_KG
+      ret.wheelbase = 2.64
       ret.centerToFront = ret.wheelbase * 0.45
       ret.steerRatio = 15.6
       ret.lateralTuning.pid.kf = 0.00006
-      ret.lateralTuning.pid.kpV = [0.15, 0.25, 0.60]
-      ret.lateralTuning.pid.kiV = [0.05, 0.05, 0.05]
-      tire_stiffness_factor = 0.6
+      ret.lateralTuning.pid.kpV = [0.15, 0.25, 0.35, 0.45, 0.55]
+      ret.lateralTuning.pid.kiV = [0.05, 0.05, 0.05, 0.05, 0.05]
+      tire_stiffness_factor = 1.0
 
     ret.enableCamera = True # Stock camera detection doesn't apply to VW
     ret.transmissionType = car.CarParams.TransmissionType.automatic
@@ -128,7 +128,7 @@ class CarInterface(CarInterfaceBase):
     # anyway so we can test connectivity with can_valid
     self.pt_cp.update_strings(can_strings)
     self.cam_cp.update_strings(can_strings)
-    self.CS.update(self.pt_cp)
+    self.CS.update(self.pt_cp, self.cam_cp)
     ret.canValid = self.pt_cp.can_valid and self.cam_cp.can_valid
 
     # Wheel and vehicle speed, yaw rate
