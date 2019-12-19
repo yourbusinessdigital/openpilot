@@ -60,7 +60,6 @@ struct __attribute__((packed)) health_t {
   uint8_t power_save_enabled_pkt;
 };
 
-
 // ********************* Serial debugging *********************
 
 bool check_started(void) {
