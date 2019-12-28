@@ -105,8 +105,8 @@ def get_gateway_can_parser(CP, canbus, networkModel):
       ("Bremsdruck", "Bremse_5", 0),                    # Brake pressure applied
       ("Vorzeichen_Bremsdruck", "Bremse_5", 0),         # Brake pressure applied sign (???)
       ("Fahrpedalwert_oder_Drosselklapp", "Motor_1", 0), # Accelerator pedal value
-      #("Driver_Torque", "EPS_1", 0),                    # Absolute driver torque input
-      #("Driver_Torque_Sign", "EPS_1", 0),               # Driver torque input sign
+      ("Driver_Torque", "EPS_1", 0),                    # Absolute driver torque input
+      ("Driver_Torque_Sign", "EPS_1", 0),               # Driver torque input sign
       # ("HCA_Ready", "EPS_01", 0),                     # Steering rack HCA support configured
       ("ESP_Passiv_getastet", "Bremse_1", 0),           # Stability control disabled
       # ("KBI_MFA_v_Einheit_02", "Einheiten_01", 0),    # MPH vs KMH speed display
@@ -135,7 +135,7 @@ def get_gateway_can_parser(CP, canbus, networkModel):
       ("Getriebe_1", 1),        # From J743 Auto transmission control module
       ("Airbag_1", 1),          # From J234 Airbag control module
       ("Motor_2", 1),           # From J623 Engine control module
-      #("EPS_1", 1),             # From J500 Steering Assist with integrated sensors
+      ("EPS_1", 1),             # From J500 Steering Assist with integrated sensors
       ("GRA_neu", 1),           # From J??? steering wheel control buttons
       ("Systeminfo_1", 1),      # From J??? not known if gateway, cluster, or BCM
 
@@ -195,7 +195,7 @@ class CarState():
       self.shifter_values = self.can_define.dv["Getriebe_11"]['GE_Fahrstufe']
       self.update = self.update_mqb
     elif networkModel == NETWORK_MODEL.PQ:
-      #self.shifter_values = self.can_define.dv["Getriebe_1"]['Waehlhebelposition__Getriebe_1_']
+      self.shifter_values = self.can_define.dv["Getriebe_1"]['Waehlhebelposition__Getriebe_1_']
       self.update = self.update_pq
 
     self.buttonStates = BUTTON_STATES.copy()
@@ -347,7 +347,7 @@ class CarState():
     # the sign/direction in a separate signal so they must be recombined.
     self.steeringAngle = gw_cp.vl["Lenkwinkel_1"]['Lenkradwinkel'] * (1,-1)[int(gw_cp.vl["Lenkwinkel_1"]['Lenkradwinkel_Sign'])]
     self.steeringRate = gw_cp.vl["Lenkwinkel_1"]['Lenkradwinkel_Geschwindigkeit'] * (1,-1)[int(gw_cp.vl["Lenkwinkel_1"]['Lenkradwinkel_Geschwindigkeit_S'])]
-    #self.steeringTorque = gw_cp.vl["EPS_1"]['Driver_Torque'] * (1,-1)[int(gw_cp.vl["EPS_1"]['Driver_Torque_Sign'])]
+    self.steeringTorque = gw_cp.vl["EPS_1"]['Driver_Torque'] * (1,-1)[int(gw_cp.vl["EPS_1"]['Driver_Torque_Sign'])]
     self.steeringTorque = 0
     self.steeringPressed = abs(self.steeringTorque) > CarControllerParams.STEER_DRIVER_ALLOWANCE
     self.yawRate = gw_cp.vl["Bremse_5"]['Giergeschwindigkeit'] * (1,-1)[int(gw_cp.vl["Bremse_5"]['Vorzeichen_der_Giergeschwindigk'])] * CV.DEG_TO_RAD
@@ -362,13 +362,13 @@ class CarState():
     # Update gear and/or clutch position data based on transmission type.
     if transType == TRANS.automatic:
       self.clutchPressed = False
-      detectedGear = "D"
-      #detectedGear = gw_cp.vl["Getriebe_1"]['Waehlhebelposition__Getriebe_1_']
+      #detectedGear = "D"
+      detectedGear = gw_cp.vl["Getriebe_1"]['Waehlhebelposition__Getriebe_1_']
     # FIXME: Need to find some more signals to do manual trans on PQ
     else:
       detectedGear = None
-    #self.gearShifter = parse_gear_shifter(detectedGear, self.shifter_values)
-    self.gearShifter = GEAR.drive
+    self.gearShifter = parse_gear_shifter(detectedGear, self.shifter_values)
+    #self.gearShifter = GEAR.drive
 
     # Update door and trunk/hatch lid open status.
     # FIXME: Need a DBC update for this based on recently learned info

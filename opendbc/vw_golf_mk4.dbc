@@ -1040,4 +1040,13 @@ BO_ 1324 ADR_1: 8 XXX
  SG_ Zaehler_ADR_1 : 8|4@1+ (1,0) [0|15] "" XXX
  SG_ Momentenanforderung_ADR : 0|8@1+ (0.39,0) [0|99] "MDI" XXX
 
+BO_ 208 EPS_1: 8 XXX
+ SG_ Counter1 : 8|4@1+ (1,0) [0|15] "" XXX
+ SG_ Counter2 : 15|4@0+ (1,0) [0|15] "" XXX
+ SG_ Driver_Torque_Sign : 26|1@1+ (1,0) [0|1] "" XXX
+ SG_ Driver_Torque : 16|10@1+ (1,0) [0|1023] "" XXX
+ SG_ Steering_Angle : 32|12@1+ (1,0) [0|4095] "" XXX
+ SG_ Steering_Angle_Sign : 44|1@0+ (1,0) [0|1] "" XXX
+ SG_ Checksum : 0|8@1+ (1,0) [0|255] "" XXX
+
 VAL_ 1088 Waehlhebelposition__Getriebe_1_ 8 "P" 7 "R" 6 "N" 5 "D" 9 "U";
