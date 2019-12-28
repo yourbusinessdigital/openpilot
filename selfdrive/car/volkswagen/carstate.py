@@ -348,7 +348,6 @@ class CarState():
     self.steeringAngle = gw_cp.vl["Lenkwinkel_1"]['Lenkradwinkel'] * (1,-1)[int(gw_cp.vl["Lenkwinkel_1"]['Lenkradwinkel_Sign'])]
     self.steeringRate = gw_cp.vl["Lenkwinkel_1"]['Lenkradwinkel_Geschwindigkeit'] * (1,-1)[int(gw_cp.vl["Lenkwinkel_1"]['Lenkradwinkel_Geschwindigkeit_S'])]
     self.steeringTorque = gw_cp.vl["EPS_1"]['Driver_Torque'] * (1,-1)[int(gw_cp.vl["EPS_1"]['Driver_Torque_Sign'])]
-    self.steeringTorque = 0
     self.steeringPressed = abs(self.steeringTorque) > CarControllerParams.STEER_DRIVER_ALLOWANCE
     self.yawRate = gw_cp.vl["Bremse_5"]['Giergeschwindigkeit'] * (1,-1)[int(gw_cp.vl["Bremse_5"]['Vorzeichen_der_Giergeschwindigk'])] * CV.DEG_TO_RAD
 
@@ -362,13 +361,11 @@ class CarState():
     # Update gear and/or clutch position data based on transmission type.
     if transType == TRANS.automatic:
       self.clutchPressed = False
-      #detectedGear = "D"
       detectedGear = gw_cp.vl["Getriebe_1"]['Waehlhebelposition__Getriebe_1_']
     # FIXME: Need to find some more signals to do manual trans on PQ
     else:
       detectedGear = None
     self.gearShifter = parse_gear_shifter(detectedGear, self.shifter_values)
-    #self.gearShifter = GEAR.drive
 
     # Update door and trunk/hatch lid open status.
     # FIXME: Need a DBC update for this based on recently learned info

@@ -74,6 +74,7 @@ if __name__ == "__main__":
           'alt': evt.liveLocation.alt,
         })
       if not args.no_print:
+        sys.stdout.write("\x1b[2J\x1b[H")
         if args.pipe:
           sys.stdout.write(msg)
           sys.stdout.flush()
