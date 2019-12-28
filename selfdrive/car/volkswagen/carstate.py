@@ -136,6 +136,7 @@ def get_gateway_can_parser(CP, canbus, networkModel):
       ("EPS_1", 1),             # From J500 Steering Assist with integrated sensors
       ("GRA_neu", 1),           # From J??? steering wheel control buttons
       ("Systeminfo_1", 1),      # From J??? not known if gateway, cluster, or BCM
+      ("Einheiten_1", 1),       # From ???
 
     ]
 
@@ -366,7 +367,7 @@ class CarState():
     self.gearShifter = parse_gear_shifter(detectedGear, self.shifter_values)
 
     # Update door and trunk/hatch lid open status.
-    self.doorOpen = gw_cp.vl["Gateway_Komfort_1"]['Fahrertuerkontakt']
+    self.doorOpen = bool(gw_cp.vl["Gateway_Komfort_1"]['Fahrertuerkontakt'])
 
     # Update seatbelt fastened status.
     self.seatbeltUnlatched = not bool(gw_cp.vl["Airbag_1"]["Gurtschalter_Fahrer"])
@@ -379,8 +380,8 @@ class CarState():
     # Update ACC radar status.
     # FIXME: This is unfinished and not fully correct, need to improve further
     self.accFault = False  # need a detection mechanism for radar obstructed or otherwise faulted out
-    self.accAvailable = gw_cp.vl["GRA_neu"]['Hauptschalter']
-    if ex_cp.vl["Motor_2"]['GRA_Status'] in [1, 2]:
+    self.accAvailable = bool(gw_cp.vl["GRA_neu"]['Hauptschalter'])
+    if gw_cp.vl["Motor_2"]['GRA_Status'] in [1, 2]:
       self.accEnabled = True
     else:
       self.accEnabled = False

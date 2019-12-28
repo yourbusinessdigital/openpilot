@@ -1059,7 +1059,7 @@ BO_ 210 PQ_HCA: 8 XXX
  SG_ Vib_Amp : 36|4@1+ (0.5,0) [0|7.5] "Nm" XXX
 
 BO_ 1550 Einheiten_1: 2 XXX
- SG_ MFA_v_Signal_02 : 0|1@1+ (1,0) [0|1] "" XXX
+ SG_ MFA_v_Einheit_02 : 0|1@1+ (1,0) [0|1] "" XXX
 
 CM_ SG_ 210 LM_Offset "Actually centiNewton-meters for ease of calculation without FP math in Panda";
 CM_ SG_ 210 Vib_Amp "Steering wheel haptic, amplitude";
