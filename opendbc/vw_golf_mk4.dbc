@@ -1049,4 +1049,22 @@ BO_ 208 EPS_1: 8 XXX
  SG_ Steering_Angle_Sign : 44|1@0+ (1,0) [0|1] "" XXX
  SG_ Checksum : 0|8@1+ (1,0) [0|255] "" XXX
 
+BO_ 210 PQ_HCA: 8 XXX
+ SG_ PQ_HCA_CHECKSUM : 0|8@1+ (1,0) [0|15] "" XXX
+ SG_ COUNTER : 8|4@1+ (1,0) [0|15] "" XXX
+ SG_ HCA_Status : 15|4@0+ (1,0) [0|15] "" XXX
+ SG_ LM_Offset : 16|15@1+ (0.03052,0) [0|300] "nm" XXX
+ SG_ LM_OffSign : 31|1@0+ (1,0) [0|1] "" XXX
+ SG_ Vib_Freq : 32|4@1+ (4,0) [0|60] "Hz" XXX
+ SG_ Vib_Amp : 36|4@1+ (0.5,0) [0|7.5] "Nm" XXX
+
+BO_ 1550 Einheiten_1: 2 XXX
+ SG_ MFA_v_Signal_02 : 0|1@1+ (1,0) [0|1] "" XXX
+
+CM_ SG_ 210 LM_Offset "Actually centiNewton-meters for ease of calculation without FP math in Panda";
+CM_ SG_ 210 Vib_Amp "Steering wheel haptic, amplitude";
+CM_ SG_ 210 Vib_Freq "Steering wheel haptic, frequency";
+CM_ SG_ 210 PQ_HCA_CHECKSUM "Bypassing OP CRC code until it understands PQ XOR";
+CM_ SG_ 1550 MFA_v_Signal_02 "0=km/h, 1=mph";
+
 VAL_ 1088 Waehlhebelposition__Getriebe_1_ 8 "P" 7 "R" 6 "N" 5 "D" 9 "U";

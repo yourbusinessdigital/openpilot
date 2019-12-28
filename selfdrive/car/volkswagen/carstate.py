@@ -106,8 +106,8 @@ def get_gateway_can_parser(CP, canbus, networkModel):
       ("Driver_Torque_Sign", "EPS_1", 0),               # Driver torque input sign
       # ("HCA_Ready", "EPS_01", 0),                     # Steering rack HCA support configured
       ("ESP_Passiv_getastet", "Bremse_1", 0),           # Stability control disabled
-      # ("KBI_MFA_v_Einheit_02", "Einheiten_01", 0),    # MPH vs KMH speed display
-      ("Bremsinfo", "Kombi_1", 0),                     # Manual handbrake applied
+      ("MFA_v_Einheit_02", "Einheiten_1", 0),           # MPH vs KMH speed display
+      ("Bremsinfo", "Kombi_1", 0),                      # Manual handbrake applied
       # ("TSK_Fahrzeugmasse_02", "Motor_16", 0),        # Estimated vehicle mass from drivetrain coordinator
       ("Soll_Geschwindigkeit_bei_GRA_Be", "Motor_2", 0), # ACC speed setpoint from ECU??? check this
       ("Hauptschalter", "GRA_neu", 0),                  # ACC button, on/off
@@ -373,8 +373,7 @@ class CarState():
     # Update driver preference for metric. VW stores many different unit
     # preferences, including separate units for for distance vs. speed.
     # We use the speed preference for OP.
-    # FIXME: Need a DBC update for this based on recently learned info
-    self.displayMetricUnits = True # You're welcome for this temp hack kamold ;)
+    self.displayMetricUnits = not gw_cp.vl["Einheiten_1"]["MFA_v_Einheit_02"]
 
     # Update ACC radar status.
     # FIXME: Need to find ACC signals
@@ -397,7 +396,7 @@ class CarState():
     #else:
     #  # ACC fault of some sort. Seen statuses 6 or 7 for CAN comms disruptions, visibility issues, etc.
     self.accFault = False
-    self.accAvailable = False
+    self.accAvailable = gw_cp.vl["GRA_neu"]['Hauptschalter']
     self.accEnabled = False
 
     # Update ACC setpoint. When the setpoint is zero or there's an error, the
