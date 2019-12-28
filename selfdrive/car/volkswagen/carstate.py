@@ -125,19 +125,17 @@ def get_gateway_can_parser(CP, canbus, networkModel):
 
     checks = [
       # sig_address, frequency
-      # FIXME: need to look up and update all message frequencies
-      ("Lenkwinkel_1", 1),   # From J500 Steering Assist with integrated sensors
-      ("Bremse_3", 1),          # From J104 ABS/ESP controller
-      ("Bremse_5", 1),          # From J104 ABS/ESP controller
-      ("Kombi_1", 1),           # From J285 Instrument cluster
-      ("Getriebe_1", 1),        # From J743 Auto transmission control module
-      ("Airbag_1", 1),          # From J234 Airbag control module
-      ("Motor_2", 1),           # From J623 Engine control module
-      ("EPS_1", 1),             # From J500 Steering Assist with integrated sensors
-      ("GRA_neu", 1),           # From J??? steering wheel control buttons
-      ("Systeminfo_1", 1),      # From J??? not known if gateway, cluster, or BCM
+      ("Lenkwinkel_1", 100),    # From J500 Steering Assist with integrated sensors
+      ("Bremse_3", 100),        # From J104 ABS/ESP controller
+      ("Bremse_5", 50),         # From J104 ABS/ESP controller
+      ("Kombi_1", 50),          # From J285 Instrument cluster
+      ("Getriebe_1", 100),      # From J743 Auto transmission control module
+      ("Airbag_1", 50),         # From J234 Airbag control module
+      ("Motor_2", 50),          # From J623 Engine control module
+      ("EPS_1", 100),           # From J500 Steering Assist with integrated sensors
+      ("GRA_neu", 50),          # From J??? steering wheel control buttons
+      ("Systeminfo_1", 10),     # From J??? not known if gateway, cluster, or BCM
       ("Einheiten_1", 1),       # From ???
-
     ]
 
   else:
