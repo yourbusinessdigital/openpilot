@@ -80,8 +80,8 @@ def get_gateway_can_parser(CP, canbus, networkModel):
     # this function generates lists for signal, messages and initial values
     signals = [
       # sig_name, sig_address, default
-      ("Lenkradwinkel", "Lenkwinkel_1", 0),          # Absolute steering angle
-      ("Lenkradwinkel_Sign", "Lenkwinkel_1", 0),     # Steering angle sign
+      ("Lenkradwinkel", "Lenkwinkel_1", 0),             # Absolute steering angle
+      ("Lenkradwinkel_Sign", "Lenkwinkel_1", 0),        # Steering angle sign
       ("Lenkradwinkel_Geschwindigkeit", "Lenkwinkel_1", 0), # Absolute steering rate
       ("Lenkradwinkel_Geschwindigkeit_S", "Lenkwinkel_1", 0), # Steering rate sign
       ("Radgeschw__VL_4_1", "Bremse_3", 0),             # ABS wheel speed, front left
@@ -90,11 +90,8 @@ def get_gateway_can_parser(CP, canbus, networkModel):
       ("Radgeschw__HR_4_1", "Bremse_3", 0),             # ABS wheel speed, rear right
       ("Giergeschwindigkeit", "Bremse_5", 0),           # Absolute yaw rate
       ("Vorzeichen_der_Giergeschwindigk", "Bremse_5", 0), # Yaw rate sign
-      # ("ZV_FT_offen", "Gateway_72", 0),               # Door open, driver
-      # ("ZV_BT_offen", "Gateway_72", 0),               # Door open, passenger
-      # ("ZV_HFS_offen", "Gateway_72", 0),              # Door open, rear left
-      # ("ZV_HBFS_offen", "Gateway_72", 0),             # Door open, rear right
-      # ("ZV_HD_offen", "Gateway_72", 0),               # Trunk or hatch open
+      ("Fahrertuerkontakt", "Gateway_Komfort_1", 0),    # Door open, driver
+      # Passenger and rear door states don't seem to be available on extended can
       ("Blinker_links_4_1", "Kombi_1", 0),              # Left turn signal on
       ("Blinker_rechts_4_1", "Kombi_1", 0),             # Right turn signal on
       ("Waehlhebelposition__Getriebe_1_", "Getriebe_1", 0), # Transmission gear selector position
@@ -368,8 +365,7 @@ class CarState():
     self.gearShifter = parse_gear_shifter(detectedGear, self.shifter_values)
 
     # Update door and trunk/hatch lid open status.
-    # FIXME: Need a DBC update for this based on recently learned info
-    self.doorOpen = False
+    self.doorOpen = gw_cp.vl["Gateway_Komfort_1"]['Fahrertuerkontakt']
 
     # Update seatbelt fastened status.
     self.seatbeltUnlatched = not bool(gw_cp.vl["Airbag_1"]["Gurtschalter_Fahrer"])
@@ -400,7 +396,7 @@ class CarState():
     #  self.accEnabled = True
     #else:
     #  # ACC fault of some sort. Seen statuses 6 or 7 for CAN comms disruptions, visibility issues, etc.
-    self.accFault = True
+    self.accFault = False
     self.accAvailable = False
     self.accEnabled = False
 
