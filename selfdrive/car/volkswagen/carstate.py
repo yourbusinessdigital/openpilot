@@ -110,6 +110,7 @@ def get_gateway_can_parser(CP, canbus, networkModel):
       ("Bremsinfo", "Kombi_1", 0),                      # Manual handbrake applied
       # ("TSK_Fahrzeugmasse_02", "Motor_16", 0),        # Estimated vehicle mass from drivetrain coordinator
       ("Soll_Geschwindigkeit_bei_GRA_Be", "Motor_2", 0), # ACC speed setpoint from ECU??? check this
+      ("GRA_Status", "Motor_2", 0),                     # ACC engagement status
       ("Hauptschalter", "GRA_neu", 0),                  # ACC button, on/off
       ("Abbrechen", "GRA_neu", 0),                      # ACC button, cancel
       ("Setzen", "GRA_neu", 0),                         # ACC button, set
@@ -376,28 +377,13 @@ class CarState():
     self.displayMetricUnits = not gw_cp.vl["Einheiten_1"]["MFA_v_Einheit_02"]
 
     # Update ACC radar status.
-    # FIXME: Need to find ACC signals
-    #accStatus = ex_cp.vl["ACC_06"]['ACC_Status_ACC']
-    #if accStatus == 1:
-    #  # ACC okay but disabled
-    #  self.accFault = False
-    #  self.accAvailable = False
-    #  self.accEnabled = False
-    #elif accStatus == 2:
-    #  # ACC okay and enabled, but not currently engaged
-    #  self.accFault = False
-    #  self.accAvailable = True
-    #  self.accEnabled = False
-    #elif accStatus in [3, 4, 5]:
-    #  # ACC okay and enabled, currently engaged and regulating speed (3) or engaged with driver accelerating (4) or overrun (5)
-    #  self.accFault = False
-    #  self.accAvailable = True
-    #  self.accEnabled = True
-    #else:
-    #  # ACC fault of some sort. Seen statuses 6 or 7 for CAN comms disruptions, visibility issues, etc.
-    self.accFault = False
+    # FIXME: This is unfinished and not fully correct, need to improve further
+    self.accFault = False  # need a detection mechanism for radar obstructed or otherwise faulted out
     self.accAvailable = gw_cp.vl["GRA_neu"]['Hauptschalter']
-    self.accEnabled = False
+    if ex_cp.vl["Motor_2"]['GRA_Status'] in [1, 2]:
+      self.accEnabled = True
+    else:
+      self.accEnabled = False
 
     # Update ACC setpoint. When the setpoint is zero or there's an error, the
     # radar sends a set-speed of ~90.69 m/s / 203mph.
