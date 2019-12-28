@@ -372,7 +372,7 @@ class CarState():
     self.doorOpen = False
 
     # Update seatbelt fastened status.
-    self.seatbeltUnlatched = False if gw_cp.vl["Airbag_1"]["Gurtschalter_Fahrer"] == 3 else True
+    self.seatbeltUnlatched = not bool(gw_cp.vl["Airbag_1"]["Gurtschalter_Fahrer"])
 
     # Update driver preference for metric. VW stores many different unit
     # preferences, including separate units for for distance vs. speed.
