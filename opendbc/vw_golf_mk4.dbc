@@ -1051,7 +1051,7 @@ BO_ 208 EPS_1: 8 XXX
 
 BO_ 210 PQ_HCA: 8 XXX
  SG_ PQ_HCA_CHECKSUM : 0|8@1+ (1,0) [0|15] "" XXX
- SG_ COUNTER : 8|4@1+ (1,0) [0|15] "" XXX
+ SG_ PQ_HCA_COUNTER : 8|4@1+ (1,0) [0|15] "" XXX
  SG_ HCA_Status : 15|4@0+ (1,0) [0|15] "" XXX
  SG_ LM_Offset : 16|15@1+ (0.03052,0) [0|300] "nm" XXX
  SG_ LM_OffSign : 31|1@0+ (1,0) [0|1] "" XXX

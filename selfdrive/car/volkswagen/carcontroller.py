@@ -18,8 +18,8 @@ class CarControllerParams:
   # Limiting both torque and rate-of-change based on real-world testing and
   # Comma's safety requirements for minimum time to lane departure.
   STEER_MAX = 300                # Max heading control assist torque 3.00 Nm
-  STEER_DELTA_UP = 10            # Max HCA reached in 0.60s @ 5.0 Nm/s (STEER_MAX / (50Hz * 0.60))
-  STEER_DELTA_DOWN = 300         # Permit torque reduction at any rate
+  STEER_DELTA_UP = 4             # Max HCA reached in 0.60s @ 5.0 Nm/s (STEER_MAX / (50Hz * 0.60))
+  STEER_DELTA_DOWN = 10          # Permit torque reduction at any rate
   STEER_DRIVER_ALLOWANCE = 80
   STEER_DRIVER_MULTIPLIER = 3    # weight driver torque heavily
   STEER_DRIVER_FACTOR = 1        # from dbc
@@ -210,6 +210,75 @@ class CarController():
     return can_sends
 
   def update_pq(self, enabled, CS, frame, actuators, visual_alert, audible_alert, leftLaneVisible, rightLaneVisible):
+    P = CarControllerParams
+
+    # Send CAN commands.
     can_sends = []
+    canbus = self.canbus
+
+    #--------------------------------------------------------------------------
+    #                                                                         #
+    # Prepare PQ_HCA Heading Control Assist messages with steering torque.    #
+    #                                                                         #
+    #--------------------------------------------------------------------------
+
+    if frame % P.HCA_STEP == 0:
+
+      # FAULT AVOIDANCE: HCA must not be enabled at standstill. Also stop
+      # commanding HCA if there's a fault, so the steering rack recovers.
+      if enabled and not (CS.standstill or CS.steeringFault):
+
+        # FAULT AVOIDANCE: Requested HCA torque must not exceed 3.0 Nm. This
+        # is inherently handled by scaling to STEER_MAX. The rack doesn't seem
+        # to care about up/down rate, but we have some evidence it may do its
+        # own rate limiting, and matching OP helps for accurate tuning.
+        apply_steer = int(round(actuators.steer * P.STEER_MAX))
+        apply_steer = apply_std_steer_torque_limits(apply_steer, self.apply_steer_last, CS.steeringTorque, P)
+
+        # FAULT AVOIDANCE: HCA must not be enabled for >360 seconds. Sending
+        # a single frame with HCA disabled is an effective workaround.
+        if apply_steer == 0:
+          # We can usually reset the timer for free, just by disabling HCA
+          # when apply_steer is exactly zero, which happens by chance during
+          # many steer torque direction changes. This could be expanded with
+          # a small dead-zone to capture all zero crossings, but not seeing a
+          # major need at this time.
+          hcaEnabled = False
+          self.hcaEnabledFrameCount = 0
+        else:
+          self.hcaEnabledFrameCount += 1
+          if self.hcaEnabledFrameCount >=  118 * (100 / P.HCA_STEP):  # 118s
+            # The Kansas I-70 Crosswind Problem: if we truly do need to steer
+            # in one direction for > 360 seconds, we have to disable HCA for a
+            # frame while actively steering. Testing shows we can just set the
+            # disabled flag, and keep sending non-zero torque, which keeps the
+            # Panda torque rate limiting safety happy. Do so 3x within the 360
+            # second window for safety and redundancy.
+            hcaEnabled = False
+            self.hcaEnabledFrameCount = 0
+          else:
+            hcaEnabled = True
+            # FAULT AVOIDANCE: HCA torque must not be static for > 6 seconds.
+            # This is to detect the sending camera being stuck or frozen. OP
+            # can trip this on a curve if steering is saturated. Avoid this by
+            # reducing torque 0.01 Nm for one frame. Do so 3x within the 6
+            # second period for safety and redundancy.
+            if self.apply_steer_last == apply_steer:
+              self.hcaSameTorqueCount += 1
+              if self.hcaSameTorqueCount > 1.9 * (100 / P.HCA_STEP):  # 1.9s
+                apply_steer -= (1, -1)[apply_steer < 0]
+                self.hcaSameTorqueCount = 0
+            else:
+              self.hcaSameTorqueCount = 0
+
+      else:
+        # Continue sending HCA_01 messages, with the enable flags turned off.
+        hcaEnabled = False
+        apply_steer = 0
+
+      self.apply_steer_last = apply_steer
+      idx = (frame / P.HCA_STEP) % 16
+      can_sends.append(volkswagencan.create_pq_steering_control(self.packer_gw, canbus.gateway, apply_steer,
+                                                                 idx, hcaEnabled))
 
     return can_sends

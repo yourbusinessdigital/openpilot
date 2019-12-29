@@ -125,15 +125,15 @@ def get_gateway_can_parser(CP, canbus, networkModel):
 
     checks = [
       # sig_address, frequency
-      ("Lenkwinkel_1", 100),    # From J500 Steering Assist with integrated sensors
       ("Bremse_3", 100),        # From J104 ABS/ESP controller
       ("Bremse_5", 50),         # From J104 ABS/ESP controller
-      ("Kombi_1", 50),          # From J285 Instrument cluster
-      ("Getriebe_1", 100),      # From J743 Auto transmission control module
-      ("Airbag_1", 50),         # From J234 Airbag control module
-      ("Motor_2", 50),          # From J623 Engine control module
       ("EPS_1", 100),           # From J500 Steering Assist with integrated sensors
+      ("Getriebe_1", 100),      # From J743 Auto transmission control module
+      ("Lenkwinkel_1", 100),    # From J500 Steering Assist with integrated sensors
+      ("Airbag_1", 50),         # From J234 Airbag control module
       ("GRA_neu", 50),          # From J??? steering wheel control buttons
+      ("Kombi_1", 50),          # From J285 Instrument cluster
+      ("Motor_2", 50),          # From J623 Engine control module
       ("Systeminfo_1", 10),     # From J??? not known if gateway, cluster, or BCM
       ("Einheiten_1", 1),       # From ???
     ]
@@ -386,6 +386,7 @@ class CarState():
 
     # Update ACC setpoint. When the setpoint is zero or there's an error, the
     # radar sends a set-speed of ~90.69 m/s / 203mph.
+    # FIXME: ACC set speed should be here, but it's not. Need to find a different signal.
     self.accSetSpeed = gw_cp.vl["Motor_2"]['Soll_Geschwindigkeit_bei_GRA_Be']
     # TODO: See if this condition is needed on PQ
     if self.accSetSpeed > 90: self.accSetSpeed = 0
