@@ -69,8 +69,8 @@ def data_sample(CI, CC, sm, can_poller, can_sock, cal_status, cal_perc, overtemp
   enabled = isEnabled(state)
 
   # Check for CAN timeout
-  if not can_strs:
-    events.append(create_event('canError', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE]))
+  #if not can_strs:
+  #  events.append(create_event('canError', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE]))
 
   if sm.updated['thermal']:
     overtemp = sm['thermal'].thermalStatus >= ThermalStatus.red

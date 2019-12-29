@@ -184,7 +184,8 @@ class CarInterface(CarInterfaceBase):
     self.gw_cp.update_strings(can_strings)
     self.ex_cp.update_strings(can_strings)
     self.CS.update(self.gw_cp, self.ex_cp, self.CP.transmissionType)
-    ret.canValid = self.gw_cp.can_valid and self.ex_cp.can_valid
+    #ret.canValid = self.gw_cp.can_valid and self.ex_cp.can_valid
+    ret.canValid = True
 
     # Wheel and vehicle speed, yaw rate
     ret.wheelSpeeds.fl = self.CS.wheelSpeedFL
@@ -264,11 +265,11 @@ class CarInterface(CarInterfaceBase):
 
     # Per the Comma safety model, disable on pedals rising edge or when brake
     # is pressed and speed isn't zero.
-    if (ret.gasPressed and not self.gasPressedPrev) or \
-            (ret.brakePressed and (not self.brakePressedPrev or not ret.standstill)):
-      events.append(create_event('pedalPressed', [ET.NO_ENTRY, ET.USER_DISABLE]))
-    if ret.gasPressed:
-      events.append(create_event('pedalPressed', [ET.PRE_ENABLE]))
+    #if (ret.gasPressed and not self.gasPressedPrev) or \
+    #        (ret.brakePressed and (not self.brakePressedPrev or not ret.standstill)):
+    #  events.append(create_event('pedalPressed', [ET.NO_ENTRY, ET.USER_DISABLE]))
+    #if ret.gasPressed:
+    #  events.append(create_event('pedalPressed', [ET.PRE_ENABLE]))
 
     # Engagement and longitudinal control using stock ACC. Make sure OP is
     # disengaged if stock ACC is disengaged.
