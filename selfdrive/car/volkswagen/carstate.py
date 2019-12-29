@@ -109,7 +109,6 @@ def get_gateway_can_parser(CP, canbus, networkModel):
       ("MFA_v_Einheit_02", "Einheiten_1", 0),           # MPH vs KMH speed display
       ("Bremsinfo", "Kombi_1", 0),                      # Manual handbrake applied
       # ("TSK_Fahrzeugmasse_02", "Motor_16", 0),        # Estimated vehicle mass from drivetrain coordinator
-      ("Soll_Geschwindigkeit_bei_GRA_Be", "Motor_2", 0), # ACC speed setpoint from ECU??? check this
       ("GRA_Status", "Motor_2", 0),                     # ACC engagement status
       ("Hauptschalter", "GRA_neu", 0),                  # ACC button, on/off
       ("Abbrechen", "GRA_neu", 0),                      # ACC button, cancel
@@ -161,9 +160,13 @@ def get_extended_can_parser(CP, canbus, networkModel):
     ]
 
   elif networkModel == NETWORK_MODEL.PQ:
-    # Nothing known that we need off extended CAN at this time.
-    signals = []
-    checks = []
+    signals = [
+      ("GRA_Set_Speed", "ACC_XX02", 0),                 # ACC cruise set point from J428 ACC radar
+    ]
+
+    checks = [
+      ("ACC_XX02", 50),         # From J428 ACC radar control module
+    ]
 
   else:
     signals = []
@@ -384,12 +387,11 @@ class CarState():
     else:
       self.accEnabled = False
 
-    # Update ACC setpoint. When the setpoint is zero or there's an error, the
-    # radar sends a set-speed of ~90.69 m/s / 203mph.
-    # FIXME: ACC set speed should be here, but it's not. Need to find a different signal.
-    self.accSetSpeed = gw_cp.vl["Motor_2"]['Soll_Geschwindigkeit_bei_GRA_Be']
-    # TODO: See if this condition is needed on PQ
-    if self.accSetSpeed > 90: self.accSetSpeed = 0
+    # Update ACC setpoint. When the setpoint reads as 255, the driver has not
+    # yet established an ACC setpoint, so treat it as zero.
+    self.accSetSpeed = ex_cp.vl["ACC_XX02"]['GRA_Set_Speed']
+    if self.accSetSpeed == 255:
+      self.accSetSpeed = 0
 
     # Update control button states for turn signals and ACC controls.
     self.buttonStates["leftBlinker"] = bool(gw_cp.vl["Kombi_1"]['Blinker_links_4_1'])

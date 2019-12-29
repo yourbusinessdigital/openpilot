@@ -1067,7 +1067,7 @@ BO_ 872 ACC_XX01: 8 XXX
  SG_ XX_AccelGradient : 48|8@1+ (1,0) [0|255] "" XXX
 
 BO_ 1386 ACC_XX02: 8 XXX
- SG_ GRASetSpeed : 24|8@1+ (1,0) [0|255] "km/h" XXX
+ SG_ GRA_Set_Speed : 24|8@1+ (1,0) [0|255] "km/h" XXX
 
 BO_ 1470 LDW_1: 8 XXX
  SG_ Right_Lane_Status : 0|2@1+ (1,0) [0|3] "" XXX
