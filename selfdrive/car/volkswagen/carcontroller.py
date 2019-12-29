@@ -60,7 +60,7 @@ class CarController():
 
     #--------------------------------------------------------------------------
     #                                                                         #
-    # Prepare HCA_01 Heading Control Assist messages with steering torque.    #
+    # Prepare Heading Control Assist messages with steering torque.           #
     #                                                                         #
     #--------------------------------------------------------------------------
 
@@ -130,17 +130,18 @@ class CarController():
 
     #--------------------------------------------------------------------------
     #                                                                         #
-    # Prepare LDW_02 HUD messages with lane borders, confidence levels, and   #
-    # the LKAS status LED.                                                    #
+    # Prepare LDW HUD messages with lane borders, confidence levels, and the  #
+    # LKAS status LED.                                                        #
     #                                                                         #
     #--------------------------------------------------------------------------
 
     # The factory camera emits this message at 10Hz. When OP is active, Panda
     # filters LDW_02 from the factory camera and OP emits LDW_02 at 10Hz.
 
-    if frame % P.LDW_STEP == 500:
+    if frame % P.LDW_STEP == 0:
       hcaEnabled = True if enabled and not CS.standstill else False
 
+      # FIXME: MQB specific, unused and not hurting anything for PQ, but consider refactoring
       if visual_alert == VisualAlert.steerRequired:
         hud_alert = MQB_LDW_MESSAGES["laneAssistTakeOverSilent"]
       else:
@@ -152,9 +153,11 @@ class CarController():
 
     #--------------------------------------------------------------------------
     #                                                                         #
-    # Prepare GRA_ACC_01 ACC control messages with button press events.       #
+    # Prepare ACC control messages with button press events.                  #
     #                                                                         #
     #--------------------------------------------------------------------------
+
+    # FIXME: this will need substantial refactoring for PQ, plus timing fixes for MQB anyway
 
     # The car sends this message at 33hz. OP sends it on-demand only for
     # virtual button presses.

@@ -1041,30 +1041,53 @@ BO_ 1324 ADR_1: 8 XXX
  SG_ Momentenanforderung_ADR : 0|8@1+ (0.39,0) [0|99] "MDI" XXX
 
 BO_ 208 EPS_1: 8 XXX
- SG_ Counter1 : 8|4@1+ (1,0) [0|15] "" XXX
- SG_ Counter2 : 15|4@0+ (1,0) [0|15] "" XXX
- SG_ Driver_Torque_Sign : 26|1@1+ (1,0) [0|1] "" XXX
- SG_ Driver_Torque : 16|10@1+ (1,0) [0|1023] "" XXX
- SG_ Steering_Angle : 32|12@1+ (1,0) [0|4095] "" XXX
- SG_ Steering_Angle_Sign : 44|1@0+ (1,0) [0|1] "" XXX
  SG_ Checksum : 0|8@1+ (1,0) [0|255] "" XXX
+ SG_ Counter1 : 8|4@1+ (1,0) [0|15] "" XXX
+ SG_ Counter2 : 12|4@4+ (1,0) [0|15] "" XXX
+ SG_ Driver_Torque : 16|10@1+ (1,0) [0|1023] "" XXX
+ SG_ Driver_Torque_Sign : 26|1@1+ (1,0) [0|1] "" XXX
+ SG_ Steering_Angle : 32|12@1+ (1,0) [0|4095] "" XXX
+ SG_ Steering_Angle_Sign : 44|1@1+ (1,0) [0|1] "" XXX
 
-BO_ 210 PQ_HCA: 8 XXX
+BO_ 210 PQ_HCA: 5 XXX
  SG_ PQ_HCA_CHECKSUM : 0|8@1+ (1,0) [0|15] "" XXX
  SG_ PQ_HCA_COUNTER : 8|4@1+ (1,0) [0|15] "" XXX
- SG_ HCA_Status : 15|4@0+ (1,0) [0|15] "" XXX
+ SG_ HCA_Status : 15|4@1+ (1,0) [0|15] "" XXX
  SG_ LM_Offset : 16|15@1+ (0.03052,0) [0|300] "nm" XXX
- SG_ LM_OffSign : 31|1@0+ (1,0) [0|1] "" XXX
+ SG_ LM_OffSign : 31|1@1+ (1,0) [0|1] "" XXX
  SG_ Vib_Freq : 32|4@1+ (4,0) [0|60] "Hz" XXX
  SG_ Vib_Amp : 36|4@1+ (0.5,0) [0|7.5] "Nm" XXX
 
 BO_ 1550 Einheiten_1: 2 XXX
  SG_ MFA_v_Einheit_02 : 0|1@1+ (1,0) [0|1] "" XXX
 
+BO_ 872 ACC_XX01: 8 XXX
+ SG_ XX_AccelValue : 24|10@1+ (1,0) [0|255] "" XXX
+ SG_ XX_DecelGradient : 40|8@1+ (1,0) [0|255] "" XXX
+ SG_ XX_AccelGradient : 48|8@1+ (1,0) [0|255] "" XXX
+
+BO_ 1386 ACC_XX02: 8 XXX
+ SG_ GRASetSpeed : 24|8@1+ (1,0) [0|255] "km/h" XXX
+
+BO_ 1470 LDW_1: 8 XXX
+ SG_ Right_Lane_Status : 0|2@1+ (1,0) [0|3] "" XXX
+ SG_ Left_Lane_Status : 2|2@1+ (1,0) [0|3] "" XXX
+ SG_ LDW_Direction : 14|1@0+ (1,0) [0|1] "" XXX
+ SG_ SET_ME_X1 : 18|1@0+ (1,0) [0|1] "" XXX
+ SG_ Kombi_Lamp_Orange : 19|1@0+ (1,0) [0|1] "" XXX
+ SG_ Kombi_Lamp_Green : 20|1@0+ (1,0) [0|1] "" XXX
+ SG_ XX_LDW_Maybe_Warning : 16|1@0+ (1,0) [0|1] "" XXX
+ SG_ XX_DLCORTLC1 : 24|8@1+ (1,0) [0|255] "" XXX
+ SG_ XX_DLCORTLC2 : 32|8@1+ (1,0) [0|255] "" XXX
+
 CM_ SG_ 210 LM_Offset "Actually centiNewton-meters for ease of calculation without FP math in Panda";
 CM_ SG_ 210 Vib_Amp "Steering wheel haptic, amplitude";
 CM_ SG_ 210 Vib_Freq "Steering wheel haptic, frequency";
 CM_ SG_ 210 PQ_HCA_CHECKSUM "Bypassing OP CRC code until it understands PQ XOR";
+CM_ SG_ 1386 XXACCSetPoint "255=unset";
+CM_ SG_ 1470 LDW_Direction "0=right,1=left";
+CM_ SG_ 1470 XX_DLCORTLC1 "Might be DLC or TLC";
+CM_ SG_ 1470 XX_DLCORTLC2 "Might be DLC or TLC, might have wrong size";
 CM_ SG_ 1550 MFA_v_Signal_02 "0=km/h, 1=mph";
 
 VAL_ 1088 Waehlhebelposition__Getriebe_1_ 8 "P" 7 "R" 6 "N" 5 "D" 9 "U";
