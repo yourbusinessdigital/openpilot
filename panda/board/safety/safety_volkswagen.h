@@ -21,6 +21,7 @@ int volkswagen_gas_prev = 0;
 #define MSG_LDW_02              0x397
 #define MSG_KLEMMEN_STATUS_01   0x3C0
 #define MSG_PQ_HCA              0xD2
+#define MSG_LDW_1               0x5BE
 
 static void volkswagen_init(int16_t param) {
   UNUSED(param); // May use param in the future to indicate MQB vs PQ35/PQ46/NMS vs MLB, or wiring configuration.
@@ -51,7 +52,7 @@ static int volkswagen_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
       bus_fwd = 2;
       break;
     case 2:
-      if (addr == MSG_PQ_HCA) {
+      if ((addr == MSG_PQ_HCA | addr == MSG_LDW_1)) {
         // OP takes control of the Heading Control Assist and Lane Departure Warning messages from the camera.
         bus_fwd = -1;
       } else {
