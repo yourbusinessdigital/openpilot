@@ -178,6 +178,7 @@ class ELMCarSimulator():
                     self.__can_process_msg(data[1], data[2], address, ts, data, src)
                 elif not self.__silent:
                     # print("Rejecting CAN message", src, hex(address), binascii.hexlify(data))
+                    pass
 
     def can_mode_11b(self):
         self.__can11b = True
