@@ -34,7 +34,6 @@ static int transparent_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
   // instructed by EON/OP, returning the car to stock behavior when NOOUTPUT
   // is set. We need to keep default_fwd_hook as non-forwarding so we can use
   // it in ELM327 mode during fingerprinting.
-  int addr = GET_ADDR(to_fwd);
   int bus_fwd = -1;
 
   switch (bus_num) {
