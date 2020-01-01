@@ -56,15 +56,9 @@ static void volkswagen_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
     volkswagen_gas_prev = gas;
   }
 
-  // ISTM the relay_malfunction check should be contingent on actually having
-  // a relay. For now, this new check is hurting our fail-to-transparency
-  // check for J533-integrated Grey/White Panda users. Probably should migrate
-  // to a safety_defaults transparent forwarding mode instead of locking VW
-  // safety mode all the time.
-  //
-  // if ((safety_mode_cnt > RELAY_TRNS_TIMEOUT) && (bus == 0) && (addr == MSG_HCA_01)) {
-  //   relay_malfunction = true;
-  // }
+  if ((safety_mode_cnt > RELAY_TRNS_TIMEOUT) && (bus == 0) && (addr == MSG_HCA_01)) {
+    relay_malfunction = true;
+  }
 }
 
 static int volkswagen_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
@@ -157,7 +151,7 @@ static int volkswagen_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
         bus_fwd = 2;
         break;
       case 2:
-        if (eon_alive && ((addr == MSG_HCA_01) || (addr == MSG_LDW_02))) {
+        if ((addr == MSG_HCA_01) || (addr == MSG_LDW_02)) {
           // OP takes control of the Heading Control Assist and Lane Departure Warning messages from the camera.
           bus_fwd = -1;
         } else {

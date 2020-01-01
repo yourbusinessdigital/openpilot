@@ -28,12 +28,38 @@ static int default_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
   return -1;
 }
 
+static int transparent_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
+  // Volkswagen community port: Advanced Virtual Relay Technology!
+  // Make Panda fully transparent from bus 0->2 and bus 2->0 if not otherwise
+  // instructed by EON/OP, returning the car to stock behavior when NOOUTPUT
+  // is set. We need to keep default_fwd_hook as non-forwarding so we can use
+  // it in ELM327 mode during fingerprinting.
+  int addr = GET_ADDR(to_fwd);
+  int bus_fwd = -1;
+
+  switch (bus_num) {
+    case 0:
+      bus_fwd = 2;
+      break;
+    case 2:
+      bus_fwd = 0;
+      break;
+    default:
+      bus_fwd = -1;
+      break;
+  }
+  return bus_fwd;
+}
+
 const safety_hooks nooutput_hooks = {
+  // Volkswagen community port:
+  // In NOOUTPUT mode, Panda doesn't allow any TX from EON as usual, but keeps
+  // the transceivers active and goes into a transparent forwarding mode.
   .init = nooutput_init,
   .rx = default_rx_hook,
   .tx = nooutput_tx_hook,
   .tx_lin = nooutput_tx_lin_hook,
-  .fwd = default_fwd_hook,
+  .fwd = transparent_fwd_hook,
 };
 
 // *** all output safety mode ***
