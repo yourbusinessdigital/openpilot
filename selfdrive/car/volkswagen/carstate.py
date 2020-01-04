@@ -80,8 +80,8 @@ def get_gateway_can_parser(CP, canbus, networkModel):
     # this function generates lists for signal, messages and initial values
     signals = [
       # sig_name, sig_address, default
-      ("Lenkradwinkel", "Lenkwinkel_1", 0),             # Absolute steering angle
-      ("Lenkradwinkel_Sign", "Lenkwinkel_1", 0),        # Steering angle sign
+      ("Steering_Angle", "EPS_1", 0),             # Absolute steering angle
+      ("Steering_Angle_Sign", "EPS_1", 0),        # Steering angle sign
       ("Lenkradwinkel_Geschwindigkeit", "Lenkwinkel_1", 0), # Absolute steering rate
       ("Lenkradwinkel_Geschwindigkeit_S", "Lenkwinkel_1", 0), # Steering rate sign
       ("Radgeschw__VL_4_1", "Bremse_3", 0),             # ABS wheel speed, front left
@@ -345,7 +345,7 @@ class CarState():
 
     # Update steering angle, rate, yaw rate, and driver input torque. VW send
     # the sign/direction in a separate signal so they must be recombined.
-    self.steeringAngle = gw_cp.vl["Lenkwinkel_1"]['Lenkradwinkel'] * (1,-1)[int(gw_cp.vl["Lenkwinkel_1"]['Lenkradwinkel_Sign'])]
+    self.steeringAngle = gw_cp.vl["EPS_1"]['Steering_Angle'] * (1,-1)[int(gw_cp.vl["EPS_1"]['Steering_Angle'])]
     self.steeringRate = gw_cp.vl["Lenkwinkel_1"]['Lenkradwinkel_Geschwindigkeit'] * (1,-1)[int(gw_cp.vl["Lenkwinkel_1"]['Lenkradwinkel_Geschwindigkeit_S'])]
     self.steeringTorque = gw_cp.vl["EPS_1"]['Driver_Torque'] * (1,-1)[int(gw_cp.vl["EPS_1"]['Driver_Torque_Sign'])]
     self.steeringPressed = abs(self.steeringTorque) > CarControllerParams.STEER_DRIVER_ALLOWANCE

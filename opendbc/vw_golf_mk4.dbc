@@ -1046,7 +1046,7 @@ BO_ 208 EPS_1: 8 XXX
  SG_ Counter2 : 12|4@4+ (1,0) [0|15] "" XXX
  SG_ Driver_Torque : 16|10@1+ (1,0) [0|1023] "" XXX
  SG_ Driver_Torque_Sign : 26|1@1+ (1,0) [0|1] "" XXX
- SG_ Steering_Angle : 32|12@1+ (1,0) [0|4095] "" XXX
+ SG_ Steering_Angle : 32|12@1+ (0.15,0) [0|615] "" XXX
  SG_ Steering_Angle_Sign : 44|1@1+ (1,0) [0|1] "" XXX
 
 BO_ 210 PQ_HCA: 5 XXX
