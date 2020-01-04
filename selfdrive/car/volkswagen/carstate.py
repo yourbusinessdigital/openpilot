@@ -345,7 +345,7 @@ class CarState():
 
     # Update steering angle, rate, yaw rate, and driver input torque. VW send
     # the sign/direction in a separate signal so they must be recombined.
-    self.steeringAngle = gw_cp.vl["EPS_1"]['Steering_Angle'] * (1,-1)[int(gw_cp.vl["EPS_1"]['Steering_Angle'])]
+    self.steeringAngle = gw_cp.vl["EPS_1"]['Steering_Angle'] * (1,-1)[int(gw_cp.vl["EPS_1"]['Steering_Angle_Sign'])]
     self.steeringRate = gw_cp.vl["Lenkwinkel_1"]['Lenkradwinkel_Geschwindigkeit'] * (1,-1)[int(gw_cp.vl["Lenkwinkel_1"]['Lenkradwinkel_Geschwindigkeit_S'])]
     self.steeringTorque = gw_cp.vl["EPS_1"]['Driver_Torque'] * (1,-1)[int(gw_cp.vl["EPS_1"]['Driver_Torque_Sign'])]
     self.steeringPressed = abs(self.steeringTorque) > CarControllerParams.STEER_DRIVER_ALLOWANCE
