@@ -29,7 +29,7 @@ def get_mqb_pt_can_parser(CP, canbus):
     ("ZV_HD_offen", "Gateway_72", 0),             # Trunk or hatch open
     ("BH_Blinker_li", "Gateway_72", 0),           # Left turn signal on
     ("BH_Blinker_re", "Gateway_72", 0),           # Right turn signal on
-    ("GE_Fahrstufe", "Getriebe_11", 0),           # Auto trans gear selector position
+    #("GE_Fahrstufe", "Getriebe_11", 0),           # Auto trans gear selector position
     ("AB_Gurtschloss_FA", "Airbag_02", 0),        # Seatbelt status, driver
     ("AB_Gurtschloss_BF", "Airbag_02", 0),        # Seatbelt status, passenger
     ("ESP_Fahrer_bremst", "ESP_05", 0),           # Brake pedal pressed
@@ -67,7 +67,7 @@ def get_mqb_pt_can_parser(CP, canbus):
     ("ESP_21", 50),       # From J104 ABS/ESP controller
     ("Motor_20", 50),     # From J623 Engine control module
     ("GRA_ACC_01", 33),   # From J??? steering wheel control buttons
-    ("Getriebe_11", 20),  # From J743 Auto transmission control module
+    #("Getriebe_11", 20),  # From J743 Auto transmission control module
     ("Gateway_72", 10),   # From J533 CAN gateway (aggregated data)
     ("Motor_14", 10),     # From J623 Engine control module
     ("Airbag_02", 5),     # From J234 Airbag control module
@@ -110,7 +110,7 @@ class CarState():
     self.car_fingerprint = CP.carFingerprint
     self.can_define = CANDefine(DBC[CP.carFingerprint]['pt'])
 
-    self.shifter_values = self.can_define.dv["Getriebe_11"]['GE_Fahrstufe']
+    #self.shifter_values = self.can_define.dv["Getriebe_11"]['GE_Fahrstufe']
 
     self.buttonStates = BUTTON_STATES.copy()
 
@@ -149,9 +149,10 @@ class CarState():
     self.brakePressed = bool(pt_cp.vl["ESP_05"]['ESP_Fahrer_bremst'])
     self.brakeLights = bool(pt_cp.vl["ESP_05"]['ESP_Status_Bremsdruck'])
 
-    # Update gear and/or clutch position data.
-    can_gear_shifter = int(pt_cp.vl["Getriebe_11"]['GE_Fahrstufe'])
-    self.gearShifter = parse_gear_shifter(self.shifter_values.get(can_gear_shifter, None))
+    # FIXME: Temp hack for e-Golf and manual trans support
+    # can_gear_shifter = int(pt_cp.vl["Getriebe_11"]['GE_Fahrstufe'])
+    # self.gearShifter = parse_gear_shifter(can_gear_shifter, self.shifter_values)
+    self.gearShifter = GEAR.drive
 
     # Update door and trunk/hatch lid open status.
     self.doorOpen = any([pt_cp.vl["Gateway_72"]['ZV_FT_offen'],
