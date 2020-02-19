@@ -1040,6 +1040,15 @@ BO_ 1324 ADR_1: 8 XXX
  SG_ Zaehler_ADR_1 : 8|4@1+ (1,0) [0|15] "" XXX
  SG_ Momentenanforderung_ADR : 0|8@1+ (0.39,0) [0|99] "MDI" XXX
 
+BO_ 208 EPS_1: 8 XXX
+ SG_ Checksum : 0|8@1+ (1,0) [0|255] "" XXX
+ SG_ Counter1 : 8|4@1+ (1,0) [0|15] "" XXX
+ SG_ Counter2 : 12|4@4+ (1,0) [0|15] "" XXX
+ SG_ Driver_Torque : 16|10@1+ (1,0) [0|1023] "" XXX
+ SG_ Driver_Torque_Sign : 26|1@1+ (1,0) [0|1] "" XXX
+ SG_ Steering_Angle : 32|12@1+ (0.15,0) [0|615] "" XXX
+ SG_ Steering_Angle_Sign : 44|1@1+ (1,0) [0|1] "" XXX
+
 BO_ 210 PQ_HCA: 5 XXX
  SG_ PQ_HCA_CHECKSUM : 0|8@1+ (1,0) [0|15] "" XXX
  SG_ PQ_HCA_COUNTER : 8|4@1+ (1,0) [0|15] "" XXX
@@ -1070,42 +1079,6 @@ BO_ 1470 LDW_1: 8 XXX
  SG_ XX_LDW_Maybe_Warning : 16|1@0+ (1,0) [0|1] "" XXX
  SG_ XX_DLCORTLC1 : 24|8@1+ (1,0) [0|255] "" XXX
  SG_ XX_DLCORTLC2 : 32|8@1+ (1,0) [0|255] "" XXX
-
-BO_ 208 Lenkhilfe_3: 8 XXX
- SG_ LH3_Checksumme : 0|8@1+ (1,0) [0|255] "" XXX
- SG_ LH3_BS_Spiegel : 8|4@1+ (1,0) [0|15] "" XXX
- SG_ LH3_Zaehler : 12|4@4+ (1,0) [0|15] "" XXX
- SG_ LH3_LM : 16|10@1+ (1,0) [0|1023] "" XXX
- SG_ LH3_LMSign : 26|1@1+ (1,0) [0|1] "" XXX
- SG_ LH3_LMValid : 27|1@1+ (1,0) [0|1] "" XXX
- SG_ LH3_Sta_DSR : 28|4@1+ (1,0) [0|15] "" XXX
- SG_ LH3_BLW : 32|12@1+ (1,0) [0|4095] "" XXX
- SG_ LH3_BLWSign : 44|1@1+ (1,0) [0|1] "" XXX
- SG_ LH3_BLWValid : 45|1@1+ (1,0) [0|1] "" XXX
- SG_ LH3_Lenkungstyp : 46|2@1+ (1,0) [0|3] "" XXX
-
- SG_ Steering_Angle : 32|12@1+ (0.15,0) [0|615] "" XXX
- SG_ Steering_Angle_Sign : 44|1@1+ (1,0) [0|1] "" XXX
-
-BO_ 978 Lenkhilfe_2: 8 XXX
- SG_ LH2_Checksumme : 0|8@1+ (1,0) [0|255] "" XXX
- SG_ LH2_Zaehler : 8|4@1+ (1,0) [0|15] "" XXX
- SG_ LH2_Geradeaus : 12|1@1+ (1,0) [0|1] "" XXX
- SG_ LH2_Sta_Charisma : 13|3@1+ (1,0) [0|7] "" XXX
- SG_ LH2_Sta_HCA : 16|4@1+ (1,0) [0|15] "" XXX
- SG_ LH2_Ausg_LW1 : 20|1@1+ (1,0) [0|1] "" XXX
- SG_ LH2_Ausg_LW1_gue : 21|1@1+ (1,0) [0|1] "" XXX
- SG_ LH2_StatEPS_PLA : 24|4@1+ (1,0) [0|15] "" XXX
- SG_ LH2_aktLenkeingriff : 32|8@1+ (1,0) [0|255] "" XXX
- SG_ LH2_PLA_Err : 48|4@1+ (1,0) [0|15] "" XXX
- SG_ LH2_PLA_Abbr: 52|4@1+ (1,0) [0|15] "" XXX
-
-
-
-
- SG_ Rack_Healthy : 32|1@0+ (1,0) [0|1] "" XXX
- SG_ XXHCA_Various_States : 31|8@0+ (1,0) [0|255] "" XXX
- SG_ NEW_SIGNAL_1 : 16|4@1+ (1,0) [0|15] "" XXX
 
 CM_ SG_ 210 LM_Offset "Actually centiNewton-meters for ease of calculation without FP math in Panda";
 CM_ SG_ 210 Vib_Amp "Steering wheel haptic, amplitude";
