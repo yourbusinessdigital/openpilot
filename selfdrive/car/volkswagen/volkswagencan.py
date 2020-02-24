@@ -1,5 +1,8 @@
-# CAN controls for MQB platform Volkswagen, Audi, Skoda and SEAT.
-# PQ35/PQ46/NMS, and any future MLB, to come later.
+# ----------------------------------------------------------------------- #
+#                                                                         #
+# CAN message packing for MQB vehicles                                    #
+#                                                                         #
+# ----------------------------------------------------------------------- #
 
 def create_mqb_steering_control(packer, bus, apply_steer, idx, lkas_enabled):
   values = {
@@ -16,7 +19,6 @@ def create_mqb_steering_control(packer, bus, apply_steer, idx, lkas_enabled):
   return packer.make_can_msg("HCA_01", bus, values, idx)
 
 def create_mqb_hud_control(packer, bus, hca_enabled, steering_pressed, hud_alert, leftLaneVisible, rightLaneVisible):
-
   if hca_enabled:
     leftlanehud = 3 if leftLaneVisible else 1
     rightlanehud = 3 if rightLaneVisible else 1
@@ -25,7 +27,7 @@ def create_mqb_hud_control(packer, bus, hca_enabled, steering_pressed, hud_alert
     rightlanehud = 2 if rightLaneVisible else 1
 
   values = {
-    "LDW_Unknown": 2, # FIXME: possible speed or attention relationship
+    "LDW_Unknown": 2,  # FIXME: possible speed or attention relationship
     "Kombi_Lamp_Orange": 1 if hca_enabled and steering_pressed else 0,
     "Kombi_Lamp_Green": 1 if hca_enabled and not steering_pressed else 0,
     "Left_Lane_Status": leftlanehud,
@@ -50,3 +52,44 @@ def create_mqb_acc_buttons_control(packer, bus, buttonStatesToSend, CS, idx):
   }
 
   return packer.make_can_msg("GRA_ACC_01", bus, values, idx)
+
+# ----------------------------------------------------------------------- #
+#                                                                         #
+# CAN message packing for PQ35/PQ46/NMS vehicles                          #
+#                                                                         #
+# ----------------------------------------------------------------------- #
+
+def create_pq_steering_control(packer, bus, apply_steer, idx, lkas_enabled):
+  values = {
+    "HC1_Zaehler": idx,
+    "HC1_LM_Offset": abs(apply_steer),
+    "HC1_LM_Offset_Sign": 1 if apply_steer < 0 else 0,
+    "HC1_Sta_HCA": 5 if (lkas_enabled and apply_steer != 0) else 3,
+    "HC1_Frequenz": 16,
+    "HC1_Amplitude": 0
+  }
+
+  dat = packer.make_can_msg("HCA_1", bus, values)[2]
+  values["HC1_Checksumme"] = dat[1] ^ dat[2] ^ dat[3] ^ dat[4]
+  return packer.make_can_msg("HCA_1", bus, values)
+
+def create_pq_hud_control(packer, bus, hca_enabled, steering_pressed, hud_alert, leftLaneVisible, rightLaneVisible):
+  if hca_enabled:
+    leftlanehud = 3 if leftLaneVisible else 1
+    rightlanehud = 3 if rightLaneVisible else 1
+  else:
+    leftlanehud = 2 if leftLaneVisible else 1
+    rightlanehud = 2 if rightLaneVisible else 1
+
+  values = {
+    "LDW_Spurlampe_links": leftlanehud,
+    "LDW_Spurlampe_rechts": rightlanehud,
+    "LDW_Lernmodus": 2 if hca_enabled else 1,
+    "LDW_Kameratyp": 1,
+    "LDW_Lampe_gelb": 1 if hca_enabled and steering_pressed else 0,
+    "LDW_Lampe_gruen": 1 if hca_enabled and not steering_pressed else 0,
+  }
+  return packer.make_can_msg("LDW_Status", bus, values)
+
+def create_pq_acc_buttons_control(packer, bus, buttonStatesToSend, CS, idx):
+  pass

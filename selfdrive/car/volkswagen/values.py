@@ -18,6 +18,10 @@ class CarControllerParams:
   STEER_DRIVER_MULTIPLIER = 3    # weight driver torque heavily
   STEER_DRIVER_FACTOR = 1        # from dbc
 
+class NETWORK_MODEL:
+  MQB = 0
+  PQ = 1
+
 class CANBUS:
   pt = 0
   cam = 2

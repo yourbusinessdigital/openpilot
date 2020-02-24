@@ -1,7 +1,7 @@
 from cereal import car
 from selfdrive.config import Conversions as CV
 from selfdrive.controls.lib.drive_helpers import create_event, EventTypes as ET
-from selfdrive.car.volkswagen.values import CAR, BUTTON_STATES
+from selfdrive.car.volkswagen.values import CAR, NETWORK_MODEL, BUTTON_STATES
 from common.params import Params
 from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, gen_empty_fingerprint
 from selfdrive.car.interfaces import CarInterfaceBase
@@ -27,6 +27,7 @@ class CarInterface(CarInterfaceBase):
       # Set common MQB parameters that will apply globally
       ret.carName = "volkswagen"
       ret.radarOffCan = True
+      ret.networkModel = NETWORK_MODEL.MQB
       ret.safetyModel = car.CarParams.SafetyModel.volkswagen
 
       # Additional common MQB parameters that may be overridden per-vehicle
@@ -84,7 +85,7 @@ class CarInterface(CarInterfaceBase):
     self.cp.update_strings(can_strings)
     self.cp_cam.update_strings(can_strings)
 
-    ret = self.CS.update(self.cp)
+    ret = self.CS.update(self.cp, self.cp_cam)
     ret.canValid = self.cp.can_valid and self.cp_cam.can_valid
     ret.steeringRateLimited = self.CC.steer_rate_limited if self.CC is not None else False
 
