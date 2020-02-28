@@ -267,10 +267,8 @@ class CarState(CarStateBase):
         ("ESP_19", 100),      # From J104 ABS/ESP controller
         ("ESP_05", 50),       # From J104 ABS/ESP controller
         ("ESP_21", 50),       # From J104 ABS/ESP controller
-        ("ACC_06", 50),       # From J428 ACC radar control module
         ("Motor_20", 50),     # From J623 Engine control module
         ("GRA_ACC_01", 33),   # From J??? steering wheel control buttons
-        ("ACC_02", 17),       # From J428 ACC radar control module
         ("Getriebe_11", 20),  # From J743 Auto transmission control module
         ("Gateway_72", 10),   # From J533 CAN gateway (aggregated data)
         ("Motor_14", 10),     # From J623 Engine control module
