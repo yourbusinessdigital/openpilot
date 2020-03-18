@@ -1,5 +1,7 @@
-Version 0.7.2 + VW 1.2.1 (2020-03-05)
+Version 0.7.2 + VW 1.2.1 (2020-03-17)
 ========================
+ * (VW Community) Temporary R242 specific Community branch
+ * (VW Community) Hotfix for BP/C2 forwarding duplicate traffic
  * (VW Community) Hotfix for "no comms between process" on cars without factory LKAS
  * (VW Community) Hotfix for occasional steering fault messages after engaging
 
