@@ -186,9 +186,9 @@ class CarState():
 
     # Update ACC setpoint. When the setpoint is zero or there's an error, the
     # radar sends a set-speed of ~90.69 m/s / 203mph.
-    self.accSetSpeed = cam_cp.vl["ACC_02"]['SetSpeed']
+    self.accSetSpeed = pt_cp.vl["ACC_02"]['SetSpeed']
     if self.accSetSpeed > 90: self.accSetSpeed = 0
-    self.accStandstill = bool(cam_cp.vl["ACC_06"]['ACC_Anhalten'])
+    self.accStandstill = bool(pt_cp.vl["ACC_06"]['ACC_Anhalten'])
 
     # Update control button states for turn signals and ACC controls.
     self.buttonStates["leftBlinker"] = bool(pt_cp.vl["Gateway_72"]['BH_Blinker_li'])
