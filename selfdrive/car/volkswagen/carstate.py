@@ -57,6 +57,8 @@ def get_mqb_pt_can_parser(CP, canbus):
     ("GRA_ButtonTypeInfo", "GRA_ACC_01", 0),      # unknown related to stalk type
     ("GRA_Typ468", "GRA_ACC_01", 0),              # Set/Resume button behavior as overloaded coast/accel??
     ("COUNTER", "GRA_ACC_01", 0),                 # GRA_ACC_01 CAN message counter
+    ("ACC_Anhalten", "ACC_06", 0),                # ACC standstill flag
+    ("SetSpeed", "ACC_02", 0),                    # ACC set speed
   ]
 
   checks = [
@@ -68,8 +70,10 @@ def get_mqb_pt_can_parser(CP, canbus):
     ("ESP_21", 50),       # From J104 ABS/ESP controller
     ("Motor_20", 50),     # From J623 Engine control module
     ("TSK_06", 50),       # From J623 Engine control module
+    ("ACC_06", 50),       # From J428 ACC radar control module
     ("GRA_ACC_01", 33),   # From J??? steering wheel control buttons
     #("Getriebe_11", 20),  # From J743 Auto transmission control module
+    ("ACC_02", 17),       # From J428 ACC radar control module
     ("Gateway_72", 10),   # From J533 CAN gateway (aggregated data)
     ("Motor_14", 10),     # From J623 Engine control module
     ("Airbag_02", 5),     # From J234 Airbag control module
@@ -85,16 +89,10 @@ def get_mqb_cam_can_parser(CP, canbus):
   signals = [
     # sig_name, sig_address, default
     ("Kombi_Lamp_Green", "LDW_02", 0),            # Lane Assist status LED
-    ("ACC_Status_ACC", "ACC_06", 0),              # ACC engagement status
-    ("ACC_Typ", "ACC_06", 0),                     # ACC type (follow to stop, stop&go)
-    ("ACC_Anhalten", "ACC_06", 0),                # ACC standstill flag
-    ("SetSpeed", "ACC_02", 0),                    # ACC set speed
   ]
 
   checks = [
     # sig_address, frequency
-    ("ACC_06", 50),       # From J428 ACC radar control module
-    ("ACC_02", 17),       # From J428 ACC radar control module
     ("LDW_02", 10)        # From R242 Driver assistance camera
   ]
 
