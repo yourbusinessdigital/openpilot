@@ -178,7 +178,7 @@ class CarState(CarStateBase):
 
     # Additional safety checks performed in CarInterface.
     self.parkingBrakeSet = bool(pt_cp.vl["Kombi_1"]['Bremsinfo'])  # FIXME: need to include an EPB check as well
-    ret.espDisabled = pt_cp.vl["Bremse_1"]['ESP_Passiv_getastet']
+    ret.espDisabled = bool(pt_cp.vl["Bremse_1"]['ESP_Passiv_getastet'])
 
     # Update gear and/or clutch position data.
     if trans_type == TRANS.automatic:
