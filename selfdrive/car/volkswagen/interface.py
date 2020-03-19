@@ -53,9 +53,9 @@ class CarInterface(CarInterfaceBase):
         # No trans message at all, must be a true stick-shift manual
         ret.transmissionType = TRANS.manual
 
-    if candidate == CAR.GENERICPQ:
+    elif candidate == CAR.GENERICPQ:
       ret.carName = "volkswagenpq"
-      ret.safetyModel = car.CarParams.SafetyModel.volkswagenpq
+      ret.safetyModel = car.CarParams.SafetyModel.volkswagenPq
 
       # FIXME: Defaulting to VW Golf Mk5 as a baseline.
       # Until that time, defaulting to VW Golf Mk5 as a baseline.
