@@ -4,20 +4,34 @@ from selfdrive.config import Conversions as CV
 from selfdrive.car.interfaces import CarStateBase
 from opendbc.can.parser import CANParser
 from opendbc.can.can_define import CANDefine
-from selfdrive.car.volkswagen.values import DBC, CANBUS, NWL, TRANS, BUTTON_STATES, CarControllerParams
+from selfdrive.car.volkswagen.values import DBC, CANBUS, NWL, TRANS, GEAR, BUTTON_STATES, CarControllerParams
 
 
 class CarState(CarStateBase):
   def __init__(self, CP):
     super().__init__(CP)
     can_define = CANDefine(DBC[CP.carFingerprint]['pt'])
-    if CP.transmissionType == TRANS.automatic:
-      self.shifter_values = can_define.dv["Getriebe_11"]['GE_Fahrstufe']
-    elif CP.transmissionType == TRANS.direct:
-      self.shifter_values = can_define.dv["EV_Gearshift"]['GearPosition']
+
+    if CP.safetyModel == car.CarParams.SafetyModel.volkswagen:
+      # Configure for MQB network messaging
+      self.get_can_parser = self.get_mqb_can_parser
+      self.get_cam_can_parser = self.get_mqb_cam_can_parser
+      self.update = self.update_mqb
+      if CP.transmissionType == TRANS.automatic:
+        self.shifter_values = can_define.dv["Getriebe_11"]['GE_Fahrstufe']
+      elif CP.transmissionType == TRANS.direct:
+        self.shifter_values = can_define.dv["EV_Gearshift"]['GearPosition']
+    elif CP.safetyModel == car.CarParams.SafetyModel.volkswagenPq:
+      # Configure for PQ35/PQ46/NMS network messaging
+      self.get_can_parser = self.get_pq_can_parser
+      self.get_cam_can_parser = self.get_pq_cam_can_parser
+      self.update = self.update_pq
+      if CP.transmissionType == TRANS.automatic:
+        self.shifter_values = can_define.dv["Getriebe_1"]['Waehlhebelposition__Getriebe_1_']
+
     self.buttonStates = BUTTON_STATES.copy()
 
-  def update(self, pt_cp, cam_cp, acc_cp, trans_type):
+  def update_mqb(self, pt_cp, cam_cp, acc_cp, trans_type):
     ret = car.CarState.new_message()
     # Update vehicle speed and acceleration from ABS wheel speeds.
     ret.wheelSpeeds.fl = pt_cp.vl["ESP_19"]['ESP_VL_Radgeschw_02'] * CV.KPH_TO_MS
@@ -134,9 +148,107 @@ class CarState(CarStateBase):
 
     return ret
 
+  def update_pq(self, pt_cp, cam_cp, acc_cp, trans_type):
+    ret = car.CarState.new_message()
+    # Update vehicle speed and acceleration from ABS wheel speeds.
+    ret.wheelSpeeds.fl = pt_cp.vl["Bremse_3"]['Radgeschw__VL_4_1'] * CV.KPH_TO_MS
+    ret.wheelSpeeds.fr = pt_cp.vl["Bremse_3"]['Radgeschw__VR_4_1'] * CV.KPH_TO_MS
+    ret.wheelSpeeds.rl = pt_cp.vl["Bremse_3"]['Radgeschw__HL_4_1'] * CV.KPH_TO_MS
+    ret.wheelSpeeds.rr = pt_cp.vl["Bremse_3"]['Radgeschw__HR_4_1'] * CV.KPH_TO_MS
+
+    ret.vEgoRaw = float(np.mean([ret.wheelSpeeds.fl, ret.wheelSpeeds.fr, ret.wheelSpeeds.rl, ret.wheelSpeeds.rr]))
+    ret.vEgo, ret.aEgo = self.update_speed_kf(ret.vEgoRaw)
+
+    ret.standstill = ret.vEgoRaw < 0.1
+
+    # Update steering angle, rate, yaw rate, and driver input torque. VW send
+    # the sign/direction in a separate signal so they must be recombined.
+    ret.steeringAngle = pt_cp.vl["Lenkhilfe_3"]['LH3_BLW'] * (1, -1)[int(pt_cp.vl["Lenkhilfe_3"]['LH3_BLWSign'])]
+    ret.steeringRate = pt_cp.vl["Lenkwinkel_1"]['Lenkradwinkel_Geschwindigkeit'] * (1, -1)[int(pt_cp.vl["Lenkwinkel_1"]['Lenkradwinkel_Geschwindigkeit_S'])]
+    ret.steeringTorque = pt_cp.vl["Lenkhilfe_3"]['LH3_LM'] * (1, -1)[int(pt_cp.vl["Lenkhilfe_3"]['LH3_LMSign'])]
+    ret.steeringPressed = abs(ret.steeringTorque) > CarControllerParams.STEER_DRIVER_ALLOWANCE
+    ret.yawRate = pt_cp.vl["Bremse_5"]['Giergeschwindigkeit'] * (1, -1)[int(pt_cp.vl["Bremse_5"]['Vorzeichen_der_Giergeschwindigk'])] * CV.DEG_TO_RAD
+
+    # Update gas, brakes, and gearshift.
+    ret.gas = pt_cp.vl["Motor_1"]['Fahrpedalwert_oder_Drosselklapp'] / 100.0
+    ret.gasPressed = ret.gas > 0
+    ret.brake = pt_cp.vl["Bremse_5"]['Bremsdruck'] / 250.0  # FIXME: this is pressure in Bar, not sure what OP expects
+    ret.brakePressed = bool(pt_cp.vl["Motor_2"]['Bremstestschalter'])
+    ret.brakeLights = bool(pt_cp.vl["Motor_2"]['Bremslichtschalter'])
+
+    # Additional safety checks performed in CarInterface.
+    self.parkingBrakeSet = bool(pt_cp.vl["Kombi_1"]['Bremsinfo'])  # FIXME: need to include an EPB check as well
+    ret.espDisabled = pt_cp.vl["Bremse_1"]['ESP_Passiv_getastet']
+
+    # Update gear and/or clutch position data.
+    if trans_type == TRANS.automatic:
+      ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(pt_cp.vl["Getriebe_1"]['Waehlhebelposition__Getriebe_1_'], None))
+    elif trans_type == TRANS.manual:
+      ret.clutchPressed = not pt_cp.vl["Motor_1"]['Kupplungsschalter']
+      reverse_light = bool(pt_cp.vl["Gateway_Komfort_1"]['Rueckfahrlicht_Gateway'])
+      # TODO: verify this synthesis has the desired behavior.
+      # In particular, should we neutral disengage during normal gear changes?
+      # Also, what happens if we're rolling backwards with the clutch pressed
+      # in a gear other than reverse?
+      if reverse_light:
+        ret.gearShifter = GEAR.reverse
+      elif ret.standstill and self.parkingBrakeSet:
+        ret.gearShifter = GEAR.park
+      elif ret.clutchPressed:
+        ret.gearShifter = GEAR.neutral
+      else:
+        ret.gearShifter = GEAR.drive
+
+    # Update door and trunk/hatch lid open status.
+    # TODO: need to locate signals for other three doors if possible
+    ret.doorOpen = bool(pt_cp.vl["Gateway_Komfort_1"]['Fahrertuerkontakt'])
+
+    # Update seatbelt fastened status.
+    ret.seatbeltUnlatched = not bool(pt_cp.vl["Airbag_1"]["Gurtschalter_Fahrer"])
+
+    # Update driver preference for metric. VW stores many different unit
+    # preferences, including separate units for for distance vs. speed.
+    # We use the speed preference for OP.
+    self.displayMetricUnits = not pt_cp.vl["Einheiten_1"]["MFA_v_Einheit_02"]
+
+    # Update ACC radar status.
+    # FIXME: This is unfinished and not fully correct, need to improve further
+    ret.cruiseState.available = bool(pt_cp.vl["GRA_neu"]['Hauptschalter'])
+    ret.cruiseState.enabled = True if pt_cp.vl["Motor_2"]['GRA_Status'] in [1, 2] else False
+
+    # Update ACC setpoint. When the setpoint reads as 255, the driver has not
+    # yet established an ACC setpoint, so treat it as zero.
+    ret.cruiseState.speed = acc_cp.vl["ACC_GRA_Anziege"]['ACA_V_Wunsch']
+    if ret.cruiseState.speed == 255:
+      ret.cruiseState.speed = 0
+
+    # Update control button states for turn signals and ACC controls.
+    self.buttonStates["accelCruise"] = bool(pt_cp.vl["GRA_neu"]['Kurz_Tip_up']) or bool(pt_cp.vl["GRA_neu"]['Lang_Tip_up'])
+    self.buttonStates["decelCruise"] = bool(pt_cp.vl["GRA_neu"]['Kurz_Tip_down']) or bool(pt_cp.vl["GRA_neu"]['Lang_Tip_down'])
+    self.buttonStates["cancel"] = bool(pt_cp.vl["GRA_neu"]['Abbrechen'])
+    self.buttonStates["setCruise"] = bool(pt_cp.vl["GRA_neu"]['Setzen'])
+    self.buttonStates["resumeCruise"] = bool(pt_cp.vl["GRA_neu"]['Wiederaufnahme'])
+    self.buttonStates["gapAdjustCruise"] = bool(pt_cp.vl["GRA_neu"]['Zeitlueckenverstellung'])
+
+    # Read ACC hardware button type configuration info that has to pass thru
+    # to the radar. Ends up being different for steering wheel buttons vs
+    # third stalk type controls.
+    # TODO: Check to see what info we need to passthru and spoof on PQ
+    self.graHauptschalter = pt_cp.vl["GRA_neu"]['Hauptschalter']
+    self.graTypHauptschalter = False
+    self.graButtonTypeInfo = False
+    self.graTipStufe2 = False
+    # Pick up the GRA_ACC_01 CAN message counter so we can sync to it for
+    # later cruise-control button spamming.
+    # FIXME: will need msg counter and checksum algo to spoof GRA_neu
+    self.graMsgBusCounter = 0
+
+    # Check to make sure the electric power steering rack is configured to
+    # accept and respond to HCA_01 messages and has not encountered a fault.
+    self.steeringFault = pt_cp.vl["Lenkhilfe_2"]['LH2_Sta_HCA'] not in [3, 5]
+
   @staticmethod
-  def get_can_parser(CP):
-    # this function generates lists for signal, messages and initial values
+  def get_mqb_can_parser(CP):
     signals = [
       # sig_name, sig_address, default
       ("LWI_Lenkradwinkel", "LWI_01", 0),           # Absolute steering angle
@@ -214,25 +326,104 @@ class CarState(CarStateBase):
       # The ACC radar is here on CANBUS.pt
       signals += [("SetSpeed", "ACC_02", 0)]  # ACC set speed
       checks += [("ACC_02", 17)]  # From J428 ACC radar control module
-
+    
     return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, CANBUS.pt)
 
   @staticmethod
-  def get_cam_can_parser(CP):
-
+  def get_pq_can_parser(CP):
     signals = [
       # sig_name, sig_address, default
-      ("Kombi_Lamp_Green", "LDW_02", 0),  # Lane Assist status LED
+      ("LH3_BLW", "Lenkhilfe_3", 0),                # Absolute steering angle
+      ("LH3_BLWSign", "Lenkhilfe_3", 0),            # Steering angle sign
+      ("LH3_LM", "Lenkhilfe_3", 0),                 # Absolute driver torque input
+      ("LH3_LMSign", "Lenkhilfe_3", 0),             # Driver torque input sign
+      ("LH2_Sta_HCA", "Lenkhilfe_2", 0),            # Steering rack HCA status
+      ("Lenkradwinkel_Geschwindigkeit", "Lenkwinkel_1", 0),  # Absolute steering rate
+      ("Lenkradwinkel_Geschwindigkeit_S", "Lenkwinkel_1", 0),  # Steering rate sign
+      ("Radgeschw__VL_4_1", "Bremse_3", 0),         # ABS wheel speed, front left
+      ("Radgeschw__VR_4_1", "Bremse_3", 0),         # ABS wheel speed, front right
+      ("Radgeschw__HL_4_1", "Bremse_3", 0),         # ABS wheel speed, rear left
+      ("Radgeschw__HR_4_1", "Bremse_3", 0),         # ABS wheel speed, rear right
+      ("Giergeschwindigkeit", "Bremse_5", 0),       # Absolute yaw rate
+      ("Vorzeichen_der_Giergeschwindigk", "Bremse_5", 0),  # Yaw rate sign
+      ("Fahrertuerkontakt", "Gateway_Komfort_1", 0),  # Door open, driver
+      # TODO: locate passenger and rear door states
+      ("Blinker_links_4_1", "Kombi_1", 0),          # Left turn signal on
+      ("Blinker_rechts_4_1", "Kombi_1", 0),         # Right turn signal on
+      ("Gurtschalter_Fahrer", "Airbag_1", 0),       # Seatbelt status, driver
+      ("Gurtschalter_Beifahrer", "Airbag_1", 0),    # Seatbelt status, passenger
+      ("Bremstestschalter", "Motor_2", 0),          # Brake pedal pressed (brake light test switch)
+      ("Bremslichtschalter", "Motor_2", 0),         # Brakes applied (brake light switch)
+      ("Bremsdruck", "Bremse_5", 0),                # Brake pressure applied
+      ("Vorzeichen_Bremsdruck", "Bremse_5", 0),     # Brake pressure applied sign (???)
+      ("Fahrpedalwert_oder_Drosselklapp", "Motor_1", 0),  # Accelerator pedal value
+      ("ESP_Passiv_getastet", "Bremse_1", 0),       # Stability control disabled
+      ("MFA_v_Einheit_02", "Einheiten_1", 0),       # MPH vs KMH speed display
+      ("Bremsinfo", "Kombi_1", 0),                  # Manual handbrake applied
+      ("GRA_Status", "Motor_2", 0),                 # ACC engagement status
+      ("Hauptschalter", "GRA_neu", 0),              # ACC button, on/off
+      ("Abbrechen", "GRA_neu", 0),                  # ACC button, cancel
+      ("Setzen", "GRA_neu", 0),                     # ACC button, set
+      ("Lang_Tip_up", "GRA_neu", 0),                # ACC button, increase or accel, long press
+      ("Lang_Tip_down", "GRA_neu", 0),              # ACC button, decrease or decel, long press
+      ("Kurz_Tip_up", "GRA_neu", 0),                # ACC button, increase or accel, short press
+      ("Kurz_Tip_down", "GRA_neu", 0),              # ACC button, decrease or decel, short press
+      ("Wiederaufnahme", "GRA_neu", 0),             # ACC button, resume
+      ("Zeitlueckenverstellung", "GRA_neu", 0),     # ACC button, time gap adj
     ]
 
     checks = [
       # sig_address, frequency
-      ("LDW_02", 10),  # From R242 Driver assistance camera
+      ("Bremse_3", 100),          # From J104 ABS/ESP controller
+      ("Lenkhilfe_3", 100),       # From J500 Steering Assist with integrated sensors
+      ("Lenkwinkel_1", 100),      # From J500 Steering Assist with integrated sensors
+      ("Motor_1", 100),           # From J623 Engine control module
+      ("Airbag_1", 50),           # From J234 Airbag control module
+      ("Bremse_5", 50),           # From J104 ABS/ESP controller
+      ("GRA_neu", 50),            # From J??? steering wheel control buttons
+      ("Kombi_1", 50),            # From J285 Instrument cluster
+      ("Motor_2", 50),            # From J623 Engine control module
+      ("Lenkhilfe_2", 20),        # From J500 Steering Assist with integrated sensors
+      ("Gateway_Komfort_1", 10),  # From J533 CAN gateway
+      ("Einheiten_1", 1),         # From J??? cluster or gateway
     ]
+
+    if CP.transmissionType == TRANS.automatic:
+      signals += [("Waehlhebelposition__Getriebe_1_", "Getriebe_1", 0)]  # Auto trans gear selector position
+      checks += [("Getriebe_1", 100)]  # From J743 Auto transmission control module
+    elif CP.transmissionType == TRANS.manual:
+      signals += [("Kupplungsschalter", "Motor_1", 0),  # Clutch switch
+                  ("Rueckfahrlicht_Gateway", "Gateway_Komfort_1", 0)]  # Reverse light from BCM
+
+    if CP.networkLocation == NWL.fwdCamera:
+      # The ACC radar is here on CANBUS.pt
+      signals += [("ACA_V_Wunsch", "ACC_GRA_Anziege", 0)]  # ACC set speed
+      checks += [("ACC_GRA_Anziege", 25)]  # From J428 ACC radar control module
+
+    return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, CANBUS.pt)
+
+  @staticmethod
+  def get_mqb_cam_can_parser(CP):
+    # TODO: Need to monitor LKAS camera, if present, for TLC/DLC/warning signals for passthru to SWA
+    signals = []
+    checks = []
 
     if CP.networkLocation == NWL.gateway:
       # The ACC radar is here on CANBUS.cam
       signals += [("SetSpeed", "ACC_02", 0)]  # ACC set speed
       checks += [("ACC_02", 17)]  # From J428 ACC radar control module
+
+    return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, CANBUS.cam)
+
+  @staticmethod
+  def get_pq_cam_can_parser(CP):
+    # TODO: Need to monitor LKAS camera, if present, for TLC/DLC/warning signals for passthru to SWA
+    signals = []
+    checks = []
+
+    if CP.networkLocation == NWL.gateway:
+      # The ACC radar is here on CANBUS.cam
+      signals += [("ACA_V_Wunsch", "ACC_GRA_Anziege", 0)]  # ACC set speed
+      checks += [("ACC_GRA_Anziege", 25)]  # From J428 ACC radar control module
 
     return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, CANBUS.cam)
