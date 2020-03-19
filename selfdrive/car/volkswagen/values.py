@@ -75,4 +75,5 @@ FINGERPRINTS = {
 
 DBC = {
   CAR.GENERICMQB: dbc_dict('vw_mqb_2010', None),
+  CAR.GENERICPQ: dbc_dict('vw_golf_mk4', None),
 }
