@@ -50,9 +50,7 @@ MQB_LDW_MESSAGES = {
 
 class CAR:
   GENERICMQB = "Generic Volkswagen MQB Platform Vehicle"
-  VW_GOLF_MK6 = "Volkswagen Golf 6th Gen"
-  VW_PASSAT_B6 = "Volkswagen Passat 6th Gen"
-  VW_SCIROCCO_MK3 = "Volkswagen Scirocco 3rd Gen"
+  GENERICPQ = "Generic Volkswagen PQ35/PQ46/NMS Platform Vehicle"
 
 # Mega-fingerprint used to identify any and all MQB platform vehicles. Specific
 # make and model characteristics are looked up from the VIN later.
@@ -70,33 +68,18 @@ FINGERPRINTS = {
      1438: 8, 1461: 8, 391: 8, 1511: 8, 1516: 8, 568: 8, 569: 8, 826: 8, 827: 8, 1156: 8, 1157: 8, 1158: 8, 1471: 8,
      1635: 8, 376: 8}],
 
-  CAR.VW_GOLF_MK6: [
+  CAR.GENERICPQ: [
     # Edgy, austinc3030
-    {80: 4, 194: 8, 208: 6, 416: 8, 428: 8, 640: 8, 648: 8, 800: 8, 896: 8, 906: 4, 912: 8, 914: 8, 928: 8, 978: 7,
-     1056: 8, 1088: 8, 1152: 8, 1184: 8, 1192: 8, 1312: 8, 1392: 5, 1394: 1, 1408: 8, 1420: 8, 1440: 8, 1488: 8,
-     1500: 8, 1550: 2, 1654: 2, 1658: 2, 1736: 2, 1824: 7, 2000: 8}],
-
-  CAR.VW_PASSAT_B6: [
-    # kamold
     {80: 4, 194: 8, 208: 6, 210: 5, 294: 8, 416: 8, 428: 8, 640: 8, 648: 8, 800: 8, 835: 3, 870: 8, 872: 8, 878: 8,
      896: 8, 906: 4, 912: 8, 914: 8, 919: 8, 928: 8, 978: 7, 1056: 8, 1088: 8, 1152: 8, 1175: 8, 1184: 8, 1192: 8,
      1312: 8, 1386: 8, 1392: 5, 1394: 1, 1408: 8, 1440: 8, 1463: 8, 1470: 5, 1472: 8, 1488: 8, 1490: 8, 1500: 8,
-     1550: 2, 1651: 3, 1652: 8, 1654: 2, 1658: 4, 1691: 3, 1736: 2, 1757: 8, 1824: 7, 1845: 7, 2000: 8}],
-
-  CAR.VW_SCIROCCO_MK3: [
-    # Roy_001
-    {80: 4, 194: 8, 208: 6, 210: 5, 416: 8, 428: 8, 640: 8, 648: 8, 800: 8, 835: 3, 870: 8, 872: 8, 878: 8, 896: 8,
-     906: 4, 912: 8, 914: 8, 928: 8, 954: 8, 978: 7, 1056: 8, 1088: 8, 1152: 8, 1184: 8, 1192: 8, 1312: 8, 1386: 8,
-     1392: 5, 1394: 1, 1408: 8, 1440: 8, 1470: 8, 1488: 8, 1500: 8, 1550: 2, 1626: 8, 1650: 3, 1651: 3, 1652: 8,
-     1654: 2, 1691: 4, 1736: 7, 1757: 3, 1824: 7, 1845: 7, 2000: 8}],
+     1550: 2, 1651: 3, 1652: 8, 1654: 2, 1658: 4, 1691: 3, 1736: 2, 1757: 8, 1824: 7, 1845: 7, 2000: 8, 1420: 8}],
 }
 
 MQB_CARS = [CAR.GENERICMQB]
-PQ_CARS = [CAR.VW_GOLF_MK6, CAR.VW_PASSAT_B6, CAR.VW_SCIROCCO_MK3]
+PQ_CARS = [CAR.GENERICPQ]
 
 DBC = {
   CAR.GENERICMQB: dbc_dict('vw_mqb_2010', None),
-  CAR.VW_GOLF_MK6: dbc_dict('vw_golf_mk4', None),
-  CAR.VW_PASSAT_B6: dbc_dict('vw_golf_mk4', None),
-  CAR.VW_SCIROCCO_MK3: dbc_dict('vw_golf_mk4', None),
+  CAR.GENERICPQ: dbc_dict('vw_golf_mk4', None),
 }

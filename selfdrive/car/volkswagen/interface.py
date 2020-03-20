@@ -79,21 +79,7 @@ class CarInterface(CarInterfaceBase):
       ret.steerRatio = 15.6
       tire_stiffness_factor = 1.0
 
-    elif candidate == CAR.VW_GOLF_MK6:
-      ret.mass = 1375 + STD_CARGO_KG  # Average, varies on trim/package
-      ret.wheelbase = 2.58
-      ret.centerToFront = ret.wheelbase * 0.45  # Estimated
-      ret.steerRatio = 15.6
-      tire_stiffness_factor = 1.0
-
-    elif candidate == CAR.VW_PASSAT_B6:
-      ret.mass = 1540 + STD_CARGO_KG  # Average, varies on trim/package
-      ret.wheelbase = 2.71
-      ret.centerToFront = ret.wheelbase * 0.45  # Estimated
-      ret.steerRatio = 15.6
-      tire_stiffness_factor = 1.0
-
-    elif candidate == CAR.VW_SCIROCCO_MK3:
+    elif candidate == CAR.GENERICPQ:
       ret.mass = 1375 + STD_CARGO_KG  # Average, varies on trim/package
       ret.wheelbase = 2.58
       ret.centerToFront = ret.wheelbase * 0.45  # Estimated
