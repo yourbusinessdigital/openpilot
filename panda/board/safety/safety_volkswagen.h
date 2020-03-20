@@ -33,8 +33,8 @@ const int VOLKSWAGEN_MQB_RX_CHECKS_LEN = sizeof(volkswagen_mqb_rx_checks) / size
 // Safety-relevant CAN messages for the Volkswagen PQ35/PQ46/NMS platforms
 #define MSG_LENKHILFE_3 0x0D0   // RX from EPS, for steering angle and driver steering torque
 #define MSG_HCA_1       0x0D2   // TX by OP, Heading Control Assist steering torque
-#define MSG_MOTOR_1     0x280   // RX from ECU, for driver throttle input
 #define MSG_MOTOR_2     0x288   // RX from ECU, for CC state and brake switch state
+#define MSG_MOTOR_3     0x380   // RX from ECU, for driver throttle input
 #define MSG_GRA_NEU     0x38A   // TX by OP, ACC control buttons for cancel/resume
 #define MSG_BREMSE_3    0x4A0   // RX from ABS, for wheel speeds
 #define MSG_LDW_1       0x5BE   // TX by OP, Lane line recognition and text alerts
@@ -45,8 +45,8 @@ const int VOLKSWAGEN_PQ_TX_MSGS_LEN = sizeof(VOLKSWAGEN_PQ_TX_MSGS) / sizeof(VOL
 
 AddrCheckStruct volkswagen_pq_rx_checks[] = {
   {.addr = {MSG_LENKHILFE_3}, .bus = 0, .check_checksum = true,  .max_counter = 15U, .expected_timestep = 10000U},
-  {.addr = {MSG_MOTOR_1},     .bus = 0, .check_checksum = false, .max_counter = 0U,  .expected_timestep = 10000U},
   {.addr = {MSG_MOTOR_2},     .bus = 0, .check_checksum = false, .max_counter = 0U,  .expected_timestep = 20000U},
+  {.addr = {MSG_MOTOR_3},     .bus = 0, .check_checksum = false, .max_counter = 0U,  .expected_timestep = 10000U},
   {.addr = {MSG_BREMSE_3},    .bus = 0, .check_checksum = false, .max_counter = 0U,  .expected_timestep = 10000U},
 };
 const int VOLKSWAGEN_PQ_RX_CHECKS_LEN = sizeof(volkswagen_pq_rx_checks) / sizeof(volkswagen_pq_rx_checks[0]);
@@ -242,9 +242,9 @@ static int volkswagen_pq_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
     }
 
     // Exit controls on rising edge of gas press
-    // Signal: Motor_1.Fahrpedalwert_oder_Drosselklapp
-    if ((bus == 0) && (addr == MSG_MOTOR_1)) {
-      int gas_pressed = (GET_BYTE(to_push, 5));
+    // Signal: Motor_3.Fahrpedal_Rohsignal
+    if ((bus == 0) && (addr == MSG_MOTOR_3)) {
+      int gas_pressed = (GET_BYTE(to_push, 2));
       if ((gas_pressed > 0) && (gas_pressed_prev == 0)) {
         controls_allowed = 0;
       }
