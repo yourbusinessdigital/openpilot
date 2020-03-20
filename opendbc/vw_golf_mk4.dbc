@@ -755,7 +755,6 @@ BO_ 912 Gate_Komf_1: 8 XXX
  SG_ LDS_Stellung_AFL : 62|1@1+ (1,0) [0|1] "" XXX
  SG_ GK1_SH_Zusatzfkt : 63|1@1+ (1,0) [0|1] "" XXX
 
-
 BO_ 1340 Fahrwerk_1: 1 XXX
  SG_ Frei_Fahrwerk_1_2 : 7|1@1+ (1,0) [0|0] "" XXX
  SG_ Frei_Fahrwerk_1_1 : 6|2@1+ (1,0) [0|0] "" XXX
