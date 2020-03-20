@@ -244,21 +244,21 @@ static int volkswagen_pq_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
     // Exit controls on rising edge of gas press
     // Signal: Motor_1.Fahrpedalwert_oder_Drosselklapp
     if ((bus == 0) && (addr == MSG_MOTOR_1)) {
-      int gas = (GET_BYTE(to_push, 5));
-      if ((gas > 0) && (volkswagen_gas_prev == 0)) {
+      int gas_pressed = (GET_BYTE(to_push, 5));
+      if ((gas_pressed > 0) && (gas_pressed_prev == 0)) {
         controls_allowed = 0;
       }
-      volkswagen_gas_prev = gas;
+      gas_pressed_prev = gas_pressed;
     }
 
     // Exit controls on rising edge of brake press
     // Signal: Motor_2.Bremslichtschalter
     if ((bus == 0) && (addr == MSG_MOTOR_2)) {
       bool brake_pressed = (GET_BYTE(to_push, 2) & 0x1);
-      if (brake_pressed && (!(volkswagen_brake_pressed_prev) || volkswagen_moving)) {
+      if (brake_pressed && (!(brake_pressed_prev) || volkswagen_moving)) {
         controls_allowed = 0;
       }
-      volkswagen_brake_pressed_prev = brake_pressed;
+      brake_pressed_prev = brake_pressed;
     }
 
     // If there are HCA messages on bus 0 not sent by OP, there's a relay problem
