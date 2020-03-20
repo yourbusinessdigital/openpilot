@@ -44,6 +44,8 @@ TIM_TypeDef *TIM2 = &timer;
 
 #define ALLOW_DEBUG
 
+bool board_has_relay(void);
+
 // from main_declarations.h
 uint8_t hw_type = HW_TYPE_UNKNOWN;
 
