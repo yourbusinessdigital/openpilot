@@ -93,6 +93,13 @@ class CarInterface(CarInterfaceBase):
       ret.steerRatio = 15.6
       tire_stiffness_factor = 1.0
 
+    elif candidate == CAR.VW_SCIROCCO_MK3:
+      ret.mass = 1375 + STD_CARGO_KG  # Average, varies on trim/package
+      ret.wheelbase = 2.58
+      ret.centerToFront = ret.wheelbase * 0.45  # Estimated
+      ret.steerRatio = 15.6
+      tire_stiffness_factor = 1.0
+
     # TODO: get actual value, for now starting with reasonable value for
     # civic and scaling by mass and wheelbase
     ret.rotationalInertia = scale_rot_inertia(ret.mass, ret.wheelbase)
