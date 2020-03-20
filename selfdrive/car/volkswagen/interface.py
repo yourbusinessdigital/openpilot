@@ -54,7 +54,7 @@ class CarInterface(CarInterfaceBase):
         ret.transmissionType = TRANS.manual
 
     elif candidate == CAR.GENERICPQ:
-      ret.carName = "volkswagenpq"
+      ret.carName = "volkswagen"
       ret.safetyModel = car.CarParams.SafetyModel.volkswagenPq
 
       # FIXME: Defaulting to VW Golf Mk5 as a baseline.
