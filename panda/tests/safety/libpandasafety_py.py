@@ -41,7 +41,6 @@ bool get_gas_pressed_prev(void);
 bool get_brake_pressed_prev(void);
 int get_hw_type(void);
 void set_timer(uint32_t t);
-bool board_has_relay(void);
 
 int safety_rx_hook(CAN_FIFOMailBox_TypeDef *to_send);
 int safety_tx_hook(CAN_FIFOMailBox_TypeDef *to_push);
