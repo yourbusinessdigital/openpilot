@@ -185,7 +185,7 @@ class CarState(CarStateBase):
       ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(pt_cp.vl["Getriebe_1"]['Waehlhebelposition__Getriebe_1_'], None))
     elif trans_type == TRANS.manual:
       ret.clutchPressed = not pt_cp.vl["Motor_1"]['Kupplungsschalter']
-      reverse_light = bool(pt_cp.vl["Gate_Komf_1"]['GK1_RueckfahrSch'])
+      reverse_light = bool(pt_cp.vl["Gate_Komf_1"]['GK1_Rueckfahr'])
       # TODO: verify this synthesis has the desired behavior.
       # In particular, should we neutral disengage during normal gear changes?
       # Also, what happens if we're rolling backwards with the clutch pressed
