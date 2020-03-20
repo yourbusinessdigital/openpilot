@@ -44,7 +44,9 @@ TIM_TypeDef *TIM2 = &timer;
 
 #define ALLOW_DEBUG
 
-bool board_has_relay(void);
+bool board_has_relay(void) {
+  return ((hw_type == HW_TYPE_BLACK_PANDA) || (hw_type == HW_TYPE_UNO));
+}
 
 // from main_declarations.h
 uint8_t hw_type = HW_TYPE_UNKNOWN;
