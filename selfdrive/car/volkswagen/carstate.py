@@ -185,7 +185,7 @@ class CarState(CarStateBase):
       ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(pt_cp.vl["Getriebe_1"]['Waehlhebelposition__Getriebe_1_'], None))
     elif trans_type == TRANS.manual:
       ret.clutchPressed = not pt_cp.vl["Motor_1"]['Kupplungsschalter']
-      reverse_light = bool(pt_cp.vl["Gateway_Komf_1"]['GK1_RueckfahrSch'])
+      reverse_light = bool(pt_cp.vl["Gate_Komf_1"]['GK1_RueckfahrSch'])
       # TODO: verify this synthesis has the desired behavior.
       # In particular, should we neutral disengage during normal gear changes?
       # Also, what happens if we're rolling backwards with the clutch pressed
@@ -201,7 +201,7 @@ class CarState(CarStateBase):
 
     # Update door and trunk/hatch lid open status.
     # TODO: need to locate signals for other three doors if possible
-    ret.doorOpen = bool(pt_cp.vl["Gateway_Komf_1"]['GK1_Fa_Tuerkont'])
+    ret.doorOpen = bool(pt_cp.vl["Gate_Komf_1"]['GK1_Fa_Tuerkont'])
 
     # Update seatbelt fastened status.
     ret.seatbeltUnlatched = not bool(pt_cp.vl["Airbag_1"]["Gurtschalter_Fahrer"])
@@ -350,7 +350,7 @@ class CarState(CarStateBase):
       ("Radgeschw__HR_4_1", "Bremse_3", 0),         # ABS wheel speed, rear right
       ("Giergeschwindigkeit", "Bremse_5", 0),       # Absolute yaw rate
       ("Vorzeichen_der_Giergeschwindigk", "Bremse_5", 0),  # Yaw rate sign
-      ("GK1_Fa_Tuerkont", "Gateway_Komf_1", 0),     # Door open, driver
+      ("GK1_Fa_Tuerkont", "Gate_Komf_1", 0),     # Door open, driver
       # TODO: locate passenger and rear door states
       ("GK1_Blinker_li", "Gate_Komf_1", 0),         # Left turn signal on
       ("GK1_Blinker_re", "Gate_Komf_1", 0),         # Right turn signal on
@@ -388,7 +388,7 @@ class CarState(CarStateBase):
       ("Kombi_1", 50),            # From J285 Instrument cluster
       ("Motor_2", 50),            # From J623 Engine control module
       ("Lenkhilfe_2", 20),        # From J500 Steering Assist with integrated sensors
-      ("Gateway_Komf_1", 10),     # From J533 CAN gateway
+      ("Gate_Komf_1", 10),     # From J533 CAN gateway
       ("Einheiten_1", 1),         # From J??? cluster or gateway
     ]
 
@@ -397,7 +397,7 @@ class CarState(CarStateBase):
       checks += [("Getriebe_1", 100)]  # From J743 Auto transmission control module
     elif CP.transmissionType == TRANS.manual:
       signals += [("Kupplungsschalter", "Motor_1", 0),  # Clutch switch
-                  ("GK1_Rueckfahr", "Gateway_Komf_1", 0)]  # Reverse light from BCM
+                  ("GK1_Rueckfahr", "Gate_Komf_1", 0)]  # Reverse light from BCM
       checks += [("Motor_1", 100)]  # From J623 Engine control module
 
     if CP.networkLocation == NWL.fwdCamera:
