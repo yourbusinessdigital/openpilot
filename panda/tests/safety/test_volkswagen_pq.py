@@ -123,7 +123,7 @@ class TestVolkswagenPqSafety(unittest.TestCase):
     StdTest.test_spam_can_buses(self, TX_MSGS)
 
   def test_relay_malfunction(self):
-    StdTest.test_relay_malfunction(self, MSG_HCA_01)
+    StdTest.test_relay_malfunction(self, MSG_HCA_1)
 
   def test_prev_gas(self):
     for g in range(0, 256):
@@ -161,6 +161,7 @@ class TestVolkswagenPqSafety(unittest.TestCase):
     self.assertFalse(self.safety.get_brake_pressed_prev())
     self.safety.safety_rx_hook(self._brake_msg(True))
     self.assertTrue(self.safety.get_brake_pressed_prev())
+    self.safety.safety_rx_hook(self._brake_msg(False))
 
   def test_brake_disengage(self):
     StdTest.test_allow_brake_at_zero_speed(self)
