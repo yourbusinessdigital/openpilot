@@ -170,7 +170,7 @@ class CarState(CarStateBase):
     ret.yawRate = pt_cp.vl["Bremse_5"]['Giergeschwindigkeit'] * (1, -1)[int(pt_cp.vl["Bremse_5"]['Vorzeichen_der_Giergeschwindigk'])] * CV.DEG_TO_RAD
 
     # Update gas, brakes, and gearshift.
-    ret.gas = pt_cp.vl["Motor_1"]['Fahrpedalwert_oder_Drosselklapp'] / 100.0
+    ret.gas = pt_cp.vl["Motor_3"]['Fahrpedal_Rohsignal'] / 100.0
     ret.gasPressed = ret.gas > 0
     ret.brake = pt_cp.vl["Bremse_5"]['Bremsdruck'] / 250.0  # FIXME: this is pressure in Bar, not sure what OP expects
     ret.brakePressed = bool(pt_cp.vl["Motor_2"]['Bremstestschalter'])
@@ -219,7 +219,7 @@ class CarState(CarStateBase):
     # Update ACC setpoint. When the setpoint reads as 255, the driver has not
     # yet established an ACC setpoint, so treat it as zero.
     ret.cruiseState.speed = acc_cp.vl["ACC_GRA_Anziege"]['ACA_V_Wunsch'] * CV.KPH_TO_MS
-    if ret.cruiseState.speed > 70: # 255 kph in m/s == no current setpoint
+    if ret.cruiseState.speed > 70:  # 255 kph in m/s == no current setpoint
       ret.cruiseState.speed = 0
 
     # Update control button states for turn signals and ACC controls.
@@ -358,7 +358,7 @@ class CarState(CarStateBase):
       ("Bremslichtschalter", "Motor_2", 0),         # Brakes applied (brake light switch)
       ("Bremsdruck", "Bremse_5", 0),                # Brake pressure applied
       ("Vorzeichen_Bremsdruck", "Bremse_5", 0),     # Brake pressure applied sign (???)
-      ("Fahrpedalwert_oder_Drosselklapp", "Motor_1", 0),  # Accelerator pedal value
+      ("Fahrpedal_Rohsignal", "Motor_3", 0),        # Accelerator pedal value
       ("ESP_Passiv_getastet", "Bremse_1", 0),       # Stability control disabled
       ("MFA_v_Einheit_02", "Einheiten_1", 0),       # MPH vs KMH speed display
       ("Bremsinfo", "Kombi_1", 0),                  # Manual handbrake applied
@@ -379,7 +379,7 @@ class CarState(CarStateBase):
       ("Bremse_3", 100),          # From J104 ABS/ESP controller
       ("Lenkhilfe_3", 100),       # From J500 Steering Assist with integrated sensors
       ("Lenkwinkel_1", 100),      # From J500 Steering Assist with integrated sensors
-      ("Motor_1", 100),           # From J623 Engine control module
+      ("Motor_3", 100),           # From J623 Engine control module
       ("Airbag_1", 50),           # From J234 Airbag control module
       ("Bremse_5", 50),           # From J104 ABS/ESP controller
       ("GRA_neu", 50),            # From J??? steering wheel control buttons
@@ -396,6 +396,7 @@ class CarState(CarStateBase):
     elif CP.transmissionType == TRANS.manual:
       signals += [("Kupplungsschalter", "Motor_1", 0),  # Clutch switch
                   ("Rueckfahrlicht_Gateway", "Gateway_Komfort_1", 0)]  # Reverse light from BCM
+      checks += [("Motor_1", 100)]  # From J623 Engine control module
 
     if CP.networkLocation == NWL.fwdCamera:
       # The ACC radar is here on CANBUS.pt
