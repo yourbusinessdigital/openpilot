@@ -134,11 +134,13 @@ class TestVolkswagenPqSafety(unittest.TestCase):
     self.assertFalse(self.safety.get_controls_allowed())
 
   def test_enable_control_allowed_from_cruise(self):
+    self.safety.safety_rx_hook(self._brake_msg(False))
     self.safety.set_controls_allowed(0)
     self.safety.safety_rx_hook(self._acc_msg(1))
     self.assertTrue(self.safety.get_controls_allowed())
 
   def test_disable_control_allowed_from_cruise(self):
+    self.safety.safety_rx_hook(self._brake_msg(False))
     self.safety.set_controls_allowed(1)
     self.safety.safety_rx_hook(self._acc_msg(0))
     self.assertFalse(self.safety.get_controls_allowed())
