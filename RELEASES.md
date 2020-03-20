@@ -1,5 +1,6 @@
-Version 0.7.4 + VW 1.3 (2020-03-18)
+Version 0.7.4 + VW 1.3PQ (2020-03-20)
 ========================
+ * (VW Community) Initial test of PQ35/PQ46/NMS support codebase!
  * (VW Community) Network position auto-detect, no more R242 vs J533 branch!
  * (VW Community) Trans type auto-detect, no more regular vs manual/e-Golf branch!
  * (VW Community) Now fully in-sync with Comma upstream safety at full torque!
