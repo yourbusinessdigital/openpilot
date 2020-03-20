@@ -52,12 +52,12 @@ class CAR:
   GENERICMQB = "Generic Volkswagen MQB Platform Vehicle"
   VW_GOLF_MK6 = "Volkswagen Golf 6th Gen"
   VW_PASSAT_B6 = "Volkswagen Passat 6th Gen"
-  VW_SCIROCCO_MK3 = "Volkswagen Scirocco 3rd Gen"
 
 # Mega-fingerprint used to identify any and all MQB platform vehicles. Specific
 # make and model characteristics are looked up from the VIN later.
 # Note: 1471:8 observed as 1471:4 on a 2019 Jetta, and we can't carry both in one FP, effect TBD
 FINGERPRINTS = {
+
   CAR.GENERICMQB: [
     {178: 8, 1600: 8, 1601: 8, 1603: 8, 1605: 8, 695: 8, 1624: 8, 1626: 8, 1629: 8, 1631: 8, 1122: 8, 1123: 8,
      1124: 8, 1646: 8, 1648: 8, 1153: 8, 134: 8, 1162: 8, 1175: 8, 159: 8, 795: 8, 679: 8, 681: 8, 173: 8, 1712: 6,
@@ -84,7 +84,7 @@ FINGERPRINTS = {
 }
 
 MQB_CARS = [CAR.GENERICMQB]
-PQ_CARS = [CAR.VW_GOLF_MK6, CAR.VW_PASSAT_B6, CAR.VW_SCIROCCO_MK3]
+PQ_CARS = [CAR.VW_GOLF_MK6, CAR.VW_PASSAT_B6]
 
 DBC = {
   CAR.GENERICMQB: dbc_dict('vw_mqb_2010', None),
