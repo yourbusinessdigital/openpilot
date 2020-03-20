@@ -247,6 +247,8 @@ class CarState(CarStateBase):
     # accept and respond to HCA_01 messages and has not encountered a fault.
     self.steeringFault = pt_cp.vl["Lenkhilfe_2"]['LH2_Sta_HCA'] not in [3, 5]
 
+    return ret
+
   @staticmethod
   def get_mqb_can_parser(CP):
     signals = [
