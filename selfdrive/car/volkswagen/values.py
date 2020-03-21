@@ -82,9 +82,9 @@ FINGERPRINTS = {
 
 FW_VERSIONS = {
   CAR.VW_GOLF_R_MK7: {
-    (Ecu.engine, 0x7e0, None): [b'\x0b\x01\x12\x01'],
-    (Ecu.eps, 0x712, None): [b\],
-    (Ecu.gateway, 0x710, None): []
+    (Ecu.engine, 0x7e0, None): [b'8V0906259P '],
+    (Ecu.eps, 0x712, None): [b'3Q0909144L '],
+    (Ecu.gateway, 0x710, None): [b'3Q0907530L ']
   },
 }
 
