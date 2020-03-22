@@ -321,17 +321,18 @@ static int volkswagen_mqb_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
   // Safety check for HCA_01 Heading Control Assist torque
   // Signal: HCA_01.Assist_Torque (absolute torque)
   // Signal: HCA_01.Assist_VZ (direction)
-  if (addr == MSG_HCA_01) {
-    int desired_torque = GET_BYTE(to_send, 2) | ((GET_BYTE(to_send, 3) & 0x3F) << 8);
-    int sign = (GET_BYTE(to_send, 3) & 0x80) >> 7;
-    if (sign == 1) {
-      desired_torque *= -1;
-    }
-
-    if (volkswagen_steering_check(desired_torque)) {
-      tx = 0;
-    }
-  }
+  // FIXME: Temp hax out for testing
+  // if (addr == MSG_HCA_01) {
+  //   int desired_torque = GET_BYTE(to_send, 2) | ((GET_BYTE(to_send, 3) & 0x3F) << 8);
+  //   int sign = (GET_BYTE(to_send, 3) & 0x80) >> 7;
+  //   if (sign == 1) {
+  //     desired_torque *= -1;
+  //   }
+  //
+  //   if (volkswagen_steering_check(desired_torque)) {
+  //     tx = 0;
+  //   }
+  // }
 
   // FORCE CANCEL: ensuring that only the cancel button press is sent when controls are off.
   // This avoids unintended engagements while still allowing resume spam
