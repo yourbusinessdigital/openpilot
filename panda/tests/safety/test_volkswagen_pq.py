@@ -16,8 +16,8 @@ DRIVER_TORQUE_FACTOR = 3
 
 MSG_LENKHILFE_3 = 0x0D0  # RX from EPS, for steering angle and driver steering torque
 MSG_HCA_1 = 0x0D2        # TX by OP, Heading Control Assist steering torque
-MSG_MOTOR_1 = 0x280      # RX from ECU, for driver throttle input
 MSG_MOTOR_2 = 0x288      # RX from ECU, for CC state and brake switch state
+MSG_MOTOR_3 = 0x380      # RX from ECU, for driver throttle input
 MSG_GRA_NEU = 0x38A      # TX by OP, ACC control buttons for cancel/resume
 MSG_BREMSE_3 = 0x4A0     # RX from ABS, for wheel speeds
 MSG_LDW_1 = 0x5BE        # TX by OP, Lane line recognition and text alerts
@@ -107,8 +107,8 @@ class TestVolkswagenPqSafety(unittest.TestCase):
     return to_send
 
   # Driver throttle input
-  def _motor_1_msg(self, gas):
-    to_send = make_msg(0, MSG_MOTOR_1)
+  def _motor_3_msg(self, gas):
+    to_send = make_msg(0, MSG_MOTOR_3)
     to_send[0].RDHR = (gas & 0xFF) << 8
     return to_send
 
@@ -127,7 +127,7 @@ class TestVolkswagenPqSafety(unittest.TestCase):
 
   def test_prev_gas(self):
     for g in range(0, 256):
-      self.safety.safety_rx_hook(self._motor_1_msg(g))
+      self.safety.safety_rx_hook(self._ motor_3_msg(g))
       self.assertEqual(True if g > 0 else False, self.safety.get_gas_pressed_prev())
 
   def test_default_controls_not_allowed(self):
@@ -170,17 +170,17 @@ class TestVolkswagenPqSafety(unittest.TestCase):
     StdTest.test_not_allow_brake_when_moving(self, 1)
 
   def test_disengage_on_gas(self):
-    self.safety.safety_rx_hook(self._motor_1_msg(0))
+    self.safety.safety_rx_hook(self._ motor_3_msg(0))
     self.safety.set_controls_allowed(True)
-    self.safety.safety_rx_hook(self._motor_1_msg(1))
+    self.safety.safety_rx_hook(self._ motor_3_msg(1))
     self.assertFalse(self.safety.get_controls_allowed())
 
   def test_allow_engage_with_gas_pressed(self):
-    self.safety.safety_rx_hook(self._motor_1_msg(1))
+    self.safety.safety_rx_hook(self._ motor_3_msg(1))
     self.safety.set_controls_allowed(True)
-    self.safety.safety_rx_hook(self._motor_1_msg(1))
+    self.safety.safety_rx_hook(self._ motor_3_msg(1))
     self.assertTrue(self.safety.get_controls_allowed())
-    self.safety.safety_rx_hook(self._motor_1_msg(1))
+    self.safety.safety_rx_hook(self._ motor_3_msg(1))
     self.assertTrue(self.safety.get_controls_allowed())
 
   def test_steer_safety_check(self):
