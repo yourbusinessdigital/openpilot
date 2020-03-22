@@ -56,16 +56,9 @@ class CarState(CarStateBase):
     elif trans_type == TRANS.manual:
       ret.clutchPressed = not pt_cp.vl["Motor_14"]['MO_Kuppl_schalter']
       reverse_light = bool(pt_cp.vl["Gateway_72"]['BCM1_Rueckfahrlicht_Schalter'])
-      # TODO: verify this synthesis has the desired behavior.
-      # In particular, should we neutral disengage during normal gear changes?
-      # Also, what happens if we're rolling backwards with the clutch pressed
-      # in a gear other than reverse?
+      # TODO: consider gating an OP minimum engage speed on whether the clutch is pressed, to prevent stalling
       if reverse_light:
         ret.gearShifter = GEAR.reverse
-      elif ret.standstill and self.parkingBrakeSet:
-        ret.gearShifter = GEAR.park
-      elif ret.clutchPressed:
-        ret.gearShifter = GEAR.neutral
       else:
         ret.gearShifter = GEAR.drive
 
