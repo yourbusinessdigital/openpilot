@@ -321,18 +321,17 @@ static int volkswagen_mqb_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
   // Safety check for HCA_01 Heading Control Assist torque
   // Signal: HCA_01.Assist_Torque (absolute torque)
   // Signal: HCA_01.Assist_VZ (direction)
-  // FIXME: Temp hax out for testing
-  // if (addr == MSG_HCA_01) {
-  //   int desired_torque = GET_BYTE(to_send, 2) | ((GET_BYTE(to_send, 3) & 0x3F) << 8);
-  //   int sign = (GET_BYTE(to_send, 3) & 0x80) >> 7;
-  //   if (sign == 1) {
-  //     desired_torque *= -1;
-  //   }
-  //
-  //   if (volkswagen_steering_check(desired_torque)) {
-  //     tx = 0;
-  //   }
-  // }
+  if (addr == MSG_HCA_01) {
+    int desired_torque = GET_BYTE(to_send, 2) | ((GET_BYTE(to_send, 3) & 0x3F) << 8);
+    int sign = (GET_BYTE(to_send, 3) & 0x80) >> 7;
+    if (sign == 1) {
+      desired_torque *= -1;
+    }
+
+    if (volkswagen_steering_check(desired_torque)) {
+      tx = 0;
+    }
+  }
 
   // FORCE CANCEL: ensuring that only the cancel button press is sent when controls are off.
   // This avoids unintended engagements while still allowing resume spam
@@ -359,13 +358,14 @@ static int volkswagen_pq_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
   // Safety check for HCA_1 Heading Control Assist torque
   // Signal: HCA_1.LM_Offset (absolute torque)
   // Signal: HCA_1.LM_Offsign (direction)
-  if (addr == MSG_HCA_1) {
-    int desired_torque = GET_BYTE(to_send, 2) | ((GET_BYTE(to_send, 3) & 0x7F) << 8);
-    desired_torque = desired_torque >> 5;  // DBC scale from PQ network to centi-Nm
-    int sign = (GET_BYTE(to_send, 3) & 0x80) >> 7;
-    if (sign == 1) {
-      desired_torque *= -1;
-    }
+  // FIXME: Temp hax out for testing
+  // if (addr == MSG_HCA_1) {
+  //   int desired_torque = GET_BYTE(to_send, 2) | ((GET_BYTE(to_send, 3) & 0x7F) << 8);
+  //   desired_torque = desired_torque >> 5;  // DBC scale from PQ network to centi-Nm
+  //   int sign = (GET_BYTE(to_send, 3) & 0x80) >> 7;
+  //   if (sign == 1) {
+  //     desired_torque *= -1;
+  //   }
 
     if (volkswagen_steering_check(desired_torque)) {
       tx = 0;
