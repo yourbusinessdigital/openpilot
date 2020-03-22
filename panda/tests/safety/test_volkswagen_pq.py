@@ -109,7 +109,7 @@ class TestVolkswagenPqSafety(unittest.TestCase):
   # Driver throttle input
   def _motor_3_msg(self, gas):
     to_send = make_msg(0, MSG_MOTOR_3)
-    to_send[0].RDLR = (gas & 0xFF) << 8
+    to_send[0].RDLR = (gas & 0xFF) << 16
     return to_send
 
   # Cruise control buttons
