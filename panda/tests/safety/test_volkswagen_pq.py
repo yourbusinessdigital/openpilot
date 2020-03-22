@@ -89,7 +89,7 @@ class TestVolkswagenPqSafety(unittest.TestCase):
   # openpilot steering output torque
   def _hca_1_msg(self, torque):
     to_send = make_msg(0, MSG_HCA_1)
-    t = abs(torque) << 6  # DBC scale from centi-Nm to PQ network (approximated)
+    t = abs(torque) << 5  # DBC scale from centi-Nm to PQ network (approximated)
     to_send[0].RDLR = (t & 0x7FFF) << 16
     if torque < 0:
       to_send[0].RDLR |= 0x1 << 31
