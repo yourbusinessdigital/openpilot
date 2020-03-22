@@ -127,7 +127,7 @@ class TestVolkswagenPqSafety(unittest.TestCase):
 
   def test_prev_gas(self):
     for g in range(0, 256):
-      self.safety.safety_rx_hook(self._ motor_3_msg(g))
+      self.safety.safety_rx_hook(self._motor_3_msg(g))
       self.assertEqual(True if g > 0 else False, self.safety.get_gas_pressed_prev())
 
   def test_default_controls_not_allowed(self):
