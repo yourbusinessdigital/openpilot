@@ -170,17 +170,17 @@ class TestVolkswagenPqSafety(unittest.TestCase):
     StdTest.test_not_allow_brake_when_moving(self, 1)
 
   def test_disengage_on_gas(self):
-    self.safety.safety_rx_hook(self._ motor_3_msg(0))
+    self.safety.safety_rx_hook(self._motor_3_msg(0))
     self.safety.set_controls_allowed(True)
-    self.safety.safety_rx_hook(self._ motor_3_msg(1))
+    self.safety.safety_rx_hook(self._motor_3_msg(1))
     self.assertFalse(self.safety.get_controls_allowed())
 
   def test_allow_engage_with_gas_pressed(self):
-    self.safety.safety_rx_hook(self._ motor_3_msg(1))
+    self.safety.safety_rx_hook(self._motor_3_msg(1))
     self.safety.set_controls_allowed(True)
-    self.safety.safety_rx_hook(self._ motor_3_msg(1))
+    self.safety.safety_rx_hook(self._motor_3_msg(1))
     self.assertTrue(self.safety.get_controls_allowed())
-    self.safety.safety_rx_hook(self._ motor_3_msg(1))
+    self.safety.safety_rx_hook(self._motor_3_msg(1))
     self.assertTrue(self.safety.get_controls_allowed())
 
   def test_steer_safety_check(self):
