@@ -41,7 +41,7 @@ def volkswagen_pq_checksum(msg, addr, len_msg):
   return checksum
 
 class TestVolkswagenPqSafety(unittest.TestCase):
-  acc_status = 0
+  cruise_engaged = False
   brake_pressed = False
   cnt_lenkhilfe_3 = 0
   cnt_hca_1 = 0
@@ -70,8 +70,8 @@ class TestVolkswagenPqSafety(unittest.TestCase):
     return self._motor_2_msg()
 
   # ACC engaged status (shared message Motor_2)
-  def _acc_msg(self, acc):
-    self.__class__.acc_status = acc
+  def _cruise_msg(self, cruise):
+    self.__class__.cruise_engaged = cruise
     return self._motor_2_msg()
 
   # Driver steering input torque
@@ -103,7 +103,7 @@ class TestVolkswagenPqSafety(unittest.TestCase):
   def _motor_2_msg(self):
     to_send = make_msg(0, MSG_MOTOR_2)
     to_send[0].RDLR = (0x1 << 16) if self.__class__.brake_pressed else 0
-    to_send[0].RDLR |= (self.__class__.acc_status & 0x3) << 22
+    to_send[0].RDLR |= (self.__class__.cruise_engaged & 0x3) << 22
     return to_send
 
   # Driver throttle input
@@ -136,13 +136,13 @@ class TestVolkswagenPqSafety(unittest.TestCase):
   def test_enable_control_allowed_from_cruise(self):
     self.safety.safety_rx_hook(self._brake_msg(False))
     self.safety.set_controls_allowed(0)
-    self.safety.safety_rx_hook(self._acc_msg(1))
+    self.safety.safety_rx_hook(self._cruise_msg(True))
     self.assertTrue(self.safety.get_controls_allowed())
 
   def test_disable_control_allowed_from_cruise(self):
     self.safety.safety_rx_hook(self._brake_msg(False))
     self.safety.set_controls_allowed(1)
-    self.safety.safety_rx_hook(self._acc_msg(0))
+    self.safety.safety_rx_hook(self._cruise_msg(False))
     self.assertFalse(self.safety.get_controls_allowed())
 
   def test_sample_speed(self):
