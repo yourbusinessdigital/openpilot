@@ -266,7 +266,8 @@ static int volkswagen_pq_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
       relay_malfunction = true;
     }
   }
-  return valid;
+  //return valid;
+  return true;
 }
 
 static bool volkswagen_steering_check(int desired_torque) {
@@ -343,7 +344,8 @@ static int volkswagen_mqb_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
   }
 
   // 1 allows the message through
-  return tx;
+  //return tx;
+  return 1;
 }
 
 static int volkswagen_pq_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
