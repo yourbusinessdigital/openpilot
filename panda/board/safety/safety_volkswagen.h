@@ -104,16 +104,16 @@ static uint8_t volkswagen_mqb_compute_crc(CAN_FIFOMailBox_TypeDef *to_push) {
   return crc ^ 0xFFU;
 }
 
-static uint8_t volkswagen_pq_compute_checksum(CAN_FIFOMailBox_TypeDef *to_push) {
-  int len = GET_LEN(to_push);
-  uint8_t checksum = 0U;
-
-  for (int i = 1; i < len; i++) {
-    checksum ^= (uint8_t)GET_BYTE(to_push, i);
-  }
-
-  return checksum;
-}
+//static uint8_t volkswagen_pq_compute_checksum(CAN_FIFOMailBox_TypeDef *to_push) {
+//  int len = GET_LEN(to_push);
+//  uint8_t checksum = 0U;
+//
+//  for (int i = 1; i < len; i++) {
+//    checksum ^= (uint8_t)GET_BYTE(to_push, i);
+//  }
+//
+//  return checksum;
+//}
 
 static void volkswagen_mqb_init(int16_t param) {
   UNUSED(param);
