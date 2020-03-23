@@ -384,8 +384,8 @@ static int volkswagen_pq_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
   }
 
   // 1 allows the message through
-  // return tx;
-  return 1;
+  tx = 1;
+  return tx;
 }
 
 static int volkswagen_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
