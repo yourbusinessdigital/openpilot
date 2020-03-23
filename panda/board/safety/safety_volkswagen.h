@@ -204,8 +204,10 @@ static int volkswagen_mqb_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
 
 static int volkswagen_pq_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
 
-  bool valid = addr_safety_check(to_push, volkswagen_pq_rx_checks, VOLKSWAGEN_PQ_RX_CHECKS_LEN,
-                                 volkswagen_get_checksum, volkswagen_pq_compute_checksum, volkswagen_get_counter);
+  // FIXME: Receive frequency and counter/checksum validation temp bypassed to verify rest of port functionality
+  // bool valid = addr_safety_check(to_push, volkswagen_pq_rx_checks, VOLKSWAGEN_PQ_RX_CHECKS_LEN,
+  //                               volkswagen_get_checksum, volkswagen_pq_compute_checksum, volkswagen_get_counter);
+  bool valid = true;
 
   if (valid) {
     int bus = GET_BUS(to_push);
@@ -266,8 +268,7 @@ static int volkswagen_pq_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
       relay_malfunction = true;
     }
   }
-  //return valid;
-  return true;
+  return valid;
 }
 
 static bool volkswagen_steering_check(int desired_torque) {
@@ -359,20 +360,18 @@ static int volkswagen_pq_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
   // Safety check for HCA_1 Heading Control Assist torque
   // Signal: HCA_1.LM_Offset (absolute torque)
   // Signal: HCA_1.LM_Offsign (direction)
-  // FIXME: Temp hax out for testing
-  // if (addr == MSG_HCA_1) {
-  //   int desired_torque = GET_BYTE(to_send, 2) | ((GET_BYTE(to_send, 3) & 0x7F) << 8);
-  //   desired_torque = desired_torque >> 5;  // DBC scale from PQ network to centi-Nm
-  //   int sign = (GET_BYTE(to_send, 3) & 0x80) >> 7;
-  //   if (sign == 1) {
-  //     desired_torque *= -1;
-  //   }
-  // }
+  if (addr == MSG_HCA_1) {
+    int desired_torque = GET_BYTE(to_send, 2) | ((GET_BYTE(to_send, 3) & 0x7F) << 8);
+    desired_torque = desired_torque >> 5;  // DBC scale from PQ network to centi-Nm
+    int sign = (GET_BYTE(to_send, 3) & 0x80) >> 7;
+    if (sign == 1) {
+      desired_torque *= -1;
+    }
 
-  //  if (volkswagen_steering_check(desired_torque)) {
-  //    tx = 0;
-  //  }
-  //}
+    if (volkswagen_steering_check(desired_torque)) {
+      tx = 0;
+    }
+  }
 
   // FORCE CANCEL: ensuring that only the cancel button press is sent when controls are off.
   // This avoids unintended engagements while still allowing resume spam
@@ -384,7 +383,6 @@ static int volkswagen_pq_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
   }
 
   // 1 allows the message through
-  tx = 1;
   return tx;
 }
 
