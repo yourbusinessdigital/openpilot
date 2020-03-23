@@ -366,11 +366,12 @@ static int volkswagen_pq_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
   //   if (sign == 1) {
   //     desired_torque *= -1;
   //   }
+  // }
 
-    if (volkswagen_steering_check(desired_torque)) {
-      tx = 0;
-    }
-  }
+  //  if (volkswagen_steering_check(desired_torque)) {
+  //    tx = 0;
+  //  }
+  //}
 
   // FORCE CANCEL: ensuring that only the cancel button press is sent when controls are off.
   // This avoids unintended engagements while still allowing resume spam
