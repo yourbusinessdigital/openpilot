@@ -436,5 +436,5 @@ const safety_hooks volkswagen_pq_hooks = {
   // .addr_check = volkswagen_pq_rx_checks,
   // .addr_check_len = sizeof(volkswagen_pq_rx_checks) / sizeof(volkswagen_pq_rx_checks[0]),
   .addr_check = NULL,
-  .addr_check_len = NULL,
+  .addr_check_len = 0,
 };
