@@ -81,7 +81,7 @@ class TestVolkswagenPqSafety(unittest.TestCase):
     to_send[0].RDLR = ((t & 0x3FF) << 16)
     if torque < 0:
       to_send[0].RDLR |= 0x1 << 26
-    to_send[0].RDLR |= (self.cnt_lenkhilfe_3 % 16) << 8
+    to_send[0].RDLR |= (self.cnt_lenkhilfe_3 % 16) << 12
     to_send[0].RDLR |= volkswagen_pq_checksum(to_send[0], MSG_LENKHILFE_3, 8)
     self.__class__.cnt_lenkhilfe_3 += 1
     return to_send

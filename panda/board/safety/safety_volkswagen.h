@@ -65,8 +65,15 @@ static uint8_t volkswagen_get_checksum(CAN_FIFOMailBox_TypeDef *to_push) {
   return (uint8_t)GET_BYTE(to_push, 0);
 }
 
-static uint8_t volkswagen_get_counter(CAN_FIFOMailBox_TypeDef *to_push) {
+static uint8_t volkswagen_mqb_get_counter(CAN_FIFOMailBox_TypeDef *to_push) {
+  // MQB message counters are consistently found at LSB 8.
   return (uint8_t)GET_BYTE(to_push, 1) & 0xFU;
+}
+
+static uint8_t volkswagen_pq_get_counter(CAN_FIFOMailBox_TypeDef *to_push) {
+  // Few PQ messages have counters, and their offsets are inconsistent. This
+  // function works only for Lenkhilfe_3 at this time.
+  return (uint8_t)(GET_BYTE(to_push, 1) & 0xF0U) >> 4;
 }
 
 static uint8_t volkswagen_mqb_compute_crc(CAN_FIFOMailBox_TypeDef *to_push) {
@@ -104,16 +111,16 @@ static uint8_t volkswagen_mqb_compute_crc(CAN_FIFOMailBox_TypeDef *to_push) {
   return crc ^ 0xFFU;
 }
 
-//static uint8_t volkswagen_pq_compute_checksum(CAN_FIFOMailBox_TypeDef *to_push) {
-//  int len = GET_LEN(to_push);
-//  uint8_t checksum = 0U;
-//
-//  for (int i = 1; i < len; i++) {
-//    checksum ^= (uint8_t)GET_BYTE(to_push, i);
-//  }
-//
-//  return checksum;
-//}
+static uint8_t volkswagen_pq_compute_checksum(CAN_FIFOMailBox_TypeDef *to_push) {
+  int len = GET_LEN(to_push);
+  uint8_t checksum = 0U;
+
+  for (int i = 1; i < len; i++) {
+    checksum ^= (uint8_t)GET_BYTE(to_push, i);
+  }
+
+  return checksum;
+}
 
 static void volkswagen_mqb_init(int16_t param) {
   UNUSED(param);
@@ -139,7 +146,7 @@ static void volkswagen_pq_init(int16_t param) {
 static int volkswagen_mqb_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
 
   bool valid = addr_safety_check(to_push, volkswagen_mqb_rx_checks, VOLKSWAGEN_MQB_RX_CHECKS_LEN,
-                                 volkswagen_get_checksum, volkswagen_mqb_compute_crc, volkswagen_get_counter);
+                                 volkswagen_get_checksum, volkswagen_mqb_compute_crc, volkswagen_mqb_get_counter);
 
   if (valid && (GET_BUS(to_push) == 0)) {
     int addr = GET_ADDR(to_push);
@@ -204,9 +211,8 @@ static int volkswagen_mqb_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
 
 static int volkswagen_pq_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
 
-  // FIXME: Receive frequency and counter/checksum validation temp bypassed to verify rest of port functionality
-  // bool valid = addr_safety_check(to_push, volkswagen_pq_rx_checks, VOLKSWAGEN_PQ_RX_CHECKS_LEN,
-  //                               volkswagen_get_checksum, volkswagen_pq_compute_checksum, volkswagen_get_counter);
+  bool valid = addr_safety_check(to_push, volkswagen_pq_rx_checks, VOLKSWAGEN_PQ_RX_CHECKS_LEN,
+                                volkswagen_get_checksum, volkswagen_pq_compute_checksum, volkswagen_pq_get_counter);
   bool valid = true;
 
   if (valid) {
@@ -432,9 +438,6 @@ const safety_hooks volkswagen_pq_hooks = {
   .tx = volkswagen_pq_tx_hook,
   .tx_lin = nooutput_tx_lin_hook,
   .fwd = volkswagen_fwd_hook,
-  // FIXME: Receive frequency and counter/checksum validation temp bypassed to verify rest of port functionality
-  // .addr_check = volkswagen_pq_rx_checks,
-  // .addr_check_len = sizeof(volkswagen_pq_rx_checks) / sizeof(volkswagen_pq_rx_checks[0]),
-  .addr_check = NULL,
-  .addr_check_len = 0,
+  .addr_check = volkswagen_pq_rx_checks,
+  .addr_check_len = sizeof(volkswagen_pq_rx_checks) / sizeof(volkswagen_pq_rx_checks[0]),
 };
