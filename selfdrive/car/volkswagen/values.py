@@ -2,8 +2,12 @@ from cereal import car
 from selfdrive.car import dbc_dict
 
 class CarControllerParams:
-  HCA_STEP = 2                   # HCA_01 message frequency 50Hz
-  LDW_STEP = 10                  # LDW_02 message frequency 10Hz
+  # FIXME: testing HCA at 100Hz on PQ to verify timebomb behavior
+  # HCA_STEP = 2                   # HCA_01 message frequency 50Hz
+  HCA_STEP = 1                   # HCA_01 message frequency 100Hz
+  # FIXME: LDW is sent at 20Hz on PQ, need to make this conditional
+  # LDW_STEP = 10                  # LDW_02 message frequency 10Hz
+  LDW_STEP = 5                   # LDW_02 message frequency 20Hz
   GRA_ACC_STEP = 3               # GRA_ACC_01 message frequency 33Hz
 
   GRA_VBP_STEP = 100             # Send ACC virtual button presses once a second
@@ -13,8 +17,11 @@ class CarControllerParams:
   # Limiting rate-of-change based on real-world testing and Comma's safety
   # requirements for minimum time to lane departure.
   STEER_MAX = 300                # Max heading control assist torque 3.00 Nm
-  STEER_DELTA_UP = 4             # Max HCA reached in 1.50s (STEER_MAX / (50Hz * 1.50))
-  STEER_DELTA_DOWN = 10          # Min HCA reached in 0.60s (STEER_MAX / (50Hz * 0.60))
+  # FIXME: testing steering rate hax for PQ
+  # STEER_DELTA_UP = 4             # Max HCA reached in 1.50s (STEER_MAX / (50Hz * 1.50))
+  # STEER_DELTA_DOWN = 10          # Min HCA reached in 0.60s (STEER_MAX / (50Hz * 0.60))
+  STEER_DELTA_UP = 2             # Max HCA reached in 1.50s (STEER_MAX / (100Hz * 1.50))
+  STEER_DELTA_DOWN = 5           # Min HCA reached in 0.60s (STEER_MAX / (100Hz * 0.60))
   STEER_DRIVER_ALLOWANCE = 80
   STEER_DRIVER_MULTIPLIER = 3    # weight driver torque heavily
   STEER_DRIVER_FACTOR = 1        # from dbc
