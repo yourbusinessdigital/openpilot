@@ -1,4 +1,4 @@
-Version 0.7.4 + VW 1.3 (2020-03-22)
+qVersion 0.7.4 + VW 1.3 (2020-03-22)
 ========================
  * (VW Community) Hotfix for manual trans users
  * (VW Community) Hotfix to add missing CAN messages from VW Touran
