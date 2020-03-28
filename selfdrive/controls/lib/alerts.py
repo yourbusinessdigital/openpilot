@@ -298,6 +298,13 @@ ALERTS = [
       Priority.LOW, VisualAlert.none, AudibleAlert.chimeError, .4, 2., 3.),
 
   Alert(
+      "setSpeedTooHighNoEntry",
+      "openpilot Unavailable",
+      "Speed Set Beyond ",
+      AlertStatus.normal, AlertSize.mid,
+      Priority.LOW, VisualAlert.none, AudibleAlert.chimeError, .4, 2., 3.),
+
+  Alert(
       "brakeHoldNoEntry",
       "openpilot Unavailable",
       "Brake Hold Active",
@@ -347,6 +354,13 @@ ALERTS = [
       Priority.LOW, VisualAlert.none, AudibleAlert.chimeError, .4, 2., 3.),
 
   # Cancellation alerts causing soft disabling
+  Alert(
+      "setSpeedTooHigh",
+      "TAKE CONTROL IMMEDIATELY",
+      "Speed Set Beyond ",
+      AlertStatus.critical, AlertSize.full,
+      Priority.MID, VisualAlert.steerRequired, AudibleAlert.chimeWarningRepeat, .1, 2., 2.),
+
   Alert(
       "overheat",
       "TAKE CONTROL IMMEDIATELY",

@@ -16,7 +16,8 @@ from selfdrive.controls.lib.drive_helpers import get_events, \
                                                  create_event, \
                                                  EventTypes as ET, \
                                                  update_v_cruise, \
-                                                 initialize_v_cruise
+                                                 initialize_v_cruise, \
+                                                 V_CRUISE_MAX
 from selfdrive.controls.lib.longcontrol import LongControl, STARTING_TARGET_SPEED
 from selfdrive.controls.lib.latcontrol_pid import LatControlPID
 from selfdrive.controls.lib.latcontrol_indi import LatControlINDI
@@ -103,6 +104,9 @@ def data_sample(CI, CC, sm, can_sock, state, mismatch_counter, can_error_counter
 
   if CS.stockAeb:
     events.append(create_event('stockAeb', []))
+
+  if CS.cruiseState.speed > V_CRUISE_MAX * CV.KPH_TO_MS:
+    events.append(create_event('setSpeedTooHigh', [ET.NO_ENTRY, ET.SOFT_DISABLE, ET.WARNING]))
 
   # Handle calibration
   cal_status = sm['liveCalibration'].calStatus
@@ -252,6 +256,11 @@ def state_control(frame, rcv_frame, plan, path_plan, CS, CP, state, events, v_cr
           extra_text = str(int(round(CP.minSteerSpeed * CV.MS_TO_KPH))) + " kph"
         else:
           extra_text = str(int(round(CP.minSteerSpeed * CV.MS_TO_MPH))) + " mph"
+      elif e == "setSpeedTooHigh":
+        if is_metric:
+          extra_text = V_CRUISE_MAX + " kph"
+        else:
+          extra_text = str(int(round(V_CRUISE_MAX * CV.KPH_TO_MPH))) + " mph"
       AM.add(frame, e, enabled, extra_text_2=extra_text)
 
   plan_age = DT_CTRL * (frame - rcv_frame['plan'])
