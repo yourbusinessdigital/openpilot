@@ -120,7 +120,8 @@ class CarState(CarStateBase):
     # later cruise-control button spamming.
     self.graMsgBusCounter = pt_cp.vl["GRA_ACC_01"]['COUNTER']
 
-    ret.cruiseState.available = bool(self.graHauptschalter)
+    #ret.cruiseState.available = bool(self.graHauptschalter)
+    ret.cruiseState.available = True
 
     # Check to make sure the electric power steering rack is configured to
     # accept and respond to HCA_01 messages and has not encountered a fault.
