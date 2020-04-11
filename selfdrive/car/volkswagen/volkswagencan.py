@@ -72,7 +72,7 @@ def create_mqb_acc_control(packer, bus, acc_status, apply_accel, idx):
 
 def create_mqb_acc_hud_control(packer, bus, acc_status, set_speed, idx):
   values = {
-    "ACC_Status_Anziege": acc_status,
+    "ACC_Status_Anzeige": acc_status,
     "ACC_Wunschgeschw": set_speed * CV.MS_TO_KPH,
     "ACC_Gesetzte_Zeitluecke": 3,
     "ACC_Display_Prio": 3
