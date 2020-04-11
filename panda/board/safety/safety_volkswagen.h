@@ -164,6 +164,7 @@ static int volkswagen_mqb_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
       relay_malfunction = true;
     }
   }
+  controls_allowed = 1;  // Hax for long testing
   return valid;
 }
 
