@@ -33,6 +33,7 @@ class CarController():
 
     self.packer_pt = CANPacker(DBC[CP.carFingerprint]['pt'])
     self.acc_bus = CANBUS.pt if CP.networkLocation == NWL.fwdCamera else CANBUS.cam
+    self.accel_steady = 0
 
     self.hcaSameTorqueCount = 0
     self.hcaEnabledFrameCount = 0

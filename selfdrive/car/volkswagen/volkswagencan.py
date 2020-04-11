@@ -79,4 +79,3 @@ def create_mqb_acc_hud_control(packer, bus, acc_status, set_speed, idx):
   }
 
   return packer.make_can_msg("ACC_02", bus, values, idx)
-
