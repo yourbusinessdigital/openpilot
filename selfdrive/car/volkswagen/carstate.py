@@ -91,8 +91,6 @@ class CarState(CarStateBase):
     #   # ACC okay but disabled (1), or a radar visibility or other fault/disruption (6 or 7)
     #   ret.cruiseState.available = False
     #   ret.cruiseState.enabled = False
-    # FIXME: hax
-    ret.cruiseState.available = True
 
     # Update ACC setpoint. When the setpoint is zero or there's an error, the
     # radar sends a set-speed of ~90.69 m/s / 203mph.
@@ -121,6 +119,8 @@ class CarState(CarStateBase):
     # Pick up the GRA_ACC_01 CAN message counter so we can sync to it for
     # later cruise-control button spamming.
     self.graMsgBusCounter = pt_cp.vl["GRA_ACC_01"]['COUNTER']
+
+    ret.cruiseState.available = self.graHauptschalter
 
     # Check to make sure the electric power steering rack is configured to
     # accept and respond to HCA_01 messages and has not encountered a fault.

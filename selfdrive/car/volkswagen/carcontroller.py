@@ -58,7 +58,13 @@ class CarController():
     #                                                                         #
     #--------------------------------------------------------------------------
 
-    acc_status = 3 if enabled else 2
+    if CS.cruiseState.available:
+      if enabled:
+        acc_status = 3
+      else:
+        acc_status = 2
+    else:
+      acc_status = 0
     apply_accel = actuators.gas - actuators.brake
     apply_accel, self.accel_steady = accel_hysteresis(apply_accel, self.accel_steady, enabled)
     apply_accel = clip(apply_accel * ACCEL_SCALE, ACCEL_MIN, ACCEL_MAX)
