@@ -151,7 +151,7 @@ class CarInterface(CarInterfaceBase):
     # NOTE: Test non-cruise long stuff borrowed from Honda
     for b in buttonEvents:
       # do enable on both accel and decel buttons
-      if b.type in [ButtonType.accelCruise, ButtonType.decelCruise] and not b.pressed:
+      if b.type in [ButtonType.setCruise, ButtonType.resumeCruise, ButtonType.accelCruise, ButtonType.decelCruise] and not b.pressed:
         events.append(create_event('buttonEnable', [ET.ENABLE]))
       # do disable on button down
       if b.type == "cancel" and b.pressed:
