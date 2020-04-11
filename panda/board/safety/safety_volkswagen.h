@@ -13,12 +13,15 @@ const int VOLKSWAGEN_DRIVER_TORQUE_FACTOR = 3;
 #define MSG_ESP_05      0x106   // RX from ABS, for brake switch state
 #define MSG_TSK_06      0x120   // RX from ECU, for ACC status from drivetrain coordinator
 #define MSG_MOTOR_20    0x121   // RX from ECU, for driver throttle input
+#define MSG_ACC_06      0x122   // TX by OP, ACC control instructions to the drivetrain coordinator
 #define MSG_HCA_01      0x126   // TX by OP, Heading Control Assist steering torque
 #define MSG_GRA_ACC_01  0x12B   // TX by OP, ACC control buttons for cancel/resume
+#define MSG_ACC_02      0x30C   // TX by OP, ACC HUD data to the instrument cluster
 #define MSG_LDW_02      0x397   // TX by OP, Lane line recognition and text alerts
 
 // Transmit of GRA_ACC_01 is allowed on bus 0 and 2 to keep compatibility with gateway and camera integration
-const AddrBus VOLKSWAGEN_MQB_TX_MSGS[] = {{MSG_HCA_01, 0}, {MSG_GRA_ACC_01, 0}, {MSG_GRA_ACC_01, 2}, {MSG_LDW_02, 0}};
+const AddrBus VOLKSWAGEN_MQB_TX_MSGS[] = {{MSG_HCA_01, 0}, {MSG_ACC_06, 0}, {MSG_ACC_02, 0}, \
+                                            {MSG_GRA_ACC_01, 0}, {MSG_GRA_ACC_01, 2}, {MSG_LDW_02, 0}};
 const int VOLKSWAGEN_MQB_TX_MSGS_LEN = sizeof(VOLKSWAGEN_MQB_TX_MSGS) / sizeof(VOLKSWAGEN_MQB_TX_MSGS[0]);
 
 AddrCheckStruct volkswagen_mqb_rx_checks[] = {
@@ -38,6 +41,8 @@ uint32_t volkswagen_ts_last = 0;
 bool volkswagen_moving = false;
 int volkswagen_torque_msg = 0;
 int volkswagen_lane_msg = 0;
+int volkswagen_acc_ctrl_msg = 0;
+int volkswagen_acc_hud_msg = 0;
 uint8_t volkswagen_crc8_lut_8h2f[256]; // Static lookup table for CRC8 poly 0x2F, aka 8H2F/AUTOSAR
 
 
@@ -91,6 +96,8 @@ static void volkswagen_mqb_init(int16_t param) {
   relay_malfunction = false;
   volkswagen_torque_msg = MSG_HCA_01;
   volkswagen_lane_msg = MSG_LDW_02;
+  volkswagen_acc_ctrl_msg = MSG_ACC_06;
+  volkswagen_acc_hud_msg = MSG_ACC_02;
   gen_crc_lookup_table(0x2F, volkswagen_crc8_lut_8h2f);
 }
 
@@ -224,6 +231,8 @@ static int volkswagen_mqb_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
     }
   }
 
+  // FIXME: Need to validate ACC_06 commands here
+
   // FORCE CANCEL: ensuring that only the cancel button press is sent when controls are off.
   // This avoids unintended engagements while still allowing resume spam
   if ((addr == MSG_GRA_ACC_01) && !controls_allowed) {
@@ -248,8 +257,10 @@ static int volkswagen_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
         bus_fwd = 2;
         break;
       case 2:
-        if ((addr == volkswagen_torque_msg) || (addr == volkswagen_lane_msg)) {
-          // OP takes control of the Heading Control Assist and Lane Departure Warning messages from the camera
+        // OP takes control of the Heading Control Assist and Lane Departure Warning messages from the camera
+        // For longitudinal control, OP also takes control of ACC messaging
+        if ((addr == volkswagen_torque_msg) || (addr == volkswagen_lane_msg) || \
+            (addr == volkswagen_acc_ctrl_msg) || (addr == volkswagen_acc_hud_msg)) {
           bus_fwd = -1;
         } else {
           // Forward all remaining traffic from Extended CAN devices to J533 gateway

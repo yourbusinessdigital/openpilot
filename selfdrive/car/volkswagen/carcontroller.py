@@ -1,3 +1,4 @@
+from common.numpy_fast import clip
 from cereal import car
 from selfdrive.car import apply_std_steer_torque_limits
 from selfdrive.car.volkswagen import volkswagencan
@@ -6,6 +7,25 @@ from opendbc.can.packer import CANPacker
 
 VisualAlert = car.CarControl.HUDControl.VisualAlert
 
+# Accel limits
+ACCEL_HYST_GAP = 0.02  # don't change accel command for small oscillations within this value
+ACCEL_MAX = 1.5  # 1.5 m/s2
+ACCEL_MIN = -3.0 # 3   m/s2
+ACCEL_SCALE = max(ACCEL_MAX, -ACCEL_MIN)
+
+def accel_hysteresis(accel, accel_steady, enabled):
+
+  # for small accel oscillations within ACCEL_HYST_GAP, don't change the accel command
+  if not enabled:
+    # send 0 when disabled, otherwise acc faults
+    accel_steady = 0.
+  elif accel > accel_steady + ACCEL_HYST_GAP:
+    accel_steady = accel - ACCEL_HYST_GAP
+  elif accel < accel_steady - ACCEL_HYST_GAP:
+    accel_steady = accel + ACCEL_HYST_GAP
+  accel = accel_steady
+
+  return accel, accel_steady
 
 class CarController():
   def __init__(self, dbc_name, CP, VM):
@@ -23,7 +43,7 @@ class CarController():
 
     self.steer_rate_limited = False
 
-  def update(self, enabled, CS, frame, actuators, visual_alert, audible_alert, leftLaneVisible, rightLaneVisible):
+  def update(self, enabled, CS, frame, actuators, visual_alert, audible_alert, leftLaneVisible, rightLaneVisible, set_speed):
     """ Controls thread """
 
     P = CarControllerParams
@@ -32,6 +52,31 @@ class CarController():
     can_sends = []
 
     #--------------------------------------------------------------------------
+    #                                                                         #
+    # Prepare ACC_06 accel and decel commands                                 #
+    #                                                                         #
+    #--------------------------------------------------------------------------
+
+    acc_status = 3 if enabled else 2
+    apply_accel = actuators.gas - actuators.brake
+    apply_accel, self.accel_steady = accel_hysteresis(apply_accel, self.accel_steady, enabled)
+    apply_accel = clip(apply_accel * ACCEL_SCALE, ACCEL_MIN, ACCEL_MAX)
+
+    if frame % P.ACC_CONTROL_STEP == 0:
+      idx = (frame / P.ACC_CONTROL_STEP) % 16
+      can_sends.append(volkswagencan.create_mqb_acc_control(self.packer_pt, self.acc_bus, acc_status, apply_accel, idx))
+
+    #--------------------------------------------------------------------------
+    #                                                                         #
+    # Prepare ACC_02 ACC HUD updates                                          #
+    #                                                                         #
+    #--------------------------------------------------------------------------
+
+    if frame % P.ACC_HUD_STEP == 0:
+      idx = (frame / P.ACC_HUD_STEP) % 16
+      can_sends.append(volkswagencan.create_mqb_acc_hud_control(self.packer_pt, self.acc_bus, acc_status, set_speed, idx))
+
+      #--------------------------------------------------------------------------
     #                                                                         #
     # Prepare HCA_01 Heading Control Assist messages with steering torque.    #
     #                                                                         #
@@ -120,7 +165,7 @@ class CarController():
       else:
         hud_alert = MQB_LDW_MESSAGES["none"]
 
-      can_sends.append(volkswagencan.create_mqb_hud_control(self.packer_pt, CANBUS.pt, hcaEnabled,
+      can_sends.append(volkswagencan.create_mqb_lkas_hud_control(self.packer_pt, CANBUS.pt, hcaEnabled,
                                                             CS.out.steeringPressed, hud_alert, leftLaneVisible,
                                                             rightLaneVisible))
 

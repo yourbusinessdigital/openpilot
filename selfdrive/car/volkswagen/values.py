@@ -4,6 +4,8 @@ from selfdrive.car import dbc_dict
 class CarControllerParams:
   HCA_STEP = 2                   # HCA_01 message frequency 50Hz
   LDW_STEP = 10                  # LDW_02 message frequency 10Hz
+  ACC_CONTROL_STEP = 2           # ACC_06 message frequency 50Hz
+  ACC_HUD_STEP = 6               # ACC_02 message frequency 16Hz
   GRA_ACC_STEP = 3               # GRA_ACC_01 message frequency 33Hz
 
   GRA_VBP_STEP = 100             # Send ACC virtual button presses once a second
