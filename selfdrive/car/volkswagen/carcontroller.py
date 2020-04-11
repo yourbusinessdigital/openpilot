@@ -65,7 +65,7 @@ class CarController():
 
     if frame % P.ACC_CONTROL_STEP == 0:
       idx = (frame / P.ACC_CONTROL_STEP) % 16
-      can_sends.append(volkswagencan.create_mqb_acc_control(self.packer_pt, self.pt_bus, acc_status, apply_accel, idx))
+      can_sends.append(volkswagencan.create_mqb_acc_control(self.packer_pt, self.CANBUS.pt, acc_status, apply_accel, idx))
 
     #--------------------------------------------------------------------------
     #                                                                         #
@@ -75,7 +75,7 @@ class CarController():
 
     if frame % P.ACC_HUD_STEP == 0:
       idx = (frame / P.ACC_HUD_STEP) % 16
-      can_sends.append(volkswagencan.create_mqb_acc_hud_control(self.packer_pt, self.pt_bus, acc_status, set_speed, idx))
+      can_sends.append(volkswagencan.create_mqb_acc_hud_control(self.packer_pt, self.CANBUS.pt, acc_status, set_speed, idx))
 
       #--------------------------------------------------------------------------
     #                                                                         #
