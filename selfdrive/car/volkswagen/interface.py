@@ -1,10 +1,13 @@
 from cereal import car
+from common.realtime import DT_CTRL
 from selfdrive.swaglog import cloudlog
-from selfdrive.controls.lib.drive_helpers import create_event, EventTypes as ET
+from selfdrive.controls.lib.drive_helpers import create_event, EventTypes as ET, get_events
 from selfdrive.car.volkswagen.values import CAR, BUTTON_STATES, NWL, TRANS, GEAR
 from common.params import Params
 from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, gen_empty_fingerprint
 from selfdrive.car.interfaces import CarInterfaceBase
+
+ButtonType = car.CarState.ButtonEvent.Type
 
 class CarInterface(CarInterfaceBase):
   def __init__(self, CP, CarController, CarState):
@@ -12,6 +15,9 @@ class CarInterface(CarInterfaceBase):
 
     self.displayMetricUnitsPrev = None
     self.buttonStatesPrev = BUTTON_STATES.copy()
+
+    self.last_enable_pressed = 0
+    self.last_enable_sent = 0
 
     # Set up an alias to PT/CAM parser for ACC depending on its detected network location
     self.cp_acc = self.cp if CP.networkLocation == NWL.fwdCamera else self.cp_cam
@@ -71,6 +77,7 @@ class CarInterface(CarInterfaceBase):
       ret.transmissionType = TRANS.manual
 
     # FIXME: Stub/test long parameters borrowed from Toyota
+    ret.enableCruise = False
     ret.openpilotLongitudinalControl = True
     ret.minEnableSpeed = -1.
     ret.longitudinalTuning.deadzoneBP = [0., 9.]
@@ -136,11 +143,40 @@ class CarInterface(CarInterfaceBase):
 
     # Engagement and longitudinal control using stock ACC. Make sure OP is
     # disengaged if stock ACC is disengaged.
-    if not ret.cruiseState.enabled:
-      events.append(create_event('pcmDisable', [ET.USER_DISABLE]))
+    # if not ret.cruiseState.enabled:
+    #  events.append(create_event('pcmDisable', [ET.USER_DISABLE]))
     # Attempt OP engagement only on rising edge of stock ACC engagement.
-    elif not self.cruise_enabled_prev:
-      events.append(create_event('pcmEnable', [ET.ENABLE]))
+    # elif not self.cruise_enabled_prev:
+    #  events.append(create_event('pcmEnable', [ET.ENABLE]))
+
+    # NOTE: Test non-cruise long stuff borrowed from Honda
+    cur_time = self.frame * DT_CTRL
+    enable_pressed = False
+    # handle button presses
+    for b in ret.buttonEvents:
+
+      # do enable on both accel and decel buttons
+      if b.type in [ButtonType.accelCruise, ButtonType.decelCruise] and not b.pressed:
+        self.last_enable_pressed = cur_time
+        enable_pressed = True
+
+      # do disable on button down
+      if b.type == "cancel" and b.pressed:
+        events.append(create_event('buttonCancel', [ET.USER_DISABLE]))
+
+    if self.CP.enableCruise:
+      # KEEP THIS EVENT LAST! send enable event if button is pressed and there are
+      # NO_ENTRY events, so controlsd will display alerts. Also not send enable events
+      # too close in time, so a no_entry will not be followed by another one.
+      # TODO: button press should be the only thing that triggers enable
+      if ((cur_time - self.last_enable_pressed) < 0.2 and
+          (cur_time - self.last_enable_sent) > 0.2 and
+          ret.cruiseState.enabled) or \
+         (enable_pressed and get_events(events, [ET.NO_ENTRY])):
+        events.append(create_event('buttonEnable', [ET.ENABLE]))
+        self.last_enable_sent = cur_time
+    elif enable_pressed:
+      events.append(create_event('buttonEnable', [ET.ENABLE]))
 
     ret.events = events
     ret.buttonEvents = buttonEvents
