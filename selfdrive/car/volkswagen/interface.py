@@ -149,7 +149,7 @@ class CarInterface(CarInterfaceBase):
     #  events.append(create_event('pcmEnable', [ET.ENABLE]))
 
     # NOTE: Test non-cruise long stuff borrowed from Honda
-    for b in ret.buttonEvents:
+    for b in buttonEvents:
       # do enable on both accel and decel buttons
       if b.type in [ButtonType.accelCruise, ButtonType.decelCruise] and not b.pressed:
         events.append(create_event('buttonEnable', [ET.ENABLE]))
