@@ -32,7 +32,7 @@ class CarInterface(CarInterfaceBase):
     if candidate == CAR.GENERICMQB:
       # Set common MQB parameters that will apply globally
       ret.carName = "volkswagen"
-      ret.radarOffCan = True
+      ret.radarOffCan = False  # Test hax
       ret.safetyModel = car.CarParams.SafetyModel.volkswagen
 
       # Additional common MQB parameters that may be overridden per-vehicle
