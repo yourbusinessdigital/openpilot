@@ -94,7 +94,7 @@ class CarState(CarStateBase):
 
     # Update ACC setpoint. When the setpoint is zero or there's an error, the
     # radar sends a set-speed of ~90.69 m/s / 203mph.
-    ret.cruiseState.speed = acc_cp.vl["ACC_02"]['SetSpeed']
+    ret.cruiseState.speed = acc_cp.vl["ACC_02"]['ACC_Wunschgeschw']
     if ret.cruiseState.speed > 90:
       ret.cruiseState.speed = 0
 
@@ -204,7 +204,7 @@ class CarState(CarStateBase):
 
     if CP.networkLocation == NWL.fwdCamera:
       # The ACC radar is here on CANBUS.pt
-      signals += [("SetSpeed", "ACC_02", 0)]  # ACC set speed
+      signals += [("ACC_Wunschgeschw", "ACC_02", 0)]  # ACC set speed
       checks += [("ACC_02", 17)]  # From J428 ACC radar control module
 
     return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, CANBUS.pt)
@@ -224,7 +224,7 @@ class CarState(CarStateBase):
 
     if CP.networkLocation == NWL.gateway:
       # The ACC radar is here on CANBUS.cam
-      signals += [("SetSpeed", "ACC_02", 0)]  # ACC set speed
+      signals += [("ACC_Wunschgeschw", "ACC_02", 0)]  # ACC set speed
       checks += [("ACC_02", 17)]  # From J428 ACC radar control module
 
     return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, CANBUS.cam)
