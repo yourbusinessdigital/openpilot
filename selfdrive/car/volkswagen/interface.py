@@ -59,10 +59,12 @@ class CarInterface(CarInterfaceBase):
     ret.transmissionType = car.CarParams.TransmissionType.automatic
 
     # Determine installed network location by finding the ACC_06 radar message
-    if 0x122 in fingerprint[0]:
-      ret.networkLocation = NWL.fwdCamera
-    else:
-      ret.networkLocation = NWL.gateway
+    # if 0x122 in fingerprint[0]:
+    #   ret.networkLocation = NWL.fwdCamera
+    # else:
+    #   ret.networkLocation = NWL.gateway
+    # FIXME: hax nonworking detect, fix later by detecting bus 1 fusion msgs instead
+    ret.networkLocation = NWL.gateway
 
     # Determine transmission type by CAN message(s) present on the bus
     if 0xAD in fingerprint[0]:
