@@ -78,25 +78,27 @@ class CarState(CarStateBase):
     self.displayMetricUnits = not pt_cp.vl["Einheiten_01"]["KBI_MFA_v_Einheit_02"]
 
     # Update ACC radar status.
-    accStatus = pt_cp.vl["TSK_06"]['TSK_Status']
-    if accStatus == 2:
-      # ACC okay and enabled, but not currently engaged
-      ret.cruiseState.available = True
-      ret.cruiseState.enabled = False
-    elif accStatus in [3, 4, 5]:
-      # ACC okay and enabled, currently engaged and regulating speed (3) or engaged with driver accelerating (4) or overrun (5)
-      ret.cruiseState.available = True
-      ret.cruiseState.enabled = True
-    else:
-      # ACC okay but disabled (1), or a radar visibility or other fault/disruption (6 or 7)
-      ret.cruiseState.available = False
-      ret.cruiseState.enabled = False
+    # accStatus = pt_cp.vl["TSK_06"]['TSK_Status']
+    # if accStatus == 2:
+    #   # ACC okay and enabled, but not currently engaged
+    #   ret.cruiseState.available = True
+    #   ret.cruiseState.enabled = False
+    # elif accStatus in [3, 4, 5]:
+    #   # ACC okay and enabled, currently engaged and regulating speed (3) or engaged with driver accelerating (4) or overrun (5)
+    #   ret.cruiseState.available = True
+    #   ret.cruiseState.enabled = True
+    # else:
+    #   # ACC okay but disabled (1), or a radar visibility or other fault/disruption (6 or 7)
+    #   ret.cruiseState.available = False
+    #   ret.cruiseState.enabled = False
+    # FIXME: hax
+    ret.cruiseState.available = True
 
     # Update ACC setpoint. When the setpoint is zero or there's an error, the
     # radar sends a set-speed of ~90.69 m/s / 203mph.
-    ret.cruiseState.speed = acc_cp.vl["ACC_02"]['ACC_Wunschgeschw']
-    if ret.cruiseState.speed > 90:
-      ret.cruiseState.speed = 0
+    # ret.cruiseState.speed = acc_cp.vl["ACC_02"]['ACC_Wunschgeschw']
+    # if ret.cruiseState.speed > 90:
+    #  ret.cruiseState.speed = 0
 
     # Update control button states for turn signals and ACC controls.
     self.buttonStates["accelCruise"] = bool(pt_cp.vl["GRA_ACC_01"]['GRA_Tip_Hoch'])
