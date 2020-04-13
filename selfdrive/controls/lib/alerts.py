@@ -476,7 +476,7 @@ ALERTS = [
       Priority.HIGHEST, VisualAlert.steerRequired, AudibleAlert.chimeWarningRepeat, 2.2, 3., 4.),
 
   Alert(
-      "`gasUnavailable`",
+      "gasUnavailable",
       "TAKE CONTROL IMMEDIATELY",
       "Gas Fault: Restart the Car",
       AlertStatus.critical, AlertSize.full,
