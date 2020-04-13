@@ -15,9 +15,6 @@ class CarInterface(CarInterfaceBase):
     self.displayMetricUnitsPrev = None
     self.buttonStatesPrev = BUTTON_STATES.copy()
 
-    self.last_enable_pressed = 0
-    self.last_enable_sent = 0
-
     # Set up an alias to PT/CAM parser for ACC depending on its detected network location
     self.cp_acc = self.cp if CP.networkLocation == NWL.fwdCamera else self.cp_cam
 
@@ -79,6 +76,7 @@ class CarInterface(CarInterfaceBase):
 
     # FIXME: Stub/test long parameters borrowed from Toyota
     ret.enableCruise = False
+    ret.stoppingControl = True
     ret.openpilotLongitudinalControl = True
     ret.minEnableSpeed = -1.
     ret.longitudinalTuning.deadzoneBP = [0., 9.]

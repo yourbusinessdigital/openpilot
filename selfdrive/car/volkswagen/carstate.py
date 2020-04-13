@@ -16,6 +16,11 @@ class CarState(CarStateBase):
       self.shifter_values = can_define.dv["EV_Gearshift"]['GearPosition']
     self.buttonStates = BUTTON_STATES.copy()
 
+    self.sw_main_switch = False  # Software main cruise switch
+    self.main_mc_button_cur = False  # Momentary contact steering-wheel button main switch
+    self.main_mc_button_prev = False
+    self.tsk_status = 1  # Drivetrain coordinator init state
+
   def update(self, pt_cp, cam_cp, acc_cp, trans_type):
     ret = car.CarState.new_message()
     # Update vehicle speed and acceleration from ABS wheel speeds.
@@ -77,20 +82,30 @@ class CarState(CarStateBase):
     # We use the speed preference for OP.
     self.displayMetricUnits = not pt_cp.vl["Einheiten_01"]["KBI_MFA_v_Einheit_02"]
 
-    # Update ACC radar status.
-    # accStatus = pt_cp.vl["TSK_06"]['TSK_Status']
-    # if accStatus == 2:
-    #   # ACC okay and enabled, but not currently engaged
-    #   ret.cruiseState.available = True
-    #   ret.cruiseState.enabled = False
-    # elif accStatus in [3, 4, 5]:
-    #   # ACC okay and enabled, currently engaged and regulating speed (3) or engaged with driver accelerating (4) or overrun (5)
-    #   ret.cruiseState.available = True
-    #   ret.cruiseState.enabled = True
-    # else:
-    #   # ACC okay but disabled (1), or a radar visibility or other fault/disruption (6 or 7)
-    #   ret.cruiseState.available = False
-    #   ret.cruiseState.enabled = False
+    # Update drivetrain coordinator status
+    self.tsk_status = pt_cp.vl["TSK_06"]['TSK_Status']
+
+    # Toggle software cruise main switch on rising edge of steering wheel button
+    # FIXME: gate this on steering wheel button variant of controls (as opposed to stalk version)
+    self.main_mc_button_cur = pt_cp.vl["GRA_ACC_01"]['GRA_Hauptschalter']
+    if self.main_mc_button_cur and not self.main_mc_button_prev:
+      self.sw_main_switch = not self.sw_main_switch
+    self.main_mc_button_prev = self.main_mc_button_cur
+
+    ret.cruiseState.available = self.sw_main_switch
+
+    #if accStatus == 2:
+    #  # ACC okay and enabled, but not currently engaged
+    #  ret.cruiseState.available = True
+    #  ret.cruiseState.enabled = False
+    #elif accStatus in [3, 4, 5]:
+    #  # ACC okay and enabled, currently engaged and regulating speed (3) or engaged with driver accelerating (4) or overrun (5)
+    #  ret.cruiseState.available = True
+    #  ret.cruiseState.enabled = True
+    #else:
+    #  # ACC okay but disabled (1), or a radar visibility or other fault/disruption (6 or 7)
+    #  ret.cruiseState.available = False
+    #  ret.cruiseState.enabled = False
 
     # Update ACC setpoint. When the setpoint is zero or there's an error, the
     # radar sends a set-speed of ~90.69 m/s / 203mph.
@@ -111,7 +126,6 @@ class CarState(CarStateBase):
     # Read ACC hardware button type configuration info that has to pass thru
     # to the radar. Ends up being different for steering wheel buttons vs
     # third stalk type controls.
-    self.graHauptschalter = pt_cp.vl["GRA_ACC_01"]['GRA_Hauptschalter']
     self.graTypHauptschalter = pt_cp.vl["GRA_ACC_01"]['GRA_Typ_Hauptschalter']
     self.graButtonTypeInfo = pt_cp.vl["GRA_ACC_01"]['GRA_ButtonTypeInfo']
     self.graTipStufe2 = pt_cp.vl["GRA_ACC_01"]['GRA_Tip_Stufe_2']

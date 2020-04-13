@@ -38,7 +38,7 @@ def create_mqb_lkas_hud_control(packer, bus, hca_enabled, steering_pressed, hud_
 
 def create_mqb_acc_buttons_control(packer, bus, buttonStatesToSend, CS, idx):
   values = {
-    "GRA_Hauptschalter": CS.graHauptschalter,
+    "GRA_Hauptschalter": CS.sw_main_switch,
     "GRA_Abbrechen": buttonStatesToSend["cancel"],
     "GRA_Tip_Setzen": buttonStatesToSend["setCruise"],
     "GRA_Tip_Hoch": buttonStatesToSend["accelCruise"],
@@ -54,7 +54,7 @@ def create_mqb_acc_buttons_control(packer, bus, buttonStatesToSend, CS, idx):
 
   return packer.make_can_msg("GRA_ACC_01", bus, values, idx)
 
-def create_mqb_acc_control(packer, bus, acc_status, apply_accel, idx):
+def create_mqb_acc_control(packer, bus, acc_status, apply_accel, standstill, idx):
   values = {
     "ACC_Typ": 2,  # FIXME: locked to stop and go, need to tweak for cars that only support follow-to-stop
     "ACC_Status_ACC": acc_status,
@@ -65,7 +65,7 @@ def create_mqb_acc_control(packer, bus, acc_status, apply_accel, idx):
     "ACC_neg_Sollbeschl_Grad_02": 3.0 if acc_status == 3 else 0,  # FIXME: need gradient regulation logic here
     "ACC_pos_Sollbeschl_Grad_02": 3.0 if acc_status == 3 else 0,  # FIXME: need gradient regulation logic here
     "ACC_Anfahren": 0,  # FIXME: set briefly when taking off from standstill
-    "ACC_Anhalten": 0  # FIXME: hold true when at standstill
+    "ACC_Anhalten": standstill  # FIXME: hold true when at standstill
   }
 
   return packer.make_can_msg("ACC_06", bus, values, idx)
