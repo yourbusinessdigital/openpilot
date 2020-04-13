@@ -8,24 +8,9 @@ from opendbc.can.packer import CANPacker
 VisualAlert = car.CarControl.HUDControl.VisualAlert
 
 # Accel limits
-ACCEL_HYST_GAP = 0.02  # don't change accel command for small oscillations within this value
 ACCEL_MAX = 1.5  # 1.5 m/s2
 ACCEL_MIN = -3.0 # 3   m/s2
 ACCEL_SCALE = max(ACCEL_MAX, -ACCEL_MIN)
-
-def accel_hysteresis(accel, accel_steady, enabled):
-
-  # for small accel oscillations within ACCEL_HYST_GAP, don't change the accel command
-  if not enabled:
-    # send 0 when disabled, otherwise acc faults
-    accel_steady = 0.
-  elif accel > accel_steady + ACCEL_HYST_GAP:
-    accel_steady = accel - ACCEL_HYST_GAP
-  elif accel < accel_steady - ACCEL_HYST_GAP:
-    accel_steady = accel + ACCEL_HYST_GAP
-  accel = accel_steady
-
-  return accel, accel_steady
 
 class CarController():
   def __init__(self, dbc_name, CP, VM):
@@ -33,7 +18,6 @@ class CarController():
 
     self.packer_pt = CANPacker(DBC[CP.carFingerprint]['pt'])
     self.acc_bus = CANBUS.pt if CP.networkLocation == NWL.fwdCamera else CANBUS.cam
-    self.accel_steady = 0
 
     self.hcaSameTorqueCount = 0
     self.hcaEnabledFrameCount = 0
@@ -58,13 +42,12 @@ class CarController():
     #                                                                         #
     #--------------------------------------------------------------------------
 
-    # FIXME: hax, need mainswitch state here but it's not working right??
-    if enabled:
-      acc_status = 3
+    if CS.sw_main_switch:
+      acc_status = 3 if enabled else 2
     else:
-      acc_status = 2
+      acc_status = 0
+
     apply_accel = actuators.gas - actuators.brake
-    apply_accel, self.accel_steady = accel_hysteresis(apply_accel, self.accel_steady, enabled)
     apply_accel = clip(apply_accel * ACCEL_SCALE, ACCEL_MIN, ACCEL_MAX)
 
     if frame % P.ACC_CONTROL_STEP == 0:
