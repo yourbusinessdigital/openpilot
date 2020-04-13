@@ -170,17 +170,17 @@ class CarController():
     # First create any virtual button press event needed by openpilot, to sync
     # stock ACC with OP disengagement, or to auto-resume from stop.
 
-    if frame > self.graMsgStartFramePrev + P.GRA_VBP_STEP:
-      if not enabled and CS.out.cruiseState.enabled:
-        # Cancel ACC if it's engaged with OP disengaged.
-        self.graButtonStatesToSend = BUTTON_STATES.copy()
-        self.graButtonStatesToSend["cancel"] = True
-      elif enabled and CS.out.standstill:
-        # Blip the Resume button if we're engaged at standstill.
-        # FIXME: This is a naive implementation, improve with visiond or radar input.
-        # A subset of MQBs like to "creep" too aggressively with this implementation.
-        self.graButtonStatesToSend = BUTTON_STATES.copy()
-        self.graButtonStatesToSend["resumeCruise"] = True
+    #if frame > self.graMsgStartFramePrev + P.GRA_VBP_STEP:
+    #  if not enabled and CS.out.cruiseState.enabled:
+    #    # Cancel ACC if it's engaged with OP disengaged.
+    #    self.graButtonStatesToSend = BUTTON_STATES.copy()
+    #    self.graButtonStatesToSend["cancel"] = True
+    #  elif enabled and CS.out.standstill:
+    #    # Blip the Resume button if we're engaged at standstill.
+    #    # FIXME: This is a naive implementation, improve with visiond or radar input.
+    #    # A subset of MQBs like to "creep" too aggressively with this implementation.
+    #    self.graButtonStatesToSend = BUTTON_STATES.copy()
+    #    self.graButtonStatesToSend["resumeCruise"] = True
 
     # OP/Panda can see this message but can't filter it when integrated at the
     # R242 LKAS camera. It could do so if integrated at the J533 gateway, but
@@ -207,16 +207,16 @@ class CarController():
     # (GG) to the next valid car message is less than 1 * GRA_ACC_STEP. J428
     # tolerates the gap just fine and control returns to the car immediately.
 
-    if CS.graMsgBusCounter != self.graMsgBusCounterPrev:
-      self.graMsgBusCounterPrev = CS.graMsgBusCounter
-      if self.graButtonStatesToSend is not None:
-        if self.graMsgSentCount == 0:
-          self.graMsgStartFramePrev = frame
-        idx = (CS.graMsgBusCounter + 1) % 16
-        can_sends.append(volkswagencan.create_mqb_acc_buttons_control(self.packer_pt, self.acc_bus, self.graButtonStatesToSend, CS, idx))
-        self.graMsgSentCount += 1
-        if self.graMsgSentCount >= P.GRA_VBP_COUNT:
-          self.graButtonStatesToSend = None
-          self.graMsgSentCount = 0
+    #if CS.graMsgBusCounter != self.graMsgBusCounterPrev:
+    #  self.graMsgBusCounterPrev = CS.graMsgBusCounter
+    #  if self.graButtonStatesToSend is not None:
+    #    if self.graMsgSentCount == 0:
+    #      self.graMsgStartFramePrev = frame
+    #    idx = (CS.graMsgBusCounter + 1) % 16
+    #    can_sends.append(volkswagencan.create_mqb_acc_buttons_control(self.packer_pt, self.acc_bus, self.graButtonStatesToSend, CS, idx))
+    #    self.graMsgSentCount += 1
+    #    if self.graMsgSentCount >= P.GRA_VBP_COUNT:
+    #      self.graButtonStatesToSend = None
+    #      self.graMsgSentCount = 0
 
     return can_sends
