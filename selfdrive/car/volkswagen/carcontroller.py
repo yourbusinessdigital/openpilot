@@ -42,7 +42,9 @@ class CarController():
     #                                                                         #
     #--------------------------------------------------------------------------
 
-    if CS.sw_main_switch:
+    if CS.tsk_status == 1:
+      acc_status = 1
+    elif CS.sw_main_switch:
       acc_status = 3 if enabled else 2
     else:
       acc_status = 0
