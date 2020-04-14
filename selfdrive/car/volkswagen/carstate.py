@@ -82,18 +82,17 @@ class CarState(CarStateBase):
     # We use the speed preference for OP.
     self.displayMetricUnits = not pt_cp.vl["Einheiten_01"]["KBI_MFA_v_Einheit_02"]
 
-    # Update drivetrain coordinator status
-    ret.cruiseState.available = self.sw_main_switch
-    self.tsk_status = pt_cp.vl["TSK_06"]['TSK_Status']
-    ret.cruiseState.enabled = self.tsk_status in [3, 4, 5]
-
     # Toggle software cruise main switch on rising edge of steering wheel button
     # FIXME: gate this on steering wheel button variant of controls (as opposed to stalk version)
     self.main_mc_button_cur = pt_cp.vl["GRA_ACC_01"]['GRA_Hauptschalter']
     if self.main_mc_button_cur and not self.main_mc_button_prev:
       self.sw_main_switch = not self.sw_main_switch
     self.main_mc_button_prev = self.main_mc_button_cur
+    ret.cruiseState.available = self.sw_main_switch
 
+    # Update drivetrain coordinator status
+    self.tsk_status = pt_cp.vl["TSK_06"]['TSK_Status']
+    ret.cruiseState.enabled = self.tsk_status in [3, 4, 5]
 
     #if accStatus == 2:
     #  # ACC okay and enabled, but not currently engaged
@@ -134,9 +133,6 @@ class CarState(CarStateBase):
     # Pick up the GRA_ACC_01 CAN message counter so we can sync to it for
     # later cruise-control button spamming.
     self.graMsgBusCounter = pt_cp.vl["GRA_ACC_01"]['COUNTER']
-
-    #ret.cruiseState.available = bool(self.graHauptschalter)
-    ret.cruiseState.available = True
 
     # Check to make sure the electric power steering rack is configured to
     # accept and respond to HCA_01 messages and has not encountered a fault.
