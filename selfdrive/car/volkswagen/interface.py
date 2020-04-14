@@ -78,15 +78,14 @@ class CarInterface(CarInterfaceBase):
     ret.enableCruise = False
     ret.stoppingControl = True
     ret.openpilotLongitudinalControl = True
-    ret.minEnableSpeed = -1.
-    ret.longitudinalTuning.deadzoneBP = [0., 9.]
-    ret.longitudinalTuning.deadzoneV = [0., .15]
-    ret.longitudinalTuning.kpBP = [0., 5., 35.]
-    ret.longitudinalTuning.kiBP = [0., 35.]
-    ret.gasMaxBP = [0.]
-    ret.gasMaxV = [0.5]
-    ret.longitudinalTuning.kpV = [3.6, 2.4, 1.5]
-    ret.longitudinalTuning.kiV = [0.54, 0.36]
+    #ret.longitudinalTuning.deadzoneBP = [0., 9.]
+    #ret.longitudinalTuning.deadzoneV = [0., .15]
+    #ret.longitudinalTuning.kpBP = [0., 5., 35.]
+    #ret.longitudinalTuning.kiBP = [0., 35.]
+    #ret.longitudinalTuning.kpV = [3.6, 2.4, 1.5]
+    #ret.longitudinalTuning.kiV = [0.54, 0.36]
+    ret.longitudinalTuning.kpV = [5.0]
+    ret.longitudinalTuning.kiV = [1.0]
 
     cloudlog.warning("Detected network location: %r", ret.networkLocation)
     cloudlog.warning("Detected transmission type: %r", ret.transmissionType)
@@ -152,10 +151,10 @@ class CarInterface(CarInterfaceBase):
 
     # NOTE: Test non-cruise long stuff borrowed from Honda
     for b in buttonEvents:
-      # do enable on both accel and decel buttons
+      # do enable on falling edge of both accel and decel buttons
       if b.type in [ButtonType.setCruise, ButtonType.resumeCruise, ButtonType.accelCruise, ButtonType.decelCruise] and not b.pressed:
         events.append(create_event('buttonEnable', [ET.ENABLE]))
-      # do disable on button down
+      # do disable on rising edge of cancel
       if b.type == "cancel" and b.pressed:
         events.append(create_event('buttonCancel', [ET.USER_DISABLE]))
 
