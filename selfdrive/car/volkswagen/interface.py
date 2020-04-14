@@ -149,11 +149,14 @@ class CarInterface(CarInterfaceBase):
     # elif not self.cruise_enabled_prev:
     #  events.append(create_event('pcmEnable', [ET.ENABLE]))
 
-    # NOTE: Test non-cruise long stuff borrowed from Honda
+    # NOTE: testing long control engagement stuff here
     for b in buttonEvents:
       # do enable on falling edge of both accel and decel buttons
       if b.type in [ButtonType.setCruise, ButtonType.resumeCruise, ButtonType.accelCruise, ButtonType.decelCruise] and not b.pressed:
-        events.append(create_event('buttonEnable', [ET.ENABLE]))
+        if self.CS.sw_main_switch:
+          events.append(create_event('buttonEnable', [ET.ENABLE]))
+        else:
+          events.append(create_event('wrongCarMode', [ET.NO_ENTRY, ET.WARNING]))
       # do disable on rising edge of cancel
       if b.type == "cancel" and b.pressed:
         events.append(create_event('buttonCancel', [ET.USER_DISABLE]))
