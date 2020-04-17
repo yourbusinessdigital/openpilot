@@ -1,5 +1,6 @@
-Version 0.7.4 + VW 1.3 (2020-03-22)
+Version 0.7.4 + VW 1.3 (2020-04-17)
 ========================
+ * (VW Community) Hotfix for SEAT Ateca missing CAN messages
  * (VW Community) Hotfix for manual trans users
  * (VW Community) Hotfix to add missing CAN messages from VW Touran
  * (VW Community) Hotfix to add missing CAN messages from high-trim Skoda Superb
