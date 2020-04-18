@@ -155,8 +155,8 @@ class CarInterface(CarInterfaceBase):
       if b.type in [ButtonType.setCruise, ButtonType.resumeCruise, ButtonType.accelCruise, ButtonType.decelCruise] and not b.pressed:
         if self.CS.tsk_status == 2:
           events.append(create_event('buttonEnable', [ET.ENABLE]))
-        else:
-          events.append(create_event('wrongCarMode', [ET.NO_ENTRY, ET.WARNING]))
+        #else:
+        #  events.append(create_event('wrongCarMode', [ET.NO_ENTRY, ET.WARNING]))
       # do disable on rising edge of cancel
       if b.type == "cancel" and b.pressed:
         events.append(create_event('buttonCancel', [ET.USER_DISABLE]))
