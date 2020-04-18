@@ -92,20 +92,19 @@ class CarState(CarStateBase):
 
     # Update drivetrain coordinator status
     self.tsk_status = pt_cp.vl["TSK_06"]['TSK_Status']
-    ret.cruiseState.enabled = self.tsk_status in [3, 4, 5]
 
-    #if accStatus == 2:
-    #  # ACC okay and enabled, but not currently engaged
-    #  ret.cruiseState.available = True
-    #  ret.cruiseState.enabled = False
-    #elif accStatus in [3, 4, 5]:
-    #  # ACC okay and enabled, currently engaged and regulating speed (3) or engaged with driver accelerating (4) or overrun (5)
-    #  ret.cruiseState.available = True
-    #  ret.cruiseState.enabled = True
-    #else:
-    #  # ACC okay but disabled (1), or a radar visibility or other fault/disruption (6 or 7)
-    #  ret.cruiseState.available = False
-    #  ret.cruiseState.enabled = False
+    if self.tsk_status == 2:
+      # ACC okay and enabled, but not currently engaged
+      ret.cruiseState.available = True
+      ret.cruiseState.enabled = False
+    elif self.tsk_status in [3, 4, 5]:
+      # ACC okay and enabled, currently engaged and regulating speed (3) or engaged with driver accelerating (4) or overrun (5)
+      ret.cruiseState.available = True
+      ret.cruiseState.enabled = True
+    else:
+      # ACC okay but disabled (1), or a radar visibility or other fault/disruption (6 or 7)
+      ret.cruiseState.available = False
+      ret.cruiseState.enabled = False
 
     # Update ACC setpoint. When the setpoint is zero or there's an error, the
     # radar sends a set-speed of ~90.69 m/s / 203mph.

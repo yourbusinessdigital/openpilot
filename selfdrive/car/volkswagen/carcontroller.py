@@ -42,19 +42,19 @@ class CarController():
     #                                                                         #
     #--------------------------------------------------------------------------
 
-    if CS.tsk_status == 1:
-      acc_status = 1
-    elif CS.sw_main_switch:
-      acc_status = 3 if enabled else 2
-    else:
-      acc_status = 0
+    #if CS.tsk_status == 1:
+    #  acc_status = 1
+    #elif CS.sw_main_switch:
+    #  acc_status = 3 if enabled else 2
+    #else:
+    #  acc_status = 0
 
     apply_accel = actuators.gas - actuators.brake
     apply_accel = clip(apply_accel * ACCEL_SCALE, ACCEL_MIN, ACCEL_MAX)
 
     if frame % P.ACC_CONTROL_STEP == 0:
       idx = (frame / P.ACC_CONTROL_STEP) % 16
-      can_sends.append(volkswagencan.create_mqb_acc_control(self.packer_pt, CANBUS.pt, acc_status, apply_accel,
+      can_sends.append(volkswagencan.create_mqb_acc_control(self.packer_pt, CANBUS.pt, CS.tsk_status, apply_accel,
                                                             CS.out.standstill, idx))
 
     #--------------------------------------------------------------------------
