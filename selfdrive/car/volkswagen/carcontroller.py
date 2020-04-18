@@ -48,7 +48,7 @@ class CarController():
     #  acc_status = 3 if enabled else 2
     #else:
     #  acc_status = 0
-    acc_status = 3 if enabled and CS.tsk_status in [3, 4, 5] else CS.tsk_status
+    acc_status = 3 if enabled and CS.tsk_status in [2, 3, 4, 5] else CS.tsk_status
 
     apply_accel = actuators.gas - actuators.brake
     apply_accel = clip(apply_accel * ACCEL_SCALE, ACCEL_MIN, ACCEL_MAX)
