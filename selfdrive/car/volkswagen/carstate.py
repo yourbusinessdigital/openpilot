@@ -16,9 +16,9 @@ class CarState(CarStateBase):
       self.shifter_values = can_define.dv["EV_Gearshift"]['GearPosition']
     self.buttonStates = BUTTON_STATES.copy()
 
-    self.sw_main_switch = False  # Software main cruise switch
-    self.main_mc_button_cur = False  # Momentary contact steering-wheel button main switch
-    self.main_mc_button_prev = False
+    #self.sw_main_switch = False  # Software main cruise switch
+    #self.main_mc_button_cur = False  # Momentary contact steering-wheel button main switch
+    #self.main_mc_button_prev = False
     self.tsk_status = 1  # Drivetrain coordinator init state
 
   def update(self, pt_cp, cam_cp, acc_cp, trans_type):
@@ -84,11 +84,11 @@ class CarState(CarStateBase):
 
     # Toggle software cruise main switch on rising edge of steering wheel button
     # FIXME: gate this on steering wheel button variant of controls (as opposed to stalk version)
-    self.main_mc_button_cur = pt_cp.vl["GRA_ACC_01"]['GRA_Hauptschalter']
-    if self.main_mc_button_cur and not self.main_mc_button_prev:
-      self.sw_main_switch = not self.sw_main_switch
-    self.main_mc_button_prev = self.main_mc_button_cur
-    ret.cruiseState.available = self.sw_main_switch
+    #self.main_mc_button_cur = pt_cp.vl["GRA_ACC_01"]['GRA_Hauptschalter']
+    #if self.main_mc_button_cur and not self.main_mc_button_prev:
+    #  self.sw_main_switch = not self.sw_main_switch
+    #self.main_mc_button_prev = self.main_mc_button_cur
+    #ret.cruiseState.available = self.sw_main_switch
 
     # Update drivetrain coordinator status
     self.tsk_status = pt_cp.vl["TSK_06"]['TSK_Status']
