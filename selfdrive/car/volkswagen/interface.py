@@ -153,7 +153,7 @@ class CarInterface(CarInterfaceBase):
     for b in buttonEvents:
       # do enable on falling edge of both accel and decel buttons
       if b.type in [ButtonType.setCruise, ButtonType.resumeCruise, ButtonType.accelCruise, ButtonType.decelCruise] and not b.pressed:
-        if self.CS.sw_main_switch:
+        if self.CS.tsk_status == 2:
           events.append(create_event('buttonEnable', [ET.ENABLE]))
         else:
           events.append(create_event('wrongCarMode', [ET.NO_ENTRY, ET.WARNING]))

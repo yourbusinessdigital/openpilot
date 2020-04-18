@@ -38,7 +38,7 @@ def create_mqb_lkas_hud_control(packer, bus, hca_enabled, steering_pressed, hud_
 
 def create_mqb_acc_buttons_control(packer, bus, buttonStatesToSend, CS, idx):
   values = {
-    "GRA_Hauptschalter": CS.sw_main_switch,
+    "GRA_Hauptschalter": CS.tsk_status in [2, 3, 4, 5],
     "GRA_Abbrechen": buttonStatesToSend["cancel"],
     "GRA_Tip_Setzen": buttonStatesToSend["setCruise"],
     "GRA_Tip_Hoch": buttonStatesToSend["accelCruise"],
