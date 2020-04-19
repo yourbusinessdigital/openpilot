@@ -473,8 +473,8 @@ def get_rx_addr_for_tx_addr(tx_addr):
     return None
 
   if tx_addr < 0xFFF8:
-    # standard 11 bit response addr (add 8)
-    return tx_addr + 8
+    # standard 11 bit response addr (add 8) -- Hax to 6A for VW until refactor
+    return tx_addr + 6A
 
   if tx_addr > 0x10000000 and tx_addr < 0xFFFFFFFF:
     # standard 29 bit response addr (flip last two bytes)
