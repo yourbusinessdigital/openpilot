@@ -53,6 +53,8 @@ MQB_LDW_MESSAGES = {
 class CAR:
   VW_GOLF_R_MK7 = "Volkswagen Golf R Mk7"
 
+MQB_CARS = {CAR.VW_GOLF_R_MK7}
+
 FINGERPRINTS = {}
 
 FW_VERSIONS = {

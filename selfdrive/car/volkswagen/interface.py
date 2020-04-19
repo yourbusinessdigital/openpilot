@@ -1,7 +1,7 @@
 from cereal import car
 from selfdrive.swaglog import cloudlog
 from selfdrive.controls.lib.drive_helpers import create_event, EventTypes as ET
-from selfdrive.car.volkswagen.values import CAR, BUTTON_STATES, NWL, TRANS, GEAR
+from selfdrive.car.volkswagen.values import CAR, BUTTON_STATES, NWL, TRANS, GEAR, MQB_CARS
 from common.params import Params
 from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, gen_empty_fingerprint
 from selfdrive.car.interfaces import CarInterfaceBase
@@ -24,7 +24,7 @@ class CarInterface(CarInterfaceBase):
   def get_params(candidate, fingerprint=gen_empty_fingerprint(), has_relay=False, car_fw=[]):
     ret = CarInterfaceBase.get_std_params(candidate, fingerprint, has_relay)
 
-    if candidate == CAR.GENERICMQB:
+    if candidate in MQB_CARS:
       # Set common MQB parameters that will apply globally
       ret.carName = "volkswagen"
       ret.radarOffCan = True
@@ -34,30 +34,29 @@ class CarInterface(CarInterfaceBase):
       ret.steerRateCost = 1.0
       ret.steerActuatorDelay = 0.1  # Hopefully all MQB racks are similar here
       ret.steerLimitTimer = 0.4
+      tire_stiffness_factor = 1.0  # Let the auto-learner take over
 
       ret.lateralTuning.pid.kpBP = [0.]
       ret.lateralTuning.pid.kiBP = [0.]
 
-      # FIXME: Per-vehicle parameters need to be reintegrated.
-      # Until that time, defaulting to VW Golf Mk7 as a baseline.
-
-      ret.mass = 1500 + STD_CARGO_KG
-      ret.wheelbase = 2.64
-      ret.centerToFront = ret.wheelbase * 0.45
-      ret.steerRatio = 15.6
-      ret.lateralTuning.pid.kf = 0.00006
-      ret.lateralTuning.pid.kpV = [0.6]
-      ret.lateralTuning.pid.kiV = [0.2]
-      tire_stiffness_factor = 1.0
+      if candidate == CAR.VW_GOLF_R_MK7:
+        ret.mass = 1500 + STD_CARGO_KG
+        ret.wheelbase = 2.64
+        ret.centerToFront = ret.wheelbase * 0.45
+        ret.steerRatio = 15.6
+        ret.lateralTuning.pid.kf = 0.00006
+        ret.lateralTuning.pid.kpV = [0.6]
+        ret.lateralTuning.pid.kiV = [0.2]
 
     ret.enableCamera = True  # Stock camera detection doesn't apply to VW
     ret.transmissionType = car.CarParams.TransmissionType.automatic
 
     # Determine installed network location by finding the ACC_06 radar message
-    if 0x122 in fingerprint[0]:
-      ret.networkLocation = NWL.fwdCamera
-    else:
-      ret.networkLocation = NWL.gateway
+    #if 0x122 in fingerprint[0]:
+    #  ret.networkLocation = NWL.fwdCamera
+    #else:
+    # tmp hax
+    ret.networkLocation = NWL.gateway
 
     # Determine transmission type by CAN message(s) present on the bus
     if 0xAD in fingerprint[0]:
