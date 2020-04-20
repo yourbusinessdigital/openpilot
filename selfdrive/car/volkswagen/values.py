@@ -51,21 +51,33 @@ MQB_LDW_MESSAGES = {
 }
 
 class CAR:
+  VW_GOLF_GTI_MK7 = "Volkswagen Golf GTI Mk7"
   VW_GOLF_R_MK7 = "Volkswagen Golf R Mk7"
 
-MQB_CARS = {CAR.VW_GOLF_R_MK7}
+MQB_CARS = {
+  CAR.VW_GOLF_GTI_MK7,
+  CAR.VW_GOLF_R_MK7
+}
 
+# Volkswagen port using FP 2.0 exclusively
 FINGERPRINTS = {}
 
 FW_VERSIONS = {
+  CAR.VW_GOLF_GTI_MK7: {
+    # Mk7 2013-2017 and Mk7.5 facelift 2018-2020
+    (Ecu.eps, 0x712, None): [b'5011', b'5043', b'5061', b'5063'],
+    (Ecu.esp, 0x713, None): [b'0371', b'0385', b'0393', b'0557'],
+    (Ecu.srs, 0x715, None): [b'0385', b'0386', b'0825', b'0830'],
+  },
   CAR.VW_GOLF_R_MK7: {
-    (Ecu.gateway, 0x710,  None): [b'4326'],
-    (Ecu.eps, 0x712,      None): [b'5081'],
-    (Ecu.esp, 0x713,      None): [b'0523'],
-    (Ecu.srs, 0x715,      None): [b'0830'],
+    # Mk7 2013-2017 and Mk7.5 facelift 2018-2020
+    (Ecu.eps, 0x712, None): [b'5043', b'5072', b'5081', b'5082'],
+    (Ecu.esp, 0x713, None): [b'0108', b'0457', b'0523', b'0557', b'0643'],
+    (Ecu.srs, 0x715, None): [b'0385', b'0386', b'0825', b'0830'],
   },
 }
 
 DBC = {
+  CAR.VW_GOLF_GTI_MK7: dbc_dict('vw_mqb_2010', None),
   CAR.VW_GOLF_R_MK7: dbc_dict('vw_mqb_2010', None),
 }
