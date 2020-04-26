@@ -24,10 +24,12 @@ class CarInterface(CarInterfaceBase):
   def get_params(candidate, fingerprint=gen_empty_fingerprint(), has_relay=False, car_fw=[]):
     ret = CarInterfaceBase.get_std_params(candidate, fingerprint, has_relay)
 
+    ret.enableCamera = True  # Stock camera detection doesn't apply to VW
+    ret.carName = "volkswagen"
+    ret.radarOffCan = True
+
     if candidate == CAR.GENERICMQB:
       # Set common MQB parameters that will apply globally
-      ret.carName = "volkswagen"
-      ret.radarOffCan = True
       ret.safetyModel = car.CarParams.SafetyModel.volkswagen
 
       # Additional common MQB parameters that may be overridden per-vehicle
@@ -40,7 +42,6 @@ class CarInterface(CarInterfaceBase):
 
       # FIXME: Per-vehicle parameters need to be reintegrated.
       # Until that time, defaulting to VW Golf Mk7 as a baseline.
-
       ret.mass = 1500 + STD_CARGO_KG
       ret.wheelbase = 2.64
       ret.centerToFront = ret.wheelbase * 0.45
@@ -49,9 +50,6 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.pid.kpV = [0.6]
       ret.lateralTuning.pid.kiV = [0.2]
       tire_stiffness_factor = 1.0
-
-    ret.enableCamera = True  # Stock camera detection doesn't apply to VW
-    ret.transmissionType = car.CarParams.TransmissionType.automatic
 
     # Determine installed network location by checking for radar-camera
     # sensor fusion messages on bus 1.
