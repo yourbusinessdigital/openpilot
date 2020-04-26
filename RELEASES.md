@@ -1,7 +1,8 @@
 Version 0.7.5 + VW 1.4 (2020-04-25)
 ========================
- * (VW Community) Support CAN signals for FCW/AEB
+ * (VW Community) Support for blocking auto lane changes if blind spot warning is active!
  * (VW Community) Support CAN signals for Lane Change Assist
+ * (VW Community) Support CAN signals for FCW/AEB
  * Right-Hand Drive support for both driving and driver monitoring!
  * New driver monitoring model: overall improvement on comma two
  * Driver camera preview in settings to improve mounting position
