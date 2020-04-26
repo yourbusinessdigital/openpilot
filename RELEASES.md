@@ -1,14 +1,25 @@
-Version 0.7.5 (2020-04-23)
+Version 0.7.5 + VW 1.4 (2020-04-25)
 ========================
-* Right-Hand Drive support for both driving and driver monitoring!
-* New driver monitoring model: overall improvement on comma two
-* Driver camera preview in settings to improve mounting position
-* Added support for many Hyundai, Kia, Genesis models thanks to xx979xx!
-* 2019 Nissan X-Trail and 2018 Nissan Leaf support thanks to avolmensky!
-* Improved lateral tuning for 2020 Toyota Rav 4 (hybrid)
+ * (VW Community) Support CAN signals for FCW/AEB
+ * (VW Community) Support CAN signals for Lane Change Assist
+ * Right-Hand Drive support for both driving and driver monitoring!
+ * New driver monitoring model: overall improvement on comma two
+ * Driver camera preview in settings to improve mounting position
+ * Added support for many Hyundai, Kia, Genesis models thanks to xx979xx!
+ * 2019 Nissan X-Trail and 2018 Nissan Leaf support thanks to avolmensky!
+ * Improved lateral tuning for 2020 Toyota Rav 4 (hybrid)
 
-Version 0.7.4 (2020-03-20)
+Version 0.7.4 + VW 1.3 (2020-04-17)
 ========================
+ * (VW Community) Hotfix for SEAT Ateca missing CAN messages
+ * (VW Community) Hotfix for manual trans users
+ * (VW Community) Hotfix to add missing CAN messages from VW Touran
+ * (VW Community) Hotfix to add missing CAN messages from high-trim Skoda Superb
+ * (VW Community) Network position auto-detect, no more R242 vs J533 branch!
+ * (VW Community) Trans type auto-detect, no more regular vs manual/e-Golf branch!
+ * (VW Community) Now fully in-sync with Comma upstream safety at full torque!
+ * (VW Community) Improved ISO24242 compliance in Panda code
+ * (VW Community) Fix for virtual Panda relay code breaking BP/C2 cars with real relays
  * New driving model: improved lane changes and lead car detection
  * Improved driver monitoring model: improve eye detection
  * Improved calibration stability
@@ -25,8 +36,18 @@ Version 0.7.3 (2020-02-21)
  * Speed up ECU firmware query
  * Fix bug where manager would sometimes hang after shutting down the car
 
-Version 0.7.2 (2020-02-07)
+Version 0.7.2 + VW 1.2.1 (2020-03-05)
 ========================
+ * (VW Community) Hotfix for "no comms between process" on cars without factory LKAS
+ * (VW Community) Hotfix for occasional steering fault messages after engaging
+
+Version 0.7.2 + VW 1.2 (2020-02-08)
+========================
+ * (VW Community) Updated MQB tuning parameters for less ping-pong and better banked road handling
+ * (VW Community) Updated CC button handling for 2019 vehicles with overloaded Set/Resume semantics
+ * (VW Community) First steps toward improving auto-resume from stop, more to come
+ * (VW Community) New fingerprint messages in support of the 2019 Jetta
+ * (VW Community) Additional Panda safety CRC and counter validation
  * ECU firmware version based fingerprinting for Honda & Toyota
  * New driving model: improved path prediction during turns and lane changes and better lead speed tracking
  * Improve driver monitoring under extreme lighting and add low accuracy alert
@@ -43,8 +64,11 @@ Version 0.7.1 (2020-01-20)
  * More robust updater thanks to jyoung8607! Requires NEOS update
  * Improve low speed ACC tuning
 
-Version 0.7 (2019-12-13)
+Version 0.7 + VW 1.1 (2020-01-01)
 ========================
+ * (VW Community) Enabled Comma's unofficial Lane Change Assist feature!
+ * (VW Community) Advanced Virtual Relay Technology!
+ * (VW Community) Closer alignment with Comma recommended safety parameters
  * Move to SCons build system!
  * Add Lane Departure Warning (LDW) for all supported vehicles!
  * NEOS update: increase wifi speed thanks to jyoung8607!
