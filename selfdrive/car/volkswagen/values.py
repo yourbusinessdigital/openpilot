@@ -67,7 +67,7 @@ FINGERPRINTS = {}
 FW_VERSIONS = {
   CAR.VW_ATLAS_MK1: {
     # Mk1 2018-2020 and Mk1.5 facelift 2021
-    (Ecu.eps, 0x712, None): [b'71B60924A1'],  # 2019 Atlas
+    (Ecu.eps, 0x712, None): [b'\x0571B60924A1'],  # 2019 Atlas
   },
   CAR.VW_GOLF_R_MK7: {
     # Mk7 2013-2017 and Mk7.5 facelift 2018-2020
@@ -75,7 +75,7 @@ FW_VERSIONS = {
   },
   CAR.VW_TIGUAN_MK2: {
     # Mk2 2018-2020
-    (Ecu.eps, 0x712, None): [b'21A60804A1'],  # 2020 Tiguan SEL Premium R-Line
+    (Ecu.eps, 0x712, None): [b'\x0521A60804A1'],  # 2020 Tiguan SEL Premium R-Line
   },
 }
 
