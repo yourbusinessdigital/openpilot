@@ -51,33 +51,34 @@ MQB_LDW_MESSAGES = {
 }
 
 class CAR:
-  VW_GOLF_GTI_MK7 = "Volkswagen Golf GTI Mk7"
-  VW_GOLF_R_MK7 = "Volkswagen Golf R Mk7"
+  VW_ATLAS_MK1 = "Volkswagen Atlas 1st Gen"
+  VW_GOLF_R_MK7 = "Volkswagen Golf R 7th Gen"
+  VW_TIGUAN_MK2 = "Volkswagen Tiguan 2nd Gen"
 
 MQB_CARS = {
-  CAR.VW_GOLF_GTI_MK7,
-  CAR.VW_GOLF_R_MK7
+  CAR.VW_ATLAS_MK1,
+  CAR.VW_GOLF_R_MK7,
+  CAR.VW_TIGUAN_MK2
 }
 
 # Volkswagen port using FP 2.0 exclusively
 FINGERPRINTS = {}
 
 FW_VERSIONS = {
-  CAR.VW_GOLF_GTI_MK7: {
-    # Mk7 2013-2017 and Mk7.5 facelift 2018-2020
-    (Ecu.eps, 0x712, None): [b'5011', b'5043', b'5061', b'5063'],
-    (Ecu.esp, 0x713, None): [b'0371', b'0385', b'0393', b'0557'],
-    (Ecu.srs, 0x715, None): [b'0385', b'0386', b'0825', b'0830'],
+  CAR.VW_ATLAS_MK1: {
+    # Mk1 2018-2020 and Mk1.5 facelift 2021
+    (Ecu.eps, 0x712, None): [b'71B60924A1'],  # 2019 Atlas
   },
   CAR.VW_GOLF_R_MK7: {
     # Mk7 2013-2017 and Mk7.5 facelift 2018-2020
-    (Ecu.eps, 0x712, None): [b'5043', b'5072', b'5081', b'5082'],
-    (Ecu.esp, 0x713, None): [b'0108', b'0457', b'0523', b'0557', b'0643'],
-    (Ecu.srs, 0x715, None): [b'0385', b'0386', b'0825', b'0830'],
+    (Ecu.eps, 0x712, None): [b'71A0JA15A1'],  # 2018 Golf R
+  },
+  CAR.VW_TIGUAN_MK2: {
+    # Mk2 2018-2020
+    (Ecu.eps, 0x712, None): [b'21A60804A1'],  # 2020 Tiguan SEL Premium R-Line
   },
 }
 
 DBC = {
-  CAR.VW_GOLF_GTI_MK7: dbc_dict('vw_mqb_2010', None),
   CAR.VW_GOLF_R_MK7: dbc_dict('vw_mqb_2010', None),
 }

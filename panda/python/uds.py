@@ -468,13 +468,14 @@ class IsoTpMessage():
 
 FUNCTIONAL_ADDRS = [0x7DF, 0x18DB33F1]
 
-def get_rx_addr_for_tx_addr(tx_addr):
+def get_rx_addr_for_tx_addr(tx_addr, rx_offset=0x8):
   if tx_addr in FUNCTIONAL_ADDRS:
     return None
 
   if tx_addr < 0xFFF8:
-    # standard 11 bit response addr (add 8) -- Hax to 6A for VW until refactor
-    return tx_addr + 0x6A
+    # Standard 11 bit response addr (add 8), unless overridden
+    # Some manufacturers use different offsets
+    return tx_addr + rx_offset
 
   if tx_addr > 0x10000000 and tx_addr < 0xFFFFFFFF:
     # standard 29 bit response addr (flip last two bytes)

@@ -39,7 +39,15 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.pid.kpBP = [0.]
       ret.lateralTuning.pid.kiBP = [0.]
 
-      if candidate == CAR.VW_GOLF_R_MK7:
+      if candidate == CAR.VW_ATLAS_MK1:
+        ret.mass = 2042 + STD_CARGO_KG
+        ret.wheelbase = 2.98
+        ret.centerToFront = ret.wheelbase * 0.45
+        ret.steerRatio = 16.3
+        ret.lateralTuning.pid.kf = 0.00006
+        ret.lateralTuning.pid.kpV = [0.6]
+        ret.lateralTuning.pid.kiV = [0.2]
+      elif candidate == CAR.VW_GOLF_R_MK7:
         ret.mass = 1500 + STD_CARGO_KG
         ret.wheelbase = 2.64
         ret.centerToFront = ret.wheelbase * 0.45
@@ -47,6 +55,16 @@ class CarInterface(CarInterfaceBase):
         ret.lateralTuning.pid.kf = 0.00006
         ret.lateralTuning.pid.kpV = [0.6]
         ret.lateralTuning.pid.kiV = [0.2]
+      elif candidate == CAR.VW_TIGUAN_MK2:
+        ret.mass = 1745 + STD_CARGO_KG
+        ret.wheelbase = 2.79
+        ret.centerToFront = ret.wheelbase * 0.45
+        ret.steerRatio = 15.6
+        ret.lateralTuning.pid.kf = 0.00006
+        ret.lateralTuning.pid.kpV = [0.6]
+        ret.lateralTuning.pid.kiV = [0.2]
+      else:
+        assert False  # Unsupported vehicle
 
     ret.enableCamera = True  # Stock camera detection doesn't apply to VW
     ret.transmissionType = car.CarParams.TransmissionType.automatic
