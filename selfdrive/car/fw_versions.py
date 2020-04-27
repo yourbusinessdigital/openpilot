@@ -3,7 +3,7 @@ import traceback
 import struct
 from tqdm import tqdm
 
-from selfdrive.car.isotp_parallel_query import IsoTpParallelQuery
+from selfdrive.car.isotp_parallel_query import IsoTpParallelQuery, RX_OFFSET
 from selfdrive.swaglog import cloudlog
 from selfdrive.car.fingerprints import FW_VERSIONS
 from selfdrive.car.toyota.values import CAR as TOYOTA
@@ -11,10 +11,6 @@ import panda.python.uds as uds
 
 from cereal import car
 Ecu = car.CarParams.Ecu
-
-class RX_OFFSET:
-  DEFAULT = 0x8
-  VOLKSWAGEN = 0x6A
 
 def p16(val):
   return struct.pack("!H", val)
