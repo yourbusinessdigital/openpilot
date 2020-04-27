@@ -71,7 +71,7 @@ FW_VERSIONS = {
   },
   CAR.VW_GOLF_R_MK7: {
     # Mk7 2013-2017 and Mk7.5 facelift 2018-2020
-    (Ecu.eps, 0x712, None): [b'71A0JA15A1'],  # 2018 Golf R
+    (Ecu.eps, 0x712, None): [b'\x0571A0JA15A1'],  # 2018 Golf R
   },
   CAR.VW_TIGUAN_MK2: {
     # Mk2 2018-2020
