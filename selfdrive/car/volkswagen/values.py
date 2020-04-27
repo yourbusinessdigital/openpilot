@@ -80,5 +80,7 @@ FW_VERSIONS = {
 }
 
 DBC = {
+  CAR.VW_ATLAS_MK1: dbc_dict('vw_mqb_2010', None),
   CAR.VW_GOLF_R_MK7: dbc_dict('vw_mqb_2010', None),
+  CAR.VW_TIGUAN_MK2: dbc_dict('vw_mqb_2010', None),
 }
