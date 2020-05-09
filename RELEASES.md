@@ -1,4 +1,4 @@
-Version 0.7.5 + VW 1.4 (2020-04-25)
+Version 0.7.5 + VW 1.4 (2020-05-09)
 ========================
  * (VW Community) Support for blocking auto lane changes if blind spot warning is active!
  * (VW Community) Support CAN signals for Lane Change Assist
