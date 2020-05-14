@@ -52,11 +52,13 @@ static void set_awake(UIState *s, bool awake) {
       LOGW("awake normal");
       framebuffer_set_power(s->fb, HWC_POWER_MODE_NORMAL);
       enable_event_processing(true);
+      update_offroad_layout_state(s);
     } else {
       LOGW("awake off");
       set_brightness(s, 0);
       framebuffer_set_power(s->fb, HWC_POWER_MODE_OFF);
       enable_event_processing(false);
+      update_offroad_layout_state(s);
     }
   }
 #else
