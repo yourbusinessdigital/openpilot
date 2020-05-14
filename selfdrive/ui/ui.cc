@@ -38,6 +38,24 @@ static void enable_event_processing(bool yes) {
   }
 }
 
+static void update_offroad_layout_state(UIState *s) {
+  capnp::MallocMessageBuilder msg;
+  auto event = msg.initRoot<cereal::Event>();
+  event.setLogMonoTime(nanos_since_boot());
+  auto layout = event.initUiLayoutState();
+  layout.setSidebarCollapsed(s->scene.uilayout_sidebarcollapsed);
+  // Prevent offroad from trying to render if the display is off
+  if (s->awake) {
+    layout.setActiveApp(s->active_app);
+  } else {
+    layout.setActiveApp(cereal::UiLayoutState::App::NONE);
+  }
+  auto words = capnp::messageToFlatArray(msg);
+  auto bytes = words.asBytes();
+  s->offroad_sock->send((char*)bytes.begin(), bytes.size());
+  LOGD("setting active app to %d with sidebar %d", (int)s->active_app, s->scene.uilayout_sidebarcollapsed);
+}
+
 static void set_awake(UIState *s, bool awake) {
 #ifdef QCOM
   if (awake) {
@@ -65,24 +83,6 @@ static void set_awake(UIState *s, bool awake) {
   // computer UI doesn't sleep
   s->awake = true;
 #endif
-}
-
-static void update_offroad_layout_state(UIState *s) {
-  capnp::MallocMessageBuilder msg;
-  auto event = msg.initRoot<cereal::Event>();
-  event.setLogMonoTime(nanos_since_boot());
-  auto layout = event.initUiLayoutState();
-  layout.setSidebarCollapsed(s->scene.uilayout_sidebarcollapsed);
-  // Prevent offroad from trying to render if the display is off
-  if (s->awake) {
-    layout.setActiveApp(s->active_app);
-  } else {
-    layout.setActiveApp(cereal::UiLayoutState::App::NONE);
-  }
-  auto words = capnp::messageToFlatArray(msg);
-  auto bytes = words.asBytes();
-  s->offroad_sock->send((char*)bytes.begin(), bytes.size());
-  LOGD("setting active app to %d with sidebar %d", (int)s->active_app, s->scene.uilayout_sidebarcollapsed);
 }
 
 static void navigate_to_settings(UIState *s) {
