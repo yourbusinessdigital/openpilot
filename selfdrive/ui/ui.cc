@@ -43,12 +43,13 @@ static void update_offroad_layout_state(UIState *s) {
   auto event = msg.initRoot<cereal::Event>();
   event.setLogMonoTime(nanos_since_boot());
   auto layout = event.initUiLayoutState();
-  layout.setSidebarCollapsed(s->scene.uilayout_sidebarcollapsed);
   // Prevent offroad from trying to render if the display is off
   if (s->awake) {
     layout.setActiveApp(s->active_app);
+    layout.setSidebarCollapsed(s->scene.uilayout_sidebarcollapsed);
   } else {
     layout.setActiveApp(cereal::UiLayoutState::App::NONE);
+    layout.setSidebarCollapsed(true);
   }
   auto words = capnp::messageToFlatArray(msg);
   auto bytes = words.asBytes();
