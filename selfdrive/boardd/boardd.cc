@@ -631,7 +631,7 @@ void *can_send_thread(void *crap) {
   while (!do_exit) {
     can_send(subscriber);
   }
-  
+
   delete subscriber;
   delete context;
   return NULL;
@@ -931,7 +931,7 @@ int main() {
   LOGW("starting boardd");
 
   // set process priority
-  err = set_realtime_priority(4);
+  err = set_realtime_priority(54);
   LOG("setpriority returns %d", err);
 
   // check the environment

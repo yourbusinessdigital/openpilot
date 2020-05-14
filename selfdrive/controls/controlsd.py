@@ -55,7 +55,7 @@ def events_to_bytes(events):
 class Controls:
   def __init__(self, sm=None, pm=None, can_sock=None):
     gc.disable()
-    set_realtime_priority(3)
+    set_realtime_priority(53)
 
     # Setup sockets
     self.pm = pm

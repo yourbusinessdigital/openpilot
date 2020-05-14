@@ -379,7 +379,7 @@ void* processing_thread(void *arg) {
 
   set_thread_name("processing");
 
-  err = set_realtime_priority(1);
+  err = set_realtime_priority(51);
   LOG("setpriority returns %d", err);
 
   // init cl stuff
@@ -1103,7 +1103,7 @@ void init_buffers(VisionState *s) {
     s->rgb_front_width = s->cameras.front.ci.frame_width;
     s->rgb_front_height = s->cameras.front.ci.frame_height;
   }
-  
+
 
   for (int i=0; i<UI_BUF_COUNT; i++) {
     VisionImg img = visionimg_alloc_rgb24(s->rgb_front_width, s->rgb_front_height, &s->rgb_front_bufs[i]);
@@ -1171,7 +1171,7 @@ void init_buffers(VisionState *s) {
     assert(err == 0);
   }
 
-  s->prg_rgb_laplacian = build_conv_program(s, s->rgb_width/NUM_SEGMENTS_X, s->rgb_height/NUM_SEGMENTS_Y, 
+  s->prg_rgb_laplacian = build_conv_program(s, s->rgb_width/NUM_SEGMENTS_X, s->rgb_height/NUM_SEGMENTS_Y,
                                             3);
   s->krnl_rgb_laplacian = clCreateKernel(s->prg_rgb_laplacian, "rgb2gray_conv2d", &err);
   assert(err == 0);
@@ -1244,7 +1244,7 @@ void party(VisionState *s) {
 #endif
 
   // priority for cameras
-  err = set_realtime_priority(1);
+  err = set_realtime_priority(51);
   LOG("setpriority returns %d", err);
 
   cameras_run(&s->cameras);
@@ -1275,7 +1275,7 @@ void party(VisionState *s) {
 
 int main(int argc, char *argv[]) {
   int err;
-  set_realtime_priority(1);
+  set_realtime_priority(51);
 
   zsys_handler_set(NULL);
   signal(SIGINT, (sighandler_t)set_do_exit);
