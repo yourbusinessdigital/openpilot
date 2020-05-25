@@ -5,12 +5,13 @@ from selfdrive.car.interfaces import CarStateBase
 from opendbc.can.parser import CANParser
 from opendbc.can.can_define import CANDefine
 from selfdrive.car.volkswagen.values import DBC, CANBUS, BUTTON_STATES, CarControllerParams
+from selfdrive.car.volkswagen.interface import GEAR
 
 class CarState(CarStateBase):
   def __init__(self, CP):
     super().__init__(CP)
-    can_define = CANDefine(DBC[CP.carFingerprint]['pt'])
-    self.shifter_values = can_define.dv["Getriebe_11"]['GE_Fahrstufe']
+    #can_define = CANDefine(DBC[CP.carFingerprint]['pt'])
+    #self.shifter_values = can_define.dv["Getriebe_11"]['GE_Fahrstufe']
     self.buttonStates = BUTTON_STATES.copy()
 
   def update(self, pt_cp):
@@ -42,8 +43,9 @@ class CarState(CarStateBase):
     ret.brakeLights = bool(pt_cp.vl["ESP_05"]['ESP_Status_Bremsdruck'])
 
     # Update gear and/or clutch position data.
-    can_gear_shifter = int(pt_cp.vl["Getriebe_11"]['GE_Fahrstufe'])
-    ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(can_gear_shifter, None))
+    #can_gear_shifter = int(pt_cp.vl["Getriebe_11"]['GE_Fahrstufe'])
+    #ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(can_gear_shifter, None))
+    ret.gearShifter = GEAR.drive
 
     # Update door and trunk/hatch lid open status.
     ret.doorOpen = any([pt_cp.vl["Gateway_72"]['ZV_FT_offen'],
@@ -134,7 +136,7 @@ class CarState(CarStateBase):
       ("ZV_HD_offen", "Gateway_72", 0),             # Trunk or hatch open
       ("BH_Blinker_li", "Gateway_72", 0),           # Left turn signal on
       ("BH_Blinker_re", "Gateway_72", 0),           # Right turn signal on
-      ("GE_Fahrstufe", "Getriebe_11", 0),           # Auto trans gear selector position
+      #("GE_Fahrstufe", "Getriebe_11", 0),           # Auto trans gear selector position
       ("AB_Gurtschloss_FA", "Airbag_02", 0),        # Seatbelt status, driver
       ("AB_Gurtschloss_BF", "Airbag_02", 0),        # Seatbelt status, passenger
       ("ESP_Fahrer_bremst", "ESP_05", 0),           # Brake pedal pressed
@@ -178,7 +180,7 @@ class CarState(CarStateBase):
       ("TSK_06", 50),       # From J623 Engine control module
       ("GRA_ACC_01", 33),   # From J??? steering wheel control buttons
       ("ACC_02", 17),       # From J428 ACC radar control module
-      ("Getriebe_11", 20),  # From J743 Auto transmission control module
+      #("Getriebe_11", 20),  # From J743 Auto transmission control module
       ("Gateway_72", 10),   # From J533 CAN gateway (aggregated data)
       ("Motor_14", 10),     # From J623 Engine control module
       ("Airbag_02", 5),     # From J234 Airbag control module
